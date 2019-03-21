@@ -1,5 +1,5 @@
 {
-  "name": "upload-server",
+  "name": "upload-server-1",
   "version": "1.1.6",
   "description": "Simple HTTP file upload server",
   "main": "index.js",
@@ -11,7 +11,7 @@
     "test": "mocha test",
     "start": "node index.js"
   },
-  "author": "Antonio Aguilar",
+  "author": "Horoliuk Maksym",
   "license": "MIT",
   "dependencies": {
     "express": "^4.14.0",
@@ -24,7 +24,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/antonioaguilar/upload-server.git"
+    "url": "git+https://github.com/gorolykmaxim/upload-server.git"
   },
   "keywords": [
     "file",
@@ -33,9 +33,9 @@
     "multi-form"
   ],
   "bugs": {
-    "url": "https://github.com/antonioaguilar/upload-server/issues"
+    "url": "https://github.com/gorolykmaxim/upload-server/issues"
   },
-  "homepage": "https://github.com/antonioaguilar/upload-server#readme",
+  "homepage": "https://github.com/gorolykmaxim/upload-server#readme",
   "devDependencies": {
     "chai": "^4.2.0",
     "mocha": "^6.0.2",

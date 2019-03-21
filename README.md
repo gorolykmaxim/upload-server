@@ -1,3 +1,9 @@
+Slightly modified version of original https://www.npmjs.com/package/upload-server made by Antonio Aguilar.
+
+Difference is in case specified file should be uploaded to a sub-directory of a default directory,
+a necessary directory structure will be automatically created.
+Also handles some security things a tiny bit better. 
+
 # Simple file upload server
 
 Simple file server with multipart/form-data and large file support
