@@ -7,6 +7,7 @@ var http = require('http');
 var https = require('https');
 var express = require('express');
 var multer = require('multer');
+var fileResolver = require('./file');
 var html = require('./tpl');
 var pkg = require('./package.json');
 var serveIndex = require('serve-index');
@@ -15,7 +16,7 @@ var app = express();
 
 var default_host = ip.address();
 var default_port = argv.p || argv.port || 8090;
-var default_folder = argv.f || argv.folder || 'files';
+var default_folder = path.resolve(argv.f || argv.folder || 'files');
 var version = argv.v || argv.version;
 var tls_enabled = argv.S || argv.tls;
 var cert_file = argv.C || argv.cert;
@@ -59,15 +60,14 @@ if(!fs.existsSync(default_folder)) {
   fs.mkdirSync(default_folder);
 }
 
-console.log('[' + new Date().toISOString() + '] - Serving files from folder:', process.cwd() + '/' + default_folder);
+console.log('[' + new Date().toISOString() + '] - Serving files from folder:', default_folder);
 
 var storage = multer.diskStorage({
   destination: function(req, file, cb) {
     cb(null, default_folder);
   },
   filename: function(req, file, cb) {
-    var fieldName = 'file';
-    req.body[fieldName] ? cb(null, req.body[fieldName]) : cb(null, file.originalname);
+    fileResolver.resolveRelativePath(default_folder, req.body.file, cb);
   }
 });
 

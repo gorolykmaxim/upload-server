@@ -8,7 +8,7 @@
     "upload-server": "index.js"
   },
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "test": "mocha test",
     "start": "node index.js"
   },
   "author": "Antonio Aguilar",
@@ -18,6 +18,7 @@
     "express-directory": "0.0.2",
     "ip": "^1.1.5",
     "minimist": "^1.2.0",
+    "mkdirp": "^0.5.1",
     "multer": "^1.2.1",
     "serve-index": "^1.9.0"
   },
@@ -34,5 +35,10 @@
   "bugs": {
     "url": "https://github.com/antonioaguilar/upload-server/issues"
   },
-  "homepage": "https://github.com/antonioaguilar/upload-server#readme"
+  "homepage": "https://github.com/antonioaguilar/upload-server#readme",
+  "devDependencies": {
+    "chai": "^4.2.0",
+    "mocha": "^6.0.2",
+    "mock-require": "^3.0.3"
+  }
 }
