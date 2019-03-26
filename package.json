@@ -20,6 +20,7 @@
     "minimist": "^1.2.0",
     "mkdirp": "^0.5.1",
     "multer": "^1.2.1",
+    "rimraf": "^2.6.3",
     "serve-index": "^1.9.0"
   },
   "repository": {

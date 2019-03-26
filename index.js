@@ -12,6 +12,7 @@ var html = require('./tpl');
 var pkg = require('./package.json');
 var serveIndex = require('serve-index');
 var argv = require('minimist')(process.argv.slice(2));
+var rimraf = require('rimraf');
 var app = express();
 
 var default_host = ip.address();
@@ -95,6 +96,28 @@ app.post('/upload', upload.any(), function(req, res) {
   console.log('[' + new Date().toISOString() + '] - File uploaded:', req.files[0].path);
   res.redirect('/' + default_folder);
   res.end();
+});
+
+app.post('/delete', function (req, res) {
+  fileResolver.resolveRelativePath(default_folder, req.query.file, function (err, resolvedPath) {
+    function handleError(err) {
+      res.end(err ? err.toString() + '\n' : undefined)
+    }
+    if (err) {
+      handleError(err)
+    } else {
+      var absolutePath = path.join(default_folder, resolvedPath);
+      fs.lstat(absolutePath, function (err, stats) {
+        if (err) {
+          handleError(err);
+        } else if (stats.isDirectory()) {
+          rimraf(absolutePath, handleError)
+        } else {
+          fs.unlink(absolutePath, handleError);
+        }
+      });
+    }
+  }, false);
 });
 
 if(tls_enabled && cert_file && key_file) {

@@ -1,7 +1,8 @@
 var path = require('path');
 var mkdirp = require('mkdirp');
 
-function resolveRelativePath(rootDirectory, specifiedPath, callback) {
+function resolveRelativePath(rootDirectory, specifiedPath, callback, createDirectoryIfNotExists) {
+    createDirectoryIfNotExists = createDirectoryIfNotExists || true;
     if (!specifiedPath) {
         callback(new Error('Specify path, on which the file should be saved'), null);
     } else {
@@ -10,13 +11,17 @@ function resolveRelativePath(rootDirectory, specifiedPath, callback) {
             callback(new Error('File save path should located in a subdirectory of ' + rootDirectory), null);
         } else {
             var fileDirectory = path.dirname(absolutePathToFile);
-            mkdirp(fileDirectory, function (err) {
-                if (err) {
-                    callback(err, null);
-                } else {
-                    callback(null, path.relative(rootDirectory, absolutePathToFile));
-                }
-            });
+            if (createDirectoryIfNotExists) {
+                mkdirp(fileDirectory, function (err) {
+                    if (err) {
+                        callback(err, null);
+                    } else {
+                        callback(null, path.relative(rootDirectory, absolutePathToFile));
+                    }
+                });
+            } else {
+                callback(null, path.relative(rootDirectory, absolutePathToFile));
+            }
         }
     }
 }
