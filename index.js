@@ -101,7 +101,10 @@ app.post('/upload', upload.any(), function(req, res) {
 app.post('/delete', function (req, res) {
   fileResolver.resolveRelativePath(default_folder, req.query.file, function (err, resolvedPath) {
     function handleError(err) {
-      res.end(err ? err.toString() + '\n' : undefined)
+      res.end(err ? err.toString() + '\n' : undefined);
+      if (!err) {
+        console.log('[' + new Date().toISOString() + '] - File removed:', resolvedPath);
+      }
     }
     if (err) {
       handleError(err)
