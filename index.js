@@ -72,6 +72,17 @@ var storage = multer.diskStorage({
   }
 });
 
+function createResultHandler(successMessage, res) {
+  return function (err) {
+    if (err) {
+      res.end(err.toString() + '\n');
+    } else {
+      res.end();
+      console.log('[' + new Date().toISOString() + '] - ' + successMessage);
+    }
+  };
+}
+
 var upload = multer({ storage: storage });
 
 app.use('/' + default_folder, serveIndex(process.cwd() + '/' + default_folder));
@@ -98,25 +109,39 @@ app.post('/upload', upload.any(), function(req, res) {
   res.end();
 });
 
-app.post('/delete', function (req, res) {
+app.post('/move', function (req, res) {
+  var handleResult = createResultHandler("File moved from " + req.query.old_file + " to " + req.query.file, res);
   fileResolver.resolveRelativePath(default_folder, req.query.file, function (err, resolvedPath) {
-    function handleError(err) {
-      res.end(err ? err.toString() + '\n' : undefined);
-      if (!err) {
-        console.log('[' + new Date().toISOString() + '] - File removed:', resolvedPath);
-      }
-    }
     if (err) {
-      handleError(err)
+      handleResult(err);
+    } else {
+      fileResolver.resolveRelativePath(default_folder, req.query.old_file, function (err, oldResolvedPath) {
+        if (err) {
+          handleResult(err);
+        } else {
+          oldResolvedPath = path.join(default_folder, oldResolvedPath);
+          resolvedPath = path.join(default_folder, resolvedPath);
+          fs.rename(oldResolvedPath, resolvedPath, handleResult);
+        }
+      })
+    }
+  }, false);
+});
+
+app.post('/delete', function (req, res) {
+  var handleResult = createResultHandler("File removed: " + req.query.file, res);
+  fileResolver.resolveRelativePath(default_folder, req.query.file, function (err, resolvedPath) {
+    if (err) {
+      handleResult(err);
     } else {
       var absolutePath = path.join(default_folder, resolvedPath);
       fs.lstat(absolutePath, function (err, stats) {
         if (err) {
-          handleError(err);
+          handleResult(err);
         } else if (stats.isDirectory()) {
-          rimraf(absolutePath, handleError)
+          rimraf(absolutePath, handleResult);
         } else {
-          fs.unlink(absolutePath, handleError);
+          fs.unlink(absolutePath, handleResult);
         }
       });
     }
