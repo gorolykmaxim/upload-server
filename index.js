@@ -1,18 +1,20 @@
 #!/usr/bin/env node
 
-var fs = require('fs');
+var Promise = require('bluebird');
+var fs = Promise.promisifyAll(require('fs'));
 var ip = require('ip');
 var path = require('path');
 var http = require('http');
 var https = require('https');
 var express = require('express');
 var multer = require('multer');
-var fileResolver = require('./file');
+var mkdirp = Promise.promisify(require('mkdirp'));
+var file = require('./file');
 var html = require('./tpl');
 var pkg = require('./package.json');
 var serveIndex = require('serve-index');
 var argv = require('minimist')(process.argv.slice(2));
-var rimraf = require('rimraf');
+var rimraf = Promise.promisify(require('rimraf'));
 var app = express();
 
 var default_host = ip.address();
@@ -63,25 +65,20 @@ if(!fs.existsSync(default_folder)) {
 
 console.log('[' + new Date().toISOString() + '] - Serving files from folder:', default_folder);
 
+var pathResolver = new file.PathResolver(Promise, path, mkdirp);
+
 var storage = multer.diskStorage({
   destination: function(req, file, cb) {
     cb(null, default_folder);
   },
   filename: function(req, file, cb) {
-    fileResolver.resolveRelativePath(default_folder, req.body.file, cb);
+    pathResolver.resolveRelativePath(default_folder, req.body.file).then(function (value) {
+      cb(null, value);
+    }).catch(function (err) {
+      cb(err, null)
+    });
   }
 });
-
-function createResultHandler(successMessage, res) {
-  return function (err) {
-    if (err) {
-      res.end(err.toString() + '\n');
-    } else {
-      res.end();
-      console.log('[' + new Date().toISOString() + '] - ' + successMessage);
-    }
-  };
-}
 
 var upload = multer({ storage: storage });
 
@@ -110,42 +107,39 @@ app.post('/upload', upload.any(), function(req, res) {
 });
 
 app.post('/move', function (req, res) {
-  var handleResult = createResultHandler("File moved from " + req.query.old_file + " to " + req.query.file, res);
-  fileResolver.resolveRelativePath(default_folder, req.query.file, function (err, resolvedPath) {
-    if (err) {
-      handleResult(err);
-    } else {
-      fileResolver.resolveRelativePath(default_folder, req.query.old_file, function (err, oldResolvedPath) {
-        if (err) {
-          handleResult(err);
-        } else {
-          oldResolvedPath = path.join(default_folder, oldResolvedPath);
-          resolvedPath = path.join(default_folder, resolvedPath);
-          fs.rename(oldResolvedPath, resolvedPath, handleResult);
-        }
-      })
-    }
-  }, false);
+  var newPathPromise = pathResolver.resolveRelativePath(default_folder, req.query.file);
+  var oldPathPromise = pathResolver.resolveRelativePath(default_folder, req.query.old_file, false);
+  Promise.all([oldPathPromise, newPathPromise]).then(function (resolvedPaths) {
+    var oldPath = resolvedPaths[0];
+    var newPath = resolvedPaths[1];
+    var oldResolvedPath = path.join(default_folder, oldPath);
+    var resolvedPath = path.join(default_folder, newPath);
+    return fs.renameAsync(oldResolvedPath, resolvedPath);
+  }).then(function () {
+    res.end();
+    console.log('[' + new Date().toISOString() + '] - ' + 'File moved from ' + req.query.old_file + ' to ' + req.query.file);
+  }).catch(function (err) {
+    res.status(500).end(err.toString() + '\n');
+  });
 });
 
 app.post('/delete', function (req, res) {
-  var handleResult = createResultHandler("File removed: " + req.query.file, res);
-  fileResolver.resolveRelativePath(default_folder, req.query.file, function (err, resolvedPath) {
-    if (err) {
-      handleResult(err);
+  var absolutePath = null;
+  pathResolver.resolveRelativePath(default_folder, req.query.file, false).then(function (value) {
+    absolutePath = path.join(default_folder, value);
+    return fs.lstatAsync(absolutePath);
+  }).then(function (value) {
+    if (value.isDirectory()) {
+      return rimraf(absolutePath);
     } else {
-      var absolutePath = path.join(default_folder, resolvedPath);
-      fs.lstat(absolutePath, function (err, stats) {
-        if (err) {
-          handleResult(err);
-        } else if (stats.isDirectory()) {
-          rimraf(absolutePath, handleResult);
-        } else {
-          fs.unlink(absolutePath, handleResult);
-        }
-      });
+      return fs.unlinkAsync(absolutePath);
     }
-  }, false);
+  }).then(function () {
+    res.end();
+    console.log('[' + new Date().toISOString() + '] - ' + 'File removed: ' + req.query.file);
+  }).catch(function (err) {
+    res.status(500).end(err.toString() + '\n');
+  });
 });
 
 if(tls_enabled && cert_file && key_file) {

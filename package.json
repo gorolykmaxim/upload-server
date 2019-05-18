@@ -14,6 +14,7 @@
   "author": "Horoliuk Maksym",
   "license": "MIT",
   "dependencies": {
+    "bluebird": "^3.5.4",
     "express": "^4.14.0",
     "express-directory": "0.0.2",
     "ip": "^1.1.5",
@@ -40,6 +41,7 @@
   "devDependencies": {
     "chai": "^4.2.0",
     "mocha": "^6.0.2",
-    "mock-require": "^3.0.3"
+    "sinon": "^7.3.2",
+    "sinon-chai": "^3.3.0"
   }
 }
