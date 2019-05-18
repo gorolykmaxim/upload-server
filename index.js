@@ -8,11 +8,15 @@ var http = require('http');
 var https = require('https');
 var express = require('express');
 var multer = require('multer');
+var tail = require('nodejs-tail');
+var ws = require('ws');
+var uuid = require('uuid');
 var mkdirp = Promise.promisify(require('mkdirp'));
 var serveIndex = require('serve-index');
 var argv = require('minimist')(process.argv.slice(2));
 var rimraf = Promise.promisify(require('rimraf'));
 var Deploy = require('./deploy');
+var LogWatcher = require('./log-watch');
 var html = require('./tpl');
 var pkg = require('./package.json');
 
@@ -66,18 +70,29 @@ if(!fs.existsSync(default_folder)) {
 
 console.log('[' + new Date().toISOString() + '] - Serving files from folder:', default_folder);
 
+var server = null;
+var logStartMessage = null;
+if(tls_enabled && cert_file && key_file) {
+  var options = { key: fs.readFileSync(key_file), cert: fs.readFileSync(cert_file) };
+  logStartMessage = '[' + new Date().toISOString() + '] - Server started on https://' + default_host + ':' + default_port;
+  server = https.createServer(options, app);
+}
+else {
+  logStartMessage = '[' + new Date().toISOString() + '] - Server started on http://' + default_host + ':' + default_port;
+  server = http.createServer(app);
+}
+
 var deploy = new Deploy(default_folder, Promise, multer, serveIndex, express, html, path, fs, mkdirp, rimraf, process,
     console);
 deploy.serveOn(app);
 
-if(tls_enabled && cert_file && key_file) {
-  var options = { key: fs.readFileSync(key_file), cert: fs.readFileSync(cert_file) };
-  https.createServer(options, app).listen(default_port, default_host, function() {
-    console.log('[' + new Date().toISOString() + '] - Server started on https://' + default_host + ':' + default_port);
-  });
-}
-else {
-  http.createServer(app).listen(default_port, default_host, function() {
-    console.log('[' + new Date().toISOString() + '] - Server started on http://' + default_host + ':' + default_port);
-  });
-}
+var wss = new ws.Server({server: server});
+var createTail = function(filename) {
+  return new tail(filename);
+};
+var logWatcher = new LogWatcher(createTail, uuid, fs);
+logWatcher.serveOn(wss);
+
+server.listen(default_port, default_host, function () {
+  console.log(logStartMessage);
+});

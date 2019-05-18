@@ -21,8 +21,11 @@
     "minimist": "^1.2.0",
     "mkdirp": "^0.5.1",
     "multer": "^1.2.1",
+    "nodejs-tail": "^1.1.0",
     "rimraf": "^2.6.3",
-    "serve-index": "^1.9.0"
+    "serve-index": "^1.9.0",
+    "uuid": "^3.3.2",
+    "ws": "^7.0.0"
   },
   "repository": {
     "type": "git",
