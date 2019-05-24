@@ -22,7 +22,7 @@ LogWatcher.prototype.sendError = function(recipient, e) {
     recipient.send(error);
 };
 
-LogWatcher.prototype.watch = function(filename, requestor, requestorId) {
+LogWatcher.prototype.watch = function(filename, requestor, requestorId, fromStart) {
     var self = this;
     var tail = self.filenameToTail[filename];
     if (tail === undefined) {
@@ -41,11 +41,13 @@ LogWatcher.prototype.watch = function(filename, requestor, requestorId) {
     }
     if (self.requestorToFilenames[requestorId].indexOf(filename) < 0) {
         self.requestorToFilenames[requestorId].push(filename);
-        self.fs.readFileAsync(filename).then(function (value) {
-            self.sendChange(requestor, filename, value.toString().split('\n'));
-        }).catch(function (err) {
-            self.sendError(requestor, err);
-        });
+        if (fromStart) {
+            self.fs.readFileAsync(filename).then(function (value) {
+                self.sendChange(requestor, filename, value.toString().split('\n'));
+            }).catch(function (err) {
+                self.sendError(requestor, err);
+            });
+        }
     }
     if (self.filenameToRequestors[filename] === undefined) {
         self.filenameToRequestors[filename] = [];
@@ -95,11 +97,12 @@ LogWatcher.prototype.handleMessageFromRequestor = function(message, requestor, r
         message = JSON.parse(message);
         var type = message.type;
         var file = message.file;
+        var fromStart = message.fromStart || false;
         if (this.watchableFiles.indexOf(file) < 0) {
             throw new Error('You are not allowed to watch ' + file);
         }
         if (type === 'watch') {
-            this.watch(file, requestor, requestorId);
+            this.watch(file, requestor, requestorId, fromStart);
         } else if (type === 'unwatch') {
             this.unwatch(file, requestor, requestorId);
         }

@@ -21,6 +21,7 @@ describe('LogWatcher', function () {
     var file = '/files/access.log';
     var line = 'new line in the log';
     var watchMessage = JSON.stringify({type: 'watch', file: file});
+    var watchFromTheBeginningMessage = JSON.stringify({type: 'watch', file: file, fromStart: true});
     var unwatchMessage = JSON.stringify({type: 'unwatch', file: file});
     var changeMessage = JSON.stringify({type: 'change', file: file, changes: [line]});
     beforeEach(function () {
@@ -48,7 +49,7 @@ describe('LogWatcher', function () {
     it('should send already present logs to client, that started watching them', function (done) {
         var message = JSON.stringify({type: 'change', file: file, changes: [line, line, line]});
         fs.readFileAsync.returns(promise.resolve(line + '\n' + line + '\n' + line));
-        watcher.handleMessageFromRequestor(watchMessage, requestor1, requestorId1);
+        watcher.handleMessageFromRequestor(watchFromTheBeginningMessage, requestor1, requestorId1);
         fs.readFileAsync().then(function () {
             expect(requestor1.send).to.have.been.calledOnceWith(message);
             done();
@@ -56,7 +57,7 @@ describe('LogWatcher', function () {
     });
     it('should send error to the client, since watched file does not exist', function (done) {
         fs.readFileAsync.returns(promise.reject(new Error('files does not exist')));
-        watcher.handleMessageFromRequestor(watchMessage, requestor1, requestorId2);
+        watcher.handleMessageFromRequestor(watchFromTheBeginningMessage, requestor1, requestorId2);
         setTimeout(function () {
             expect(requestor1.send).to.have.been.calledOnceWith('{"type":"error","message":"Error: files does not exist"}');
             done();
