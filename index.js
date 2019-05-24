@@ -4,9 +4,13 @@ var Promise = require('bluebird');
 var fs = Promise.promisifyAll(require('fs'));
 var ip = require('ip');
 var path = require('path');
+var EventEmitter = require('events');
 var http = require('http');
 var https = require('https');
 var express = require('express');
+var handlebars = require('express-handlebars');
+var bodyParser = require('body-parser');
+var JsonDb = require('node-json-db');
 var multer = require('multer');
 var tail = require('nodejs-tail');
 var ws = require('ws');
@@ -17,12 +21,13 @@ var argv = require('minimist')(process.argv.slice(2));
 var rimraf = Promise.promisify(require('rimraf'));
 var Deploy = require('./deploy');
 var LogWatcher = require('./log-watch');
+var LogsView = require('./logs-view');
 var html = require('./tpl');
 var pkg = require('./package.json');
 
 var app = express();
 
-var default_host = ip.address();
+var default_host = '0.0.0.0';
 var default_port = argv.p || argv.port || 8090;
 var default_folder = path.resolve(argv.f || argv.folder || 'files');
 var version = argv.v || argv.version;
@@ -82,6 +87,17 @@ else {
   server = http.createServer(app);
 }
 
+var emitter = new EventEmitter();
+var db = new JsonDb('upload-server-db', true, true);
+
+app.use(bodyParser.urlencoded({extended:false}));
+app.engine('handlebars', handlebars({extname: 'handlebars'}));
+app.set('view engine', 'handlebars');
+app.use('/', express.static(path.join(__dirname, 'views')));
+app.get('/', function (req, res) {
+  res.redirect('/web');
+});
+
 var deploy = new Deploy(default_folder, Promise, multer, serveIndex, express, html, path, fs, mkdirp, rimraf, process,
     console);
 deploy.serveOn(app);
@@ -92,6 +108,10 @@ var createTail = function(filename) {
 };
 var logWatcher = new LogWatcher(createTail, uuid, fs);
 logWatcher.serveOn(wss);
+logWatcher.listenTo(emitter);
+
+var logsView = new LogsView(emitter, LogWatcher.SET_WATCHABLE_FILES_EVENT, db);
+logsView.serveOn(app);
 
 server.listen(default_port, default_host, function () {
   console.log(logStartMessage);

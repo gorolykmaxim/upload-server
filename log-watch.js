@@ -8,6 +8,8 @@ function LogWatcher(tail, uuid, fs) {
     this.watchableFiles = [];
 }
 
+LogWatcher.SET_WATCHABLE_FILES_EVENT = 'set watchable files';
+
 LogWatcher.prototype.setAllowedToWatchFiles = function(watchableFiles) {
     this.watchableFiles = watchableFiles;
 };
@@ -122,6 +124,10 @@ LogWatcher.prototype.serveOn = function(wss) {
             self.unwatchAllOf(connection, connectionId);
         });
     });
+};
+
+LogWatcher.prototype.listenTo = function(emitter) {
+    emitter.on(LogWatcher.SET_WATCHABLE_FILES_EVENT, this.setAllowedToWatchFiles.bind(this));
 };
 
 module.exports = LogWatcher;
