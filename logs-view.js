@@ -6,13 +6,17 @@ function LogsView(emitter, addLogEvent, removeLogEvent, db) {
 }
 
 LogsView.prototype.initialize = function() {
-    var logsView = this.db.getData('/logs-view');
-    if (logsView === undefined) {
-        this.db.push('/logs-view', {logs: []});
-    } else {
-        for (var i = 0; i < logsView.logs.length; i++) {
-            this.emitter.emit(this.addLogEvent, logsView.logs[i]);
+    try {
+        var logsView = this.db.getData('/logs-view');
+        if (logsView === undefined) {
+            this.db.push('/logs-view', {logs: []});
+        } else {
+            for (var i = 0; i < logsView.logs.length; i++) {
+                this.emitter.emit(this.addLogEvent, logsView.logs[i]);
+            }
         }
+    } catch (e) {
+        this.db.push('/logs-view', {logs: []});
     }
 };
 

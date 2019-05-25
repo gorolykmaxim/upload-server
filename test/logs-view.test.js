@@ -32,6 +32,11 @@ describe('LogsView', function () {
         logsView.initialize();
         expect(db.push).to.have.been.calledOnceWith('/logs-view', {logs: []});
     });
+    it('should initialize database if it has failed to find expected data structures', function () {
+        db.getData.throws(new Error());
+        logsView.initialize();
+        expect(db.push).to.have.been.calledOnceWith('/logs-view', {logs: []});
+    });
     it('should notify application about logs that can be watched', function () {
         db.getData.returns(logsViewData);
         logsView.initialize();
