@@ -1,7 +1,12 @@
 function CommandExecutor(childProcess, db) {
     this.childProcess = childProcess;
     this.db = db;
+    this.isRestricted = false;
 }
+
+CommandExecutor.prototype.restrict = function() {
+    this.isRestricted = true;
+};
 
 CommandExecutor.prototype.handleExecuteCommand = function(req, res, next) {
     var commandName = req.query.command;
@@ -50,6 +55,7 @@ CommandExecutor.prototype.handleRemoveCommand = function(req, res) {
 CommandExecutor.prototype.handleShowAllCommands = function(req, res) {
     res.render('command-executor/all', {
         commands: this.db.getData('/command-executor/commands'),
+        isRestricted: this.isRestricted,
         addCommandUrlTemplate: '/web/command-executor/add',
         removeCommandUrlTemplate: '/web/command-executor/remove',
         executeCommandUrlTemplate: '/web/command-executor/execute'
@@ -70,8 +76,10 @@ CommandExecutor.prototype.initialize = function() {
 CommandExecutor.prototype.serveOn = function (app) {
     this.initialize();
     app.get('/web/command-executor', this.handleShowAllCommands.bind(this));
-    app.post('/web/command-executor/add', this.handleAddCommand.bind(this));
-    app.get('/web/command-executor/remove', this.handleRemoveCommand.bind(this));
+    if (!this.isRestricted) {
+        app.post('/web/command-executor/add', this.handleAddCommand.bind(this));
+        app.get('/web/command-executor/remove', this.handleRemoveCommand.bind(this));
+    }
     app.get('/web/command-executor/execute', this.handleExecuteCommand.bind(this));
 };
 

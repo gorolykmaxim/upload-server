@@ -6,11 +6,13 @@
             <a href="{{../logUrlTemplate}}?path={{this}}" class="list-group-item list-group-item-action">{{this}}</a>
         {{/each}}
     </div>
-    <form method="post" action="{{addLogUrlTemplate}}" class="mt-1">
-        <div class="form-group">
-            <label for="logPath">Log to add</label>
-            <input type="text" class="form-control" id="logPath" name="logPath" placeholder="Absolute path to log">
-        </div>
-        <button type="submit" class="btn btn-primary">Add</button>
-    </form>
+    {{#unless isRestricted}}
+        <form method="post" action="{{addLogUrlTemplate}}" class="mt-1">
+            <div class="form-group">
+                <label for="logPath">Log to add</label>
+                <input type="text" class="form-control" id="logPath" name="logPath" placeholder="Absolute path to log">
+            </div>
+            <button type="submit" class="btn btn-primary">Add</button>
+        </form>
+    {{/unless}}
 </div>

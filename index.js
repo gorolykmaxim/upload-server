@@ -52,6 +52,7 @@ var tls_enabled = argv.S || argv.tls;
 var cert_file = argv.C || argv.cert;
 var key_file = argv.K || argv.key;
 var help = argv.h || argv.help;
+var readonly = argv.r || argv.readonly;
 
 function _usage() {
   log.info([
@@ -59,13 +60,14 @@ function _usage() {
     '', 'usage: upload-server [options]',
     '',
     'options:',
-    '  -p --port    Port number (default: 8090)',
-    '  -f --folder  Folder to upload files (default: files)',
-    '  -S --tls     Enable TLS / HTTPS',
-    '  -C --cert    Server certificate file',
-    '  -K --key     Private key file',
-    '  -h --help    Print this list and exit',
-    '  -v --version Print the current version',
+    '  -p --port      Port number (default: 8090)',
+    '  -f --folder    Folder to upload files (default: files)',
+    '  -S --tls       Enable TLS / HTTPS',
+    '  -C --cert      Server certificate file',
+    '  -K --key       Private key file',
+    '  -h --help      Print this list and exit',
+    '  -r --readonly  Do not allow users of the web-ui edit anything',
+    '  -v --version   Print the current version',
     ''
   ].join('\n'));
   process.exit();
@@ -128,12 +130,18 @@ logWatcher.serveOn(wss);
 logWatcher.listenTo(emitter);
 
 var logsView = new LogsView(emitter, LogWatcher.ADD_WATCHABLE_FILE_EVENT, LogWatcher.REMOVE_WATCHABLE_FILE_EVENT, db);
+if (readonly) {
+  logsView.restrict();
+}
 logsView.serveOn(app);
 
 var applicationLogView = new ApplicationLogView(emitter, LogWatcher.ADD_WATCHABLE_FILE_EVENT, path.resolve(logFile));
 applicationLogView.serveOn(app);
 
 var commandExecutor = new CommandExecutor(childProcess, db);
+if (readonly) {
+  commandExecutor.restrict();
+}
 commandExecutor.serveOn(app);
 
 var errorHandler = new ErrorHandler();

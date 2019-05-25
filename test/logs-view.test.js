@@ -80,6 +80,7 @@ describe('LogsView', function () {
         expect(res.render).to.have.been.calledOnceWith('logs-view/all',
             {
                 logs: logs,
+                isRestricted: false,
                 logUrlTemplate: '/web/logs-view/log',
                 addLogUrlTemplate: '/web/logs-view/add'
             });
@@ -90,6 +91,7 @@ describe('LogsView', function () {
         expect(res.render).to.have.been.calledOnceWith('logs-view/one',
             {
                 path: logs[0],
+                isRestricted: false,
                 removeUrlTemplate: '/web/logs-view/remove'
             });
     });

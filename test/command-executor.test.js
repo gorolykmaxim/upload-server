@@ -53,6 +53,7 @@ describe('CommandExecutor', function () {
         expect(res.render).to.have.been.calledOnceWith('command-executor/all',
             {
                 commands: commands,
+                isRestricted: false,
                 addCommandUrlTemplate: '/web/command-executor/add',
                 removeCommandUrlTemplate: '/web/command-executor/remove',
                 executeCommandUrlTemplate: '/web/command-executor/execute'

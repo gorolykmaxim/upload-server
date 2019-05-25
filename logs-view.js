@@ -3,7 +3,12 @@ function LogsView(emitter, addLogEvent, removeLogEvent, db) {
     this.addLogEvent = addLogEvent;
     this.removeLogEvent = removeLogEvent;
     this.db = db;
+    this.isRestricted = false;
 }
+
+LogsView.prototype.restrict = function() {
+    this.isRestricted = true;
+};
 
 LogsView.prototype.initialize = function() {
     try {
@@ -45,17 +50,28 @@ LogsView.prototype.handleRemoveLog = function(req, res) {
 };
 
 LogsView.prototype.handleViewAll = function(req, res) {
-    res.render('logs-view/all', {logs: this.db.getData('/logs-view/logs'), logUrlTemplate: '/web/logs-view/log', addLogUrlTemplate: '/web/logs-view/add'});
+    res.render('logs-view/all', {
+        logs: this.db.getData('/logs-view/logs'),
+        isRestricted: this.isRestricted,
+        logUrlTemplate: '/web/logs-view/log',
+        addLogUrlTemplate: '/web/logs-view/add'
+    });
 };
 
 LogsView.prototype.handleViewOne = function(req, res) {
-    res.render('logs-view/one', {path: req.query.path, removeUrlTemplate: '/web/logs-view/remove'});
+    res.render('logs-view/one', {
+        path: req.query.path,
+        isRestricted: this.isRestricted,
+        removeUrlTemplate: '/web/logs-view/remove'
+    });
 };
 
 LogsView.prototype.serveOn = function (app) {
     this.initialize();
-    app.post('/web/logs-view/add', this.handleAddLog.bind(this));
-    app.get('/web/logs-view/remove', this.handleRemoveLog.bind(this));
+    if (this.isRestricted) {
+        app.post('/web/logs-view/add', this.handleAddLog.bind(this));
+        app.get('/web/logs-view/remove', this.handleRemoveLog.bind(this));
+    }
     app.get('/web/logs-view', this.handleViewAll.bind(this));
     app.get('/web/logs-view/log', this.handleViewOne.bind(this));
 };
