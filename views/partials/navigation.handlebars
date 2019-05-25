@@ -12,6 +12,13 @@
             {{/if}}
                 <a class="nav-link" href="/web/logs-view">Logs</a>
             </li>
+            {{#if isCommandExecutor}}
+            <li class="nav-item active">
+            {{else}}
+            <li class="nav-item">
+            {{/if}}
+                <a class="nav-link" href="/web/command-executor">Commands</a>
+            </li>
         </ul>
     </div>
 </nav>

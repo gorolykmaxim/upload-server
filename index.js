@@ -2,6 +2,7 @@
 
 var Promise = require('bluebird');
 var fs = Promise.promisifyAll(require('fs'));
+var childProcess = Promise.promisifyAll(require('child_process'));
 var ip = require('ip');
 var path = require('path');
 var EventEmitter = require('events');
@@ -24,6 +25,8 @@ var Deploy = require('./deploy');
 var LogWatcher = require('./log-watch');
 var LogsView = require('./logs-view');
 var ApplicationLogView = require('./application-log-view');
+var CommandExecutor = require('./command-executor');
+var ErrorHandler = require('./error-handler');
 var html = require('./tpl');
 var pkg = require('./package.json');
 
@@ -129,6 +132,12 @@ logsView.serveOn(app);
 
 var applicationLogView = new ApplicationLogView(emitter, LogWatcher.ADD_WATCHABLE_FILE_EVENT, path.resolve(logFile));
 applicationLogView.serveOn(app);
+
+var commandExecutor = new CommandExecutor(childProcess, db);
+commandExecutor.serveOn(app);
+
+var errorHandler = new ErrorHandler();
+errorHandler.serveOn(app);
 
 server.listen(default_port, default_host, function () {
   log.info(logStartMessage);
