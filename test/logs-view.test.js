@@ -8,7 +8,8 @@ chai.use(sinonChai);
 var expect = chai.expect;
 
 describe('LogsView', function () {
-    var changeLogsEvent = 'change watchable logs';
+    var addLogEvent = 'add watchable log';
+    var removeLogEvent = 'remove watchable log';
     var logsView = null;
     var emitter = null;
     var db = null;
@@ -24,7 +25,7 @@ describe('LogsView', function () {
         res = sinon.stub({redirect: function (url) {}, render: function (view, data) {}});
         db = sinon.stub({getData: function (path) {}, push: function (path, data) {}});
         db.getData.returns(logs);
-        logsView = new LogsView(emitter, changeLogsEvent, db);
+        logsView = new LogsView(emitter, addLogEvent, removeLogEvent, db);
     });
     it('should initialize database if it is empty', function () {
         db.getData.returns(undefined);
@@ -34,14 +35,16 @@ describe('LogsView', function () {
     it('should notify application about logs that can be watched', function () {
         db.getData.returns(logsViewData);
         logsView.initialize();
-        expect(emitter.emit).to.have.been.calledOnceWith(changeLogsEvent, logs);
+        logs.forEach(function (value) {
+            expect(emitter.emit).to.have.been.calledWith(addLogEvent, value);
+        });
     });
     it('should add specified log to the list of watched logs', function () {
         var expectedLogs = logs.concat(newLog);
         req.body.logPath = newLog;
         logsView.handleAddLog(req, res);
         expect(db.push).to.have.been.calledOnceWith('/logs-view/logs', expectedLogs);
-        expect(emitter.emit).to.have.been.calledOnceWith(changeLogsEvent, expectedLogs);
+        expect(emitter.emit).to.have.been.calledOnceWith(addLogEvent, newLog);
         expect(res.redirect).to.have.been.calledOnceWith('/web/logs-view');
     });
     it('should not add log to the list of watched logs, since the log is already there', function () {
@@ -53,10 +56,11 @@ describe('LogsView', function () {
     });
     it('should remove specified log from the list of watched logs', function () {
         var expectedLogs = logs.slice(1);
-        req.query.path = logs[0];
+        var removedLog = logs[0];
+        req.query.path = removedLog;
         logsView.handleRemoveLog(req, res);
         expect(db.push).to.have.been.calledOnceWith('/logs-view/logs', expectedLogs);
-        expect(emitter.emit).to.have.been.calledOnceWith(changeLogsEvent, expectedLogs);
+        expect(emitter.emit).to.have.been.calledOnceWith(removeLogEvent, removedLog);
         expect(res.redirect).to.have.been.calledOnceWith('/web/logs-view');
     });
     it('should not remove log from the list of watched logs, since the log is not in it', function () {

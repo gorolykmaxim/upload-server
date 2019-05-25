@@ -17,7 +17,7 @@ describe('Deploy', function () {
     var fs = null;
     var mkdirp = null;
     var rimraf = null;
-    var console = null;
+    var log = null;
     var fileInformation = null;
     var app = null;
     var req = null;
@@ -36,15 +36,15 @@ describe('Deploy', function () {
         });
         mkdirp = sinon.stub().returns(promise.resolve());
         rimraf = sinon.stub().returns(promise.resolve());
-        console = sinon.stub({
-            log: function (message) {}
+        log = sinon.stub({
+            info: function (message) {}
         });
 
         app = sinon.stub();
         req = {body: {}, query: {}};
         res = {status: sinon.stub()};
         res.status.returns(res);
-        deploy = new Deploy(defaultFolder, promise, multer, serveIndex, express, html, path, fs, mkdirp, rimraf, process, console);
+        deploy = new Deploy(defaultFolder, promise, multer, serveIndex, express, html, path, fs, mkdirp, rimraf, process, log);
     });
     it('should not upload file, since the upload path is not specified', function (done) {
         deploy.resolveFilenameToUpload(req, null, function (err, val) {
@@ -123,7 +123,7 @@ describe('Deploy', function () {
         res.end = function () {
             expect(mkdirp).to.have.been.calledWith('/files/newFolder');
             expect(fs.renameAsync).to.have.been.calledWith(req.query.old_file, req.query.file);
-            var logMessage = console.log.getCall(0).args[0];
+            var logMessage = log.info.getCall(0).args[0];
             expect(logMessage).to.include('File moved from ' + req.query.old_file + ' to ' + req.query.file);
             done();
         };
@@ -165,7 +165,7 @@ describe('Deploy', function () {
         req.query.file = '/files/file';
         fs.lstatAsync.returns(promise.resolve(fileInformation));
         rimraf.returns(promise.resolve());
-        expectToRemoveFile(res, done, console, rimraf, req.query.file);
+        expectToRemoveFile(res, done, log, rimraf, req.query.file);
         deploy.handleDelete(req, res);
     });
     it('should remove a file', function (done) {
@@ -173,7 +173,7 @@ describe('Deploy', function () {
         req.query.file = '/files/file';
         fs.lstatAsync.returns(promise.resolve(fileInformation));
         fs.unlinkAsync.returns(promise.resolve());
-        expectToRemoveFile(res, done, console, fs.unlinkAsync, req.query.file);
+        expectToRemoveFile(res, done, log, fs.unlinkAsync, req.query.file);
         deploy.handleDelete(req, res);
     });
 });
@@ -186,10 +186,10 @@ function expectErrorResponse(res, done, errorMessage) {
     };
 }
 
-function expectToRemoveFile(res, done, console, removalFunction, file) {
+function expectToRemoveFile(res, done, log, removalFunction, file) {
     res.end = function () {
         expect(removalFunction).to.have.been.calledWith(file);
-        var logMessage = console.log.getCall(0).args[0];
+        var logMessage = log.info.getCall(0).args[0];
         expect(logMessage).to.include('File removed: ' + file);
         done();
     };

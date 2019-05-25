@@ -28,7 +28,7 @@ PathResolver.prototype.resolveRelativePath = function (rootDirectory, specifiedP
     });
 };
 
-function Deploy(defaultFolder, promise, multer, serveIndex, express, html, path, fs, mkdirp, rimraf, process, console) {
+function Deploy(defaultFolder, promise, multer, serveIndex, express, html, path, fs, mkdirp, rimraf, process, log) {
     this.defaultFolder = defaultFolder;
     this.promise = promise;
     this.multer = multer;
@@ -39,7 +39,7 @@ function Deploy(defaultFolder, promise, multer, serveIndex, express, html, path,
     this.fs = fs;
     this.rimraf = rimraf;
     this.process = process;
-    this.console = console;
+    this.log = log;
     this.pathResolver = new PathResolver(promise, path, mkdirp);
 }
 
@@ -62,7 +62,7 @@ Deploy.prototype.handleMove = function(req, res) {
         var resolvedPath = self.path.join(self.defaultFolder, newPath);
         return self.fs.renameAsync(oldResolvedPath, resolvedPath);
     }).then(function () {
-        self.console.log('[' + new Date().toISOString() + '] - ' + 'File moved from ' + req.query.old_file + ' to ' + req.query.file);
+        self.log.info('[' + new Date().toISOString() + '] - ' + 'File moved from ' + req.query.old_file + ' to ' + req.query.file);
         res.end();
     }).catch(function (err) {
         res.status(500).end(err.toString() + '\n');
@@ -82,7 +82,7 @@ Deploy.prototype.handleDelete = function(req, res) {
             return self.fs.unlinkAsync(absolutePath);
         }
     }).then(function () {
-        self.console.log('[' + new Date().toISOString() + '] - ' + 'File removed: ' + req.query.file);
+        self.log.info('[' + new Date().toISOString() + '] - ' + 'File removed: ' + req.query.file);
         res.end();
     }).catch(function (err) {
         res.status(500).end(err.toString() + '\n');
@@ -109,11 +109,11 @@ Deploy.prototype.serveOn = function (app) {
         res.send(self.html.template);
     });
     app.post('/', upload.any(), function(req, res) {
-        self.console.log('[' + new Date().toISOString() + '] - File uploaded:', req.files[0].path);
+        self.log.info('[' + new Date().toISOString() + '] - File uploaded:', req.files[0].path);
         res.end();
     });
     app.post('/upload', upload.any(), function(req, res) {
-        self.console.log('[' + new Date().toISOString() + '] - File uploaded:', req.files[0].path);
+        self.log.info('[' + new Date().toISOString() + '] - File uploaded:', req.files[0].path);
         res.redirect('/' + self.defaultFolder);
         res.end();
     });

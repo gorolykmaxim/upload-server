@@ -1,6 +1,7 @@
-function LogsView(emitter, changeLogsEvent, db) {
+function LogsView(emitter, addLogEvent, removeLogEvent, db) {
     this.emitter = emitter;
-    this.changeLogsEvent = changeLogsEvent;
+    this.addLogEvent = addLogEvent;
+    this.removeLogEvent = removeLogEvent;
     this.db = db;
 }
 
@@ -9,7 +10,9 @@ LogsView.prototype.initialize = function() {
     if (logsView === undefined) {
         this.db.push('/logs-view', {logs: []});
     } else {
-        this.emitter.emit(this.changeLogsEvent, logsView.logs);
+        for (var i = 0; i < logsView.logs.length; i++) {
+            this.emitter.emit(this.addLogEvent, logsView.logs[i]);
+        }
     }
 };
 
@@ -20,7 +23,7 @@ LogsView.prototype.handleAddLog = function(req, res) {
     if (i < 0) {
         logs.push(log);
         this.db.push('/logs-view/logs', logs);
-        this.emitter.emit(this.changeLogsEvent, logs);
+        this.emitter.emit(this.addLogEvent, log);
     }
     res.redirect('/web/logs-view');
 };
@@ -32,7 +35,7 @@ LogsView.prototype.handleRemoveLog = function(req, res) {
     if (i >= 0) {
         logs.splice(i, 1);
         this.db.push('/logs-view/logs', logs);
-        this.emitter.emit(this.changeLogsEvent, logs);
+        this.emitter.emit(this.removeLogEvent, log);
     }
     res.redirect('/web/logs-view');
 };

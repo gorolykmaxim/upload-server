@@ -8,6 +8,7 @@ var EventEmitter = require('events');
 var http = require('http');
 var https = require('https');
 var express = require('express');
+var winston = require('winston');
 var handlebars = require('express-handlebars');
 var bodyParser = require('body-parser');
 var JsonDb = require('node-json-db');
@@ -22,10 +23,23 @@ var rimraf = Promise.promisify(require('rimraf'));
 var Deploy = require('./deploy');
 var LogWatcher = require('./log-watch');
 var LogsView = require('./logs-view');
+var ApplicationLogView = require('./application-log-view');
 var html = require('./tpl');
 var pkg = require('./package.json');
 
 var app = express();
+var logFile = 'upload-server.log';
+var log = winston.createLogger({
+  format: winston.format.simple(),
+  transports: [
+      new winston.transports.Console(),
+      new winston.transports.File({
+        filename: logFile,
+        maxSize: 5000000,
+        maxFiles: 1
+      })
+  ]
+});
 
 var default_host = '0.0.0.0';
 var default_port = argv.p || argv.port || 8090;
@@ -37,7 +51,7 @@ var key_file = argv.K || argv.key;
 var help = argv.h || argv.help;
 
 function _usage() {
-  console.log([
+  log.info([
     '', 'File upload server v' + pkg.version,
     '', 'usage: upload-server [options]',
     '',
@@ -55,7 +69,7 @@ function _usage() {
 }
 
 function _version() {
-  console.log(pkg.version);
+  log.info(pkg.version);
   process.exit();
 }
 
@@ -67,13 +81,13 @@ if(version) {
   _version();
 }
 
-console.log('[' + new Date().toISOString() + '] - File upload server v' + pkg.version);
+log.info('[' + new Date().toISOString() + '] - File upload server v' + pkg.version);
 
 if(!fs.existsSync(default_folder)) {
   fs.mkdirSync(default_folder);
 }
 
-console.log('[' + new Date().toISOString() + '] - Serving files from folder:', default_folder);
+log.info('[' + new Date().toISOString() + '] - Serving files from folder:', default_folder);
 
 var server = null;
 var logStartMessage = null;
@@ -95,24 +109,27 @@ app.engine('handlebars', handlebars({extname: 'handlebars'}));
 app.set('view engine', 'handlebars');
 app.use('/', express.static(path.join(__dirname, 'views')));
 app.get('/', function (req, res) {
-  res.redirect('/web');
+  res.redirect('/web/dashboard');
 });
 
 var deploy = new Deploy(default_folder, Promise, multer, serveIndex, express, html, path, fs, mkdirp, rimraf, process,
-    console);
+    log);
 deploy.serveOn(app);
 
 var wss = new ws.Server({server: server});
 var createTail = function(filename) {
-  return new tail(filename);
+  return new tail(filename, {usePolling: true});
 };
 var logWatcher = new LogWatcher(createTail, uuid, fs);
 logWatcher.serveOn(wss);
 logWatcher.listenTo(emitter);
 
-var logsView = new LogsView(emitter, LogWatcher.SET_WATCHABLE_FILES_EVENT, db);
+var logsView = new LogsView(emitter, LogWatcher.ADD_WATCHABLE_FILE_EVENT, LogWatcher.REMOVE_WATCHABLE_FILE_EVENT, db);
 logsView.serveOn(app);
 
+var applicationLogView = new ApplicationLogView(emitter, LogWatcher.ADD_WATCHABLE_FILE_EVENT, path.resolve(logFile));
+applicationLogView.serveOn(app);
+
 server.listen(default_port, default_host, function () {
-  console.log(logStartMessage);
+  log.info(logStartMessage);
 });

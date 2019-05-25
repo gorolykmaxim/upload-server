@@ -8,10 +8,21 @@ function LogWatcher(tail, uuid, fs) {
     this.watchableFiles = [];
 }
 
-LogWatcher.SET_WATCHABLE_FILES_EVENT = 'set watchable files';
+LogWatcher.ADD_WATCHABLE_FILE_EVENT = 'add watchable file';
+LogWatcher.REMOVE_WATCHABLE_FILE_EVENT = 'remove watchable file';
 
-LogWatcher.prototype.setAllowedToWatchFiles = function(watchableFiles) {
-    this.watchableFiles = watchableFiles;
+LogWatcher.prototype.allowWatchingFile = function(file) {
+    var i = this.watchableFiles.indexOf(file);
+    if (i < 0) {
+        this.watchableFiles.push(file);
+    }
+};
+
+LogWatcher.prototype.disallowWatchingFile = function(file) {
+    var i = this.watchableFiles.indexOf(file);
+    if (i >= 0) {
+        this.watchableFiles.splice(i, 1);
+    }
 };
 
 LogWatcher.prototype.sendChange = function(recipient, filename, changes) {
@@ -127,7 +138,8 @@ LogWatcher.prototype.serveOn = function(wss) {
 };
 
 LogWatcher.prototype.listenTo = function(emitter) {
-    emitter.on(LogWatcher.SET_WATCHABLE_FILES_EVENT, this.setAllowedToWatchFiles.bind(this));
+    emitter.on(LogWatcher.ADD_WATCHABLE_FILE_EVENT, this.allowWatchingFile.bind(this));
+    emitter.on(LogWatcher.REMOVE_WATCHABLE_FILE_EVENT, this.disallowWatchingFile.bind(this));
 };
 
 module.exports = LogWatcher;

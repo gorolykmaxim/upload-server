@@ -28,6 +28,7 @@
     "rimraf": "^2.6.3",
     "serve-index": "^1.9.0",
     "uuid": "^3.3.2",
+    "winston": "^3.2.1",
     "ws": "^7.0.0"
   },
   "repository": {

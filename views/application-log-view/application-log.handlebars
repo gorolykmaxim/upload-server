@@ -1,0 +1,15 @@
+{{> navigation }}
+<div class="container">
+    <h3>Application logs:</h3>
+    <input id="path" type="hidden" value="{{logFile}}">
+    <div id="log-container" class="overflow-auto text-nowrap mt-1">
+</div>
+
+<script type="application/javascript">
+    $(document).ready(function () {
+        var logPath = $('#path').val();
+        var $logContainer = $('#log-container');
+        var logDisplayer = new LogDisplayer(logPath, $logContainer);
+        logDisplayer.displayFull();
+    });
+</script>

@@ -37,7 +37,7 @@ describe('LogWatcher', function () {
         requestor1 = sinon.stub({send: function (message) {}});
         requestor2 = sinon.stub({send: function (message) {}});
         watcher = new LogWatcher(tail, uuid, fs);
-        watcher.setAllowedToWatchFiles([file]);
+        watcher.allowWatchingFile(file);
     });
     it('should send logs to client, that watches them', function () {
         watcher.handleMessageFromRequestor(watchMessage, requestor1, requestorId1);
@@ -158,8 +158,9 @@ describe('LogWatcher', function () {
         expect(requestor2.send).to.have.callCount(0);
     });
     it('should not allow user to watch file that is not on the list of allowed files', function () {
-        var message = JSON.stringify({type: 'watch', file: '/admin/secret'});
+        var message = JSON.stringify({type: 'watch', file: file});
+        watcher.disallowWatchingFile(file);
         watcher.handleMessageFromRequestor(message, requestor1, requestor1);
-        expect(requestor1.send).to.have.been.calledWith('{"type":"error","message":"Error: You are not allowed to watch /admin/secret"}')
+        expect(requestor1.send).to.have.been.calledWith('{"type":"error","message":"Error: You are not allowed to watch ' + file + '"}')
     });
 });
