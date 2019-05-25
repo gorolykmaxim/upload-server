@@ -13,20 +13,8 @@
         var logPath = $('#path').val();
         var $logContainer = $('#log-container');
         var $errorContainer = $('#error-container');
-        var webSocket = new WebSocket('ws://localhost:8090/');
-        webSocket.addEventListener('open', function (ev) {
-            webSocket.send(JSON.stringify({type: 'watch', file: logPath}));
-        });
-        webSocket.addEventListener('message', function (ev) {
-            var change = JSON.parse(ev.data);
-            if (change.type === 'change' && change.file === logPath) {
-                change.changes.forEach(function (value) {
-                    $logContainer.append('<p>' + value + '</p>');
-                });
-            } else if (change.type === 'error') {
-                $errorContainer.removeClass('d-none');
-                $errorContainer.html(change.message);
-            }
-        });
+        var logDisplayer = new LogDisplayer(logPath, $logContainer);
+        logDisplayer.setErrorContainer($errorContainer);
+        logDisplayer.display();
     });
 </script>
