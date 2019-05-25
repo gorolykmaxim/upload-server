@@ -52,7 +52,7 @@ var tls_enabled = argv.S || argv.tls;
 var cert_file = argv.C || argv.cert;
 var key_file = argv.K || argv.key;
 var help = argv.h || argv.help;
-var readonly = argv.r || argv.readonly;
+var isInAdminMode = argv.a || argv.admin;
 
 function _usage() {
   log.info([
@@ -66,7 +66,7 @@ function _usage() {
     '  -C --cert      Server certificate file',
     '  -K --key       Private key file',
     '  -h --help      Print this list and exit',
-    '  -r --readonly  Do not allow users of the web-ui edit anything',
+    '  -a --admin     Enable configuration via web UI',
     '  -v --version   Print the current version',
     ''
   ].join('\n'));
@@ -130,7 +130,7 @@ logWatcher.serveOn(wss);
 logWatcher.listenTo(emitter);
 
 var logsView = new LogsView(emitter, LogWatcher.ADD_WATCHABLE_FILE_EVENT, LogWatcher.REMOVE_WATCHABLE_FILE_EVENT, db);
-if (readonly) {
+if (!isInAdminMode) {
   logsView.restrict();
 }
 logsView.serveOn(app);
@@ -139,7 +139,7 @@ var applicationLogView = new ApplicationLogView(emitter, LogWatcher.ADD_WATCHABL
 applicationLogView.serveOn(app);
 
 var commandExecutor = new CommandExecutor(childProcess, db);
-if (readonly) {
+if (!isInAdminMode) {
   commandExecutor.restrict();
 }
 commandExecutor.serveOn(app);
