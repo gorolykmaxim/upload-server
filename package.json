@@ -1,12 +1,13 @@
 {
   "name": "upload-server-1",
-  "version": "2.2.1",
+  "version": "2.2.2",
   "description": "Simple HTTP file upload server",
   "main": "index.js",
   "preferGlobal": true,
   "bin": {
     "upload-server": "index.js"
   },
+  "files": ["tail.exe"],
   "scripts": {
     "test": "mocha test",
     "start": "node index.js"

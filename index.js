@@ -5,6 +5,7 @@ var fs = Promise.promisifyAll(require('fs'));
 var childProcess = Promise.promisifyAll(require('child_process'));
 var ip = require('ip');
 var path = require('path');
+var os = require('os');
 var EventEmitter = require('events');
 var http = require('http');
 var https = require('https');
@@ -23,6 +24,7 @@ var argv = require('minimist')(process.argv.slice(2));
 var rimraf = Promise.promisify(require('rimraf'));
 var Deploy = require('./deploy');
 var LogWatcher = require('./log-watch');
+var FallbackFileWatcher = require('./fallback-file-watcher');
 var LogsView = require('./logs-view');
 var ApplicationLogView = require('./application-log-view');
 var CommandExecutor = require('./command-executor');
@@ -127,9 +129,16 @@ var deploy = new Deploy(default_folder, Promise, multer, serveIndex, express, ht
 deploy.serveOn(app);
 
 var wss = new ws.Server({server: server});
-var createTail = function(filename) {
-  return new tail(filename, {usePolling: true});
-};
+
+var createTail = null;
+if (os.platform() === 'win32') {
+  log.info('[' + new Date().toISOString() + '] - Running under Windows. Falling back to a FallbackFileWatcher.');
+  createTail = filename => new FallbackFileWatcher(filename, path.join(__dirname, 'tail.exe'), childProcess, os);
+} else {
+  log.info('[' + new Date().toISOString() + '] - Using chokidar file watcher');
+  createTail = filename => new tail(filename, {usePolling: true});
+}
+
 var logWatcher = new LogWatcher(createTail, uuid, fs);
 logWatcher.serveOn(wss);
 logWatcher.listenTo(emitter);
