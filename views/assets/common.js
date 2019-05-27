@@ -15,7 +15,7 @@ LogDisplayer.prototype.displayFull = function() {
 LogDisplayer.prototype.display = function (isFull) {
     var self = this;
     isFull = isFull || false;
-    var webSocket = new WebSocket('ws://localhost:8090/');
+    var webSocket = new WebSocket('ws://' + window.location.hostname + ':8090/');
     webSocket.addEventListener('open', function (ev) {
         webSocket.send(JSON.stringify({type: 'watch', file: self.logPath, fromStart: isFull}));
     });
