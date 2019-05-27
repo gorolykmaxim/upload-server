@@ -110,6 +110,7 @@ var emitter = new EventEmitter();
 var db = new JsonDb('upload-server-db', true, true);
 
 app.use(bodyParser.urlencoded({extended:false}));
+app.set('views', path.join(__dirname, 'views'));
 app.engine('handlebars', handlebars({extname: 'handlebars'}));
 app.set('view engine', 'handlebars');
 app.use('/', express.static(path.join(__dirname, 'views')));
