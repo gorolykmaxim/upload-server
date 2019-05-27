@@ -96,7 +96,7 @@ if(!fs.existsSync(default_folder)) {
   fs.mkdirSync(default_folder);
 }
 
-log.info('[' + new Date().toISOString() + '] - Serving files from folder:', default_folder);
+log.info('[' + new Date().toISOString() + '] - Serving files from folder: ' + default_folder);
 
 var server = null;
 var logStartMessage = null;
