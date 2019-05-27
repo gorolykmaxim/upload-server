@@ -30,20 +30,6 @@ var ErrorHandler = require('./error-handler');
 var html = require('./tpl');
 var pkg = require('./package.json');
 
-var app = express();
-var logFile = 'upload-server.log';
-var log = winston.createLogger({
-  format: winston.format.simple(),
-  transports: [
-      new winston.transports.Console(),
-      new winston.transports.File({
-        filename: logFile,
-        maxSize: 5000000,
-        maxFiles: 1
-      })
-  ]
-});
-
 var default_host = '0.0.0.0';
 var default_port = argv.p || argv.port || 8090;
 var default_folder = path.resolve(argv.f || argv.folder || 'files');
@@ -51,8 +37,24 @@ var version = argv.v || argv.version;
 var tls_enabled = argv.S || argv.tls;
 var cert_file = argv.C || argv.cert;
 var key_file = argv.K || argv.key;
-var help = argv.h || argv.help;
 var isInAdminMode = argv.a || argv.admin;
+var logFile = argv.l || argv.log || 'upload-server.log';
+var databaseFile = argv.d || argv.database || 'upload-server-db';
+var help = argv.h || argv.help;
+
+var app = express();
+
+var log = winston.createLogger({
+  format: winston.format.simple(),
+  transports: [
+    new winston.transports.Console(),
+    new winston.transports.File({
+      filename: logFile,
+      maxSize: 5000000,
+      maxFiles: 1
+    })
+  ]
+});
 
 function _usage() {
   log.info([
@@ -62,6 +64,8 @@ function _usage() {
     'options:',
     '  -p --port      Port number (default: 8090)',
     '  -f --folder    Folder to upload files (default: files)',
+    '  -l --log       Path to the file, were logs should be written',
+    '  -d --database  Path to the file, were the database should be stored',
     '  -S --tls       Enable TLS / HTTPS',
     '  -C --cert      Server certificate file',
     '  -K --key       Private key file',
@@ -107,7 +111,7 @@ else {
 }
 
 var emitter = new EventEmitter();
-var db = new JsonDb('upload-server-db', true, true);
+var db = new JsonDb(databaseFile, true, true);
 
 app.use(bodyParser.urlencoded({extended:false}));
 app.set('views', path.join(__dirname, 'views'));
