@@ -68,7 +68,7 @@ LogsView.prototype.handleViewOne = function(req, res) {
 
 LogsView.prototype.serveOn = function (app) {
     this.initialize();
-    if (this.isRestricted) {
+    if (!this.isRestricted) {
         app.post('/web/logs-view/add', this.handleAddLog.bind(this));
         app.get('/web/logs-view/remove', this.handleRemoveLog.bind(this));
     }
