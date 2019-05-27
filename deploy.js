@@ -109,11 +109,11 @@ Deploy.prototype.serveOn = function (app) {
         res.send(self.html.template);
     });
     app.post('/', upload.any(), function(req, res) {
-        self.log.info('[' + new Date().toISOString() + '] - File uploaded:', req.files[0].path);
+        self.log.info('[' + new Date().toISOString() + '] - File uploaded: ' + req.files[0].path);
         res.end();
     });
     app.post('/upload', upload.any(), function(req, res) {
-        self.log.info('[' + new Date().toISOString() + '] - File uploaded:', req.files[0].path);
+        self.log.info('[' + new Date().toISOString() + '] - File uploaded: ' + req.files[0].path);
         res.redirect('/' + self.defaultFolder);
         res.end();
     });
