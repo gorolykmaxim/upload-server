@@ -1,6 +1,6 @@
 {
   "name": "upload-server-1",
-  "version": "2.2.3",
+  "version": "2.2.4",
   "description": "Simple HTTP file upload server",
   "main": "index.js",
   "preferGlobal": true,

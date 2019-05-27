@@ -16,6 +16,7 @@
         var $errorContainer = $('#error-container');
         var logDisplayer = new LogDisplayer(logPath, $logContainer);
         logDisplayer.setErrorContainer($errorContainer);
+        logDisplayer.autoscroll();
         logDisplayer.display();
     });
 </script>

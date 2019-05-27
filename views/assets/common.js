@@ -2,6 +2,7 @@ function LogDisplayer(logPath, $logContainer) {
     this.logPath = logPath;
     this.$logContainer = $logContainer;
     this.$errorContainer = null;
+    this.isAutoscrollEnabled = false;
 }
 
 LogDisplayer.prototype.setErrorContainer = function($errorContainer) {
@@ -10,6 +11,10 @@ LogDisplayer.prototype.setErrorContainer = function($errorContainer) {
 
 LogDisplayer.prototype.displayFull = function() {
     this.display(true);
+};
+
+LogDisplayer.prototype.autoscroll = function() {
+    this.isAutoscrollEnabled = true;
 };
 
 LogDisplayer.prototype.display = function (isFull) {
@@ -24,7 +29,7 @@ LogDisplayer.prototype.display = function (isFull) {
         if (change.type === 'change' && change.file === self.logPath) {
             change.changes.forEach(function (value) {
                 self.$logContainer.append('<p>' + value + '</p>');
-                if ($(window).scrollTop() >= $(document).height() - $(window).height() * 1.2) {
+                if (this.isAutoscrollEnabled && $(window).scrollTop() >= $(document).height() - $(window).height() * 1.2) {
                     window.scrollTo(0, document.body.scrollHeight);
                 }
             });
