@@ -3,6 +3,7 @@ function LogDisplayer(logPath, $logContainer) {
     this.$logContainer = $logContainer;
     this.$errorContainer = null;
     this.isAutoscrollEnabled = false;
+    this.endlineRegExp = /\n$/;
 }
 
 LogDisplayer.prototype.setErrorContainer = function($errorContainer) {
@@ -28,7 +29,7 @@ LogDisplayer.prototype.display = function (isFull) {
         var change = JSON.parse(ev.data);
         if (change.type === 'change' && change.file === self.logPath) {
             change.changes.forEach(function (value) {
-                self.$logContainer.append('<p>' + value + '</p>');
+                self.$logContainer.append(value.replace(this.endlineRegExp, "") + '\n');
                 if (self.isAutoscrollEnabled && $(window).scrollTop() >= $(document).height() - $(window).height() * 1.2) {
                     window.scrollTo(0, document.body.scrollHeight);
                 }
