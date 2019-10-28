@@ -22,6 +22,8 @@ var mkdirp = Promise.promisify(require('mkdirp'));
 var serveIndex = require('serve-index');
 var argv = require('minimist')(process.argv.slice(2));
 var rimraf = Promise.promisify(require('rimraf'));
+var basicAuth = require('express-basic-auth');
+var md5 = require('md5');
 var Deploy = require('./deploy');
 var LogWatcher = require('./log-watch');
 var FallbackFileWatcher = require('./fallback-file-watcher');
@@ -29,6 +31,7 @@ var LogsView = require('./logs-view');
 var ApplicationLogView = require('./application-log-view');
 var CommandExecutor = require('./command-executor');
 var ErrorHandler = require('./error-handler');
+var Authorization = require('./authorization');
 var html = require('./tpl');
 var pkg = require('./package.json');
 
@@ -123,6 +126,9 @@ app.use('/', express.static(path.join(__dirname, 'views')));
 app.get('/', function (req, res) {
   res.redirect('/web/dashboard');
 });
+
+var authorization = new Authorization(basicAuth, db, console, md5);
+authorization.serveOn(app, '/files/');
 
 var deploy = new Deploy(default_folder, Promise, multer, serveIndex, express, html, path, fs, mkdirp, rimraf, process,
     log);
