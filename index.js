@@ -43,6 +43,7 @@ var tls_enabled = argv.S || argv.tls;
 var cert_file = argv.C || argv.cert;
 var key_file = argv.K || argv.key;
 var isInAdminMode = argv.a || argv.admin;
+var isAuthorizationEnabled = !argv.insecure;
 var logFile = argv.l || argv.log || 'upload-server.log';
 var databaseFile = argv.d || argv.database || 'upload-server-db';
 var help = argv.h || argv.help;
@@ -76,6 +77,7 @@ function _usage() {
     '  -K --key       Private key file',
     '  -h --help      Print this list and exit',
     '  -a --admin     Enable configuration via web UI',
+    '  --insecure     Disable authorization of /files/ endpoints',
     '  -v --version   Print the current version',
     ''
   ].join('\n'));
@@ -127,8 +129,10 @@ app.get('/', function (req, res) {
   res.redirect('/web/dashboard');
 });
 
-var authorization = new Authorization(basicAuth, db, console, md5);
-authorization.serveOn(app, '/files/');
+if (isAuthorizationEnabled) {
+    var authorization = new Authorization(basicAuth, db, console, md5);
+    authorization.serveOn(app, '/files/');
+}
 
 var deploy = new Deploy(default_folder, Promise, multer, serveIndex, express, html, path, fs, mkdirp, rimraf, process,
     log);
