@@ -98,27 +98,27 @@ Deploy.prototype.serveOn = function (app) {
         filename: self.resolveFilenameToUpload.bind(self)
     });
     var upload = self.multer({ storage: storage });
-    app.use('/' + self.defaultFolder, self.serveIndex(self.process.cwd() + '/' + self.defaultFolder));
-    app.use('/' + self.defaultFolder, self.express.static(self.process.cwd() + '/' + self.defaultFolder));
+    app.use('/files/' + self.defaultFolder, self.serveIndex(self.process.cwd() + '/' + self.defaultFolder));
+    app.use('/files/' + self.defaultFolder, self.express.static(self.process.cwd() + '/' + self.defaultFolder));
     app.use(function(req, res, next) {
         res.header('Access-Control-Allow-Origin', '*');
         res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept');
         next();
     });
-    app.get('/', function(req, res) {
+    app.get('/files/', function(req, res) {
         res.send(self.html.template);
     });
-    app.post('/', upload.any(), function(req, res) {
+    app.post('/files/', upload.any(), function(req, res) {
         self.log.info('[' + new Date().toISOString() + '] - File uploaded: ' + req.files[0].path);
         res.end();
     });
-    app.post('/upload', upload.any(), function(req, res) {
+    app.post('/files/upload', upload.any(), function(req, res) {
         self.log.info('[' + new Date().toISOString() + '] - File uploaded: ' + req.files[0].path);
         res.redirect('/' + self.defaultFolder);
         res.end();
     });
-    app.post('/move', self.handleMove.bind(self));
-    app.post('/delete', self.handleDelete.bind(self));
+    app.post('/files/move', self.handleMove.bind(self));
+    app.post('/files/delete', self.handleDelete.bind(self));
 };
 
 module.exports = Deploy;
