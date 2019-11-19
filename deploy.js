@@ -51,6 +51,25 @@ Deploy.prototype.resolveFilenameToUpload = function(req, file, cb) {
     });
 };
 
+Deploy.prototype.respondWithError = function(response, error) {
+    response.status(500).end(`${error.toString()}\n`);
+};
+
+Deploy.prototype.handleRawBodyUpload = function(req, res, next) {
+    if (req.header('content-type') === 'application/octet-stream') {
+        this.pathResolver.resolveRelativePath(this.defaultFolder, req.query.name).then(value => {
+            const fileStream = this.fs.createWriteStream(this.path.join(this.defaultFolder, value));
+            req.on('data', fileStream.write.bind(fileStream));
+            req.on('end', () => {
+                fileStream.end();
+                next();
+            });
+        }).catch(err => this.respondWithError(res, err));
+    } else {
+        next();
+    }
+};
+
 Deploy.prototype.handleMove = function(req, res) {
     var self = this;
     var newPathPromise = self.pathResolver.resolveRelativePath(self.defaultFolder, req.query.file);
@@ -65,7 +84,7 @@ Deploy.prototype.handleMove = function(req, res) {
         self.log.info('[' + new Date().toISOString() + '] - ' + 'File moved from ' + req.query.old_file + ' to ' + req.query.file);
         res.end();
     }).catch(function (err) {
-        res.status(500).end(err.toString() + '\n');
+        self.respondWithError(res, err);
     });
 };
 
@@ -108,11 +127,11 @@ Deploy.prototype.serveOn = function (app) {
     app.get('/files/', function(req, res) {
         res.send(self.html.template);
     });
-    app.post('/files/', upload.any(), function(req, res) {
+    app.post('/files/', upload.any(), self.handleRawBodyUpload.bind(self), function(req, res) {
         self.log.info('[' + new Date().toISOString() + '] - File uploaded: ' + req.files[0].path);
         res.end();
     });
-    app.post('/files/upload', upload.any(), function(req, res) {
+    app.post('/files/upload', upload.any(), self.handleRawBodyUpload.bind(self), function(req, res) {
         self.log.info('[' + new Date().toISOString() + '] - File uploaded: ' + req.files[0].path);
         res.redirect('/' + self.defaultFolder);
         res.end();
