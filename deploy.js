@@ -56,7 +56,7 @@ Deploy.prototype.respondWithError = function(response, error) {
 };
 
 Deploy.prototype.handleRawBodyUpload = function(req, res, next) {
-    if (req.header('content-type') !== 'multipart/form-data') {
+    if (req.header('content-type').indexOf('multipart/form-data') >= 0) {
         this.pathResolver.resolveRelativePath(this.defaultFolder, req.query.name).then(value => {
             const path = this.path.join(this.defaultFolder, value);
             req.files = [{path}];
