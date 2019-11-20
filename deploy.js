@@ -12,7 +12,7 @@ PathResolver.prototype.resolveRelativePath = function (rootDirectory, specifiedP
             reject(new Error('Specify path, on which the file should be saved'));
         } else {
             var absolutePathToFile = self.path.normalize(specifiedPath);
-            if (absolutePathToFile.indexOf(rootDirectory) < 0) {
+            if (absolutePathToFile.indexOf(rootDirectory) !== 0) {
                 reject(new Error('File save path should located in a subdirectory of ' + rootDirectory));
             } else {
                 var fileDirectory = self.path.dirname(absolutePathToFile);

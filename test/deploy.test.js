@@ -88,6 +88,14 @@ describe('Deploy', function () {
             done();
         })
     });
+    it('should not upload file to the specified location, since the location does not start from the root directory path', function (done) {
+        req.body.file = ' /files/file';
+        deploy.resolveFilenameToUpload(req, null, function (err, val) {
+            expect(val).to.be.null;
+            expect(err.message).to.equal('File save path should located in a subdirectory of /files');
+            done();
+        });
+    });
     it('should not move file, since the new file location is not specified', function (done) {
         expectErrorResponse(res, done, 'Error: Specify path, on which the file should be saved\n');
         deploy.handleMove(req, res);
