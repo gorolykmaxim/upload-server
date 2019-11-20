@@ -56,9 +56,11 @@ Deploy.prototype.respondWithError = function(response, error) {
 };
 
 Deploy.prototype.handleRawBodyUpload = function(req, res, next) {
-    if (req.header('content-type') === 'application/octet-stream') {
+    if (req.header('content-type') !== 'multipart/form-data') {
         this.pathResolver.resolveRelativePath(this.defaultFolder, req.query.name).then(value => {
-            const fileStream = this.fs.createWriteStream(this.path.join(this.defaultFolder, value));
+            const path = this.path.join(this.defaultFolder, value);
+            req.files = [{path}];
+            const fileStream = this.fs.createWriteStream(path);
             req.on('data', fileStream.write.bind(fileStream));
             req.on('end', () => {
                 fileStream.end();
