@@ -61,6 +61,7 @@ Deploy.prototype.handleRawBodyUpload = function(req, res, next) {
             const path = this.path.join(this.defaultFolder, value);
             req.files = [{path}];
             const fileStream = this.fs.createWriteStream(path);
+            fileStream.on('error', (err) => this.respondWithError(res, err));
             req.on('data', fileStream.write.bind(fileStream));
             req.on('end', () => {
                 fileStream.end();
