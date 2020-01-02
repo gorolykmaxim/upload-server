@@ -97,6 +97,8 @@ if(version) {
   _version();
 }
 
+process.on('uncaughtException', err => console.error('Uncaught exception', err));
+
 log.info('[' + new Date().toISOString() + '] - File upload server v' + pkg.version);
 
 if(!fs.existsSync(default_folder)) {
