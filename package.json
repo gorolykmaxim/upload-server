@@ -13,31 +13,11 @@
     "views/*"
   ],
   "scripts": {
-    "test": "mocha test",
+    "test": "mocha -r ts-node/register test/**/*.spec.ts",
     "start": "node index.js"
   },
   "author": "Horoliuk Maksym",
   "license": "MIT",
-  "dependencies": {
-    "bluebird": "^3.5.4",
-    "body-parser": "^1.19.0",
-    "express": "^4.14.0",
-    "express-basic-auth": "^1.2.0",
-    "express-directory": "0.0.2",
-    "express-handlebars": "^3.1.0",
-    "ip": "^1.1.5",
-    "md5": "^2.2.1",
-    "minimist": "^1.2.0",
-    "mkdirp": "^0.5.1",
-    "multer": "^1.2.1",
-    "node-json-db": "^0.11.0",
-    "nodejs-tail": "^1.1.0",
-    "rimraf": "^2.6.3",
-    "serve-index": "^1.9.0",
-    "uuid": "^3.3.2",
-    "winston": "^3.2.1",
-    "ws": "^7.0.0"
-  },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/gorolykmaxim/upload-server.git"
@@ -53,11 +33,13 @@
   },
   "homepage": "https://github.com/gorolykmaxim/upload-server#readme",
   "devDependencies": {
+    "@types/mocha": "^5.2.7",
+    "@types/chai": "^4.2.7",
+    "@types/node": "^13.1.6",
+    "typescript": "^3.7.4",
+    "mocha": "^7.0.0",
     "chai": "^4.2.0",
-    "mocha": "^6.0.2",
-    "sinon": "^7.3.2",
-    "sinon-chai": "^3.3.0",
-    "sinon-chai-in-order": "^0.1.0",
-    "@types/node": "^13.1.6"
+    "ts-mockito-2": "^2.2.8",
+    "ts-node": "^8.6.0"
   }
 }
