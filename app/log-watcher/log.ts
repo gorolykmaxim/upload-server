@@ -1,3 +1,5 @@
+import {Stats} from "fs";
+
 /**
  * Callback, that gets called when contents of a log files got changed.
  *
@@ -116,6 +118,28 @@ export interface LogFileFactory {
      * @param absoluteLogFilePath absolute path to the created log file
      */
     create(absoluteLogFilePath: string): LogFile;
+}
+
+/**
+ * A file system, on which log files are located.
+ */
+export interface FileSystem {
+    /**
+     * Get stat attributes of a file, located by the specified path.
+     *
+     * @param path absolute path to the file
+     * @param options additional options
+     */
+    statAsync(path: string, options?: any): Promise<Stats>;
+
+    /**
+     * Read a file, located by the specified path, and return it's contents
+     * as a string.
+     *
+     * @param path absolute path to the file
+     * @param options additional options
+     */
+    readFileAsync(path: string, options?: any): Promise<string>;
 }
 
 /**
