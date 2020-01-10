@@ -39,7 +39,7 @@
     "typescript": "^3.7.4",
     "mocha": "^7.0.0",
     "chai": "^4.2.0",
-    "ts-mockito-2": "^2.2.8",
+    "ts-mockito": "^2.5.0",
     "ts-node": "^8.6.0"
   }
 }
