@@ -1,4 +1,5 @@
 import {Stats} from "fs";
+import {Collection, CollectionError} from "../collection";
 
 /**
  * Callback, that gets called when contents of a log files got changed.
@@ -106,6 +107,13 @@ export class LogFile {
     close() {
         this.content.close();
     }
+
+    /**
+     * {@inheritDoc}
+     */
+    toString(): string {
+        return `LogFile{absolutePath=${this.absolutePath}`;
+    }
 }
 
 /**
@@ -179,5 +187,71 @@ export class RestrictedLogFileFactory implements LogFileFactory {
             throw new LogFileAccessError(fileName);
         }
         return this.factory.create(fileName);
+    }
+}
+
+/**
+ * Collection of log files.
+ */
+export class LogFileCollection implements Collection<LogFile> {
+    private logFiles: Array<LogFile> = [];
+
+    /**
+     * {@inheritDoc}
+     */
+    async add(item: LogFile): Promise<void> {
+        this.logFiles.push(item);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    async findById(id: any): Promise<LogFile> {
+        const index = this.findIndexOf(id);
+        return this.logFiles[index];
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    async remove(item: LogFile): Promise<void> {
+        const index = this.findIndexOf(item);
+        this.logFiles.splice(index, 1);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    async contains(id: any): Promise<boolean> {
+        try {
+            this.findIndexOf(id);
+            return true;
+        } catch (e) {
+            return false;
+        }
+    }
+
+    private findIndexOf(item: LogFile | string): number {
+        for (let i = 0; i < this.logFiles.length; i++) {
+            if (this.logFiles[i].absolutePath === (item instanceof LogFile ? item.absolutePath : item)) {
+                return i;
+            }
+        }
+        throw new LogFileNotFoundError(item);
+    }
+}
+
+/**
+ * Failed to find log file in the collection.
+ */
+export class LogFileNotFoundError extends CollectionError {
+    /**
+     * Construct an error.
+     *
+     * @param logFile either an instance of the log file or an absolute path to it
+     */
+    constructor(logFile: LogFile | string) {
+        super(`Failed to find ${logFile} in log files collection`);
+        Object.setPrototypeOf(this, LogFileNotFoundError);
     }
 }

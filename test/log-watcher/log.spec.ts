@@ -2,12 +2,18 @@ import {
     Content,
     LogFile,
     LogFileAccessError,
+    LogFileCollection,
     LogFileFactory,
     OnChange,
     RestrictedLogFileFactory
 } from "../../app/log-watcher/log";
 import {instance, mock, verify, when} from "ts-mockito";
+import * as chai from "chai";
 import {expect} from "chai";
+import * as chaiAsPromised from "chai-as-promised";
+import {Collection} from "../../app/collection";
+
+chai.use(chaiAsPromised);
 
 describe('LogFile', () => {
     const absolutePathToLogFile = '/a/b/c/file.log';
@@ -88,5 +94,56 @@ describe('RestrictedLogFileFactory', () => {
         const logFile: LogFile = factory.create(absoluteLogFilePath);
         // then
         expect(logFile).to.equal(expectedLogFile);
+    });
+});
+
+describe('LogFileCollection', function () {
+    const logFile = new LogFile('/a/b/c/access.log', null);
+    let collection: Collection<LogFile>;
+    beforeEach(function () {
+        collection = new LogFileCollection();
+    });
+    it('should add log file to collection', async function () {
+        // when
+        await collection.add(logFile);
+        // then
+        expect(await collection.findById(logFile.absolutePath)).to.equal(logFile);
+    });
+    it('should find log file in collection', async function () {
+        // given
+        await collection.add(logFile);
+        // when
+        const actualLogFile = await collection.findById(logFile.absolutePath);
+        // then
+        expect(actualLogFile).to.equal(logFile);
+    });
+    it('should not find log file in collection', async function () {
+        await expect(collection.findById(logFile.absolutePath)).to.be.rejected;
+    });
+    it('should remove log file from collection', async function () {
+        // given
+        await collection.add(logFile);
+        // when
+        await collection.remove(logFile);
+        // then
+        expect(await collection.contains(logFile.absolutePath)).to.be.false;
+    });
+    it('should fail to remove log file from collection, since the collection does not have the log file', async function () {
+        // then
+        await expect(collection.remove(logFile)).to.be.rejected;
+    });
+    it('should contain log file', async function () {
+        // given
+        await collection.add(logFile);
+        // when
+        const containsLogFile = await collection.contains(logFile.absolutePath);
+        // then
+        expect(containsLogFile).to.be.true;
+    });
+    it('should not contain log file', async function () {
+        // when
+        const containsLogFile = await collection.contains(logFile.absolutePath);
+        // then
+        expect(containsLogFile).to.be.false;
     });
 });
