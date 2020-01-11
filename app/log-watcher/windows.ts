@@ -82,15 +82,9 @@ class WindowsContent implements Content {
     /**
      * {@inheritDoc}
      */
-    async read(): Promise<string> {
-        return (await this.fileSystem.readFileAsync(this.absoluteLogFilePath)).toString();
-    }
-
-    /**
-     * {@inheritDoc}
-     */
     async readText(): Promise<TextContent> {
-        return new TextContent(await this.read(), this.eol);
+        const rawContent = await this.fileSystem.readFileAsync(this.absoluteLogFilePath);
+        return new TextContent(rawContent, this.eol);
     }
 
     private handleData(data: string, buffer: Buffer): void {

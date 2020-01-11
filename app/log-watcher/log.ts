@@ -38,11 +38,6 @@ export interface Content {
     getSize(): Promise<number>;
 
     /**
-     * Return contents of the log file as a string.
-     */
-    read(): Promise<string>;
-
-    /**
      * Return text contents of the log file.
      */
     readText(): Promise<TextContent>;
@@ -131,8 +126,9 @@ export class LogFile {
     /**
      * Return all content of the log file as a string.
      */
-    getContentAsString(): Promise<string> {
-        return this.content.read();
+    async getContentAsString(): Promise<string> {
+        const textContent = await this.content.readText();
+        return textContent.content;
     }
 
     /**

@@ -59,12 +59,12 @@ describe('LogFile', () => {
     });
     it('should return promise of its content as a string', async function () {
         // given
-        const expectedContent = "log file entry";
-        when(content.read()).thenReturn(Promise.resolve(expectedContent));
+        const expectedContent = new TextContent("log file entry", EOL);
+        when(content.readText()).thenResolve(expectedContent);
         // when
         const contentAsString = await logFile.getContentAsString();
         // then
-        expect(contentAsString).to.equal(expectedContent);
+        expect(contentAsString).to.equal(expectedContent.content);
     });
     it('should return promise of its content as a text', async function () {
         // given
