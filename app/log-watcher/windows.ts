@@ -1,4 +1,4 @@
-import {Content, FileSystem, LogFile, LogFileFactory, OnChange} from "./log";
+import {Content, FileSystem, LogFile, LogFileFactory, OnChange, TextContent} from "./log";
 import {ChildProcess} from "child_process";
 import {EventEmitter} from "events";
 
@@ -84,6 +84,13 @@ class WindowsContent implements Content {
      */
     async read(): Promise<string> {
         return (await this.fileSystem.readFileAsync(this.absoluteLogFilePath)).toString();
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    async readText(): Promise<TextContent> {
+        return new TextContent(await this.read(), this.eol);
     }
 
     private handleData(data: string, buffer: Buffer): void {

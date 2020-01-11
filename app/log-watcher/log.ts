@@ -43,9 +43,43 @@ export interface Content {
     read(): Promise<string>;
 
     /**
+     * Return text contents of the log file.
+     */
+    readText(): Promise<TextContent>;
+
+    /**
      * Stop listening for changes in this content.
      */
     close(): void;
+}
+
+/**
+ * Content of a text log file.
+ */
+export class TextContent {
+    public content: string;
+
+    /**
+     * Construct content.
+     *
+     * @param rawContent raw content of a text file, that may be a string or a buffer
+     * @param eol end-of-line separator used in this content
+     */
+    constructor(rawContent: any, private eol: string) {
+        this.content = rawContent.toString();
+    }
+
+    /**
+     * Return all the lines of the text content.
+     */
+    getLines(): Array<string> {
+        const lines = this.content.split(this.eol);
+        const indexOfLastLine = lines.length - 1;
+        if (lines[indexOfLastLine] === '') {
+            lines.splice(indexOfLastLine, 1);
+        }
+        return lines;
+    }
 }
 
 /**
@@ -99,6 +133,14 @@ export class LogFile {
      */
     getContentAsString(): Promise<string> {
         return this.content.read();
+    }
+
+    /**
+     * Return content of the log file as an array of it's string lines.
+     */
+    async getContentLines(): Promise<Array<string>> {
+        const textContent = await this.content.readText();
+        return textContent.getLines();
     }
 
     /**

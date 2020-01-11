@@ -3,6 +3,7 @@ import {instance, mock, spy, verify, when} from "ts-mockito";
 import {CreateTail, Tail, UnixLogFileFactory} from "../../app/log-watcher/unix";
 import {expect} from "chai";
 import {Stats} from "fs";
+import {EOL} from "os";
 
 const RealTail = require('nodejs-tail');
 
@@ -20,7 +21,7 @@ describe('UnixContent', function () {
         when(tail.watch()).thenCall(listener);
         when(tail.close()).thenCall(listener);
         const createTail: CreateTail = () => realTail;
-        factory = new UnixLogFileFactory(createTail, instance(fileSystem));
+        factory = new UnixLogFileFactory(createTail, instance(fileSystem), EOL);
     });
     it('should start watching tail on log files creation', function () {
         // when
@@ -76,6 +77,16 @@ describe('UnixContent', function () {
         const contentAsString = await log.getContentAsString();
         // then
         expect(contentAsString).to.equal(expectedContent);
+    });
+    it('should return text content of the log file in lines', async function () {
+        // given
+        const rawContent = `line1${EOL}line2${EOL}`;
+        when(fileSystem.readFileAsync(fileName)).thenResolve(rawContent);
+        const log = factory.create(fileName);
+        // when
+        const lines = await log.getContentLines();
+        // then
+        expect(lines).to.eql(['line1', 'line2']);
     });
     it('should notify listeners about a log file change', function (done) {
         // given

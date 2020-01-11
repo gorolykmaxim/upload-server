@@ -78,6 +78,16 @@ describe('WindowsContent', function () {
         // then
         expect(contentAsString).to.equal(expectedContent);
     });
+    it('should return text content of the log file in lines', async function () {
+        // given
+        const rawContent = `line1${EOL}line2${EOL}`;
+        when(fileSystem.readFileAsync(fileName)).thenResolve(rawContent);
+        const log = factory.create(fileName);
+        // when
+        const lines = await log.getContentLines();
+        // then
+        expect(lines).to.eql(['line1', 'line2']);
+    });
     it('should notify listeners about content change, that is split in two incomplete chunks', function (done) {
         // given
         const expectedChange = 'line in a log file, that will get split' + EOL;

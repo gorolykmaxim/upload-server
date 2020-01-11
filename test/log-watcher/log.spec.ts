@@ -5,13 +5,14 @@ import {
     LogFileCollection,
     LogFileFactory,
     OnChange,
-    RestrictedLogFileFactory
+    RestrictedLogFileFactory, TextContent
 } from "../../app/log-watcher/log";
 import {instance, mock, verify, when} from "ts-mockito";
 import * as chai from "chai";
 import {expect} from "chai";
 import * as chaiAsPromised from "chai-as-promised";
 import {Collection} from "../../app/collection";
+import {EOL} from "os";
 
 chai.use(chaiAsPromised);
 
@@ -65,11 +66,47 @@ describe('LogFile', () => {
         // then
         expect(contentAsString).to.equal(expectedContent);
     });
+    it('should return promise of its content as a text', async function () {
+        // given
+        const expectedContent = new TextContent(`line1${EOL}line2`, EOL);
+        when(content.readText()).thenResolve(expectedContent);
+        // when
+        const lines = await logFile.getContentLines();
+        // then
+        expect(lines).to.eql(expectedContent.getLines());
+    });
     it('should close its content', function () {
         // when
         logFile.close();
         // then
         verify(content.close()).once();
+    });
+});
+
+describe('TextContent', function () {
+    it('should return content', function () {
+        // given
+        const content = 'content of the file';
+        // when
+        const textContent = new TextContent(content, EOL);
+        // then
+        expect(textContent.content).to.equal(content);
+    });
+    it('should return content in lines, while truncating the last empty line', function () {
+        // given
+        const content = `line1${EOL}line2${EOL}`;
+        // when
+        const lines = new TextContent(content, EOL).getLines();
+        // then
+        expect(lines).to.eql(['line1', 'line2']);
+    });
+    it('should return content in lines', function () {
+        // given
+        const content = `line1${EOL}line2`;
+        // when
+        const lines = new TextContent(content, EOL).getLines();
+        // then
+        expect(lines).to.eql(['line1', 'line2']);
     });
 });
 

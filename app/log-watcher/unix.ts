@@ -1,4 +1,4 @@
-import {Content, FileSystem, LogFile, LogFileFactory} from "./log";
+import {Content, FileSystem, LogFile, LogFileFactory, TextContent} from "./log";
 import {EventEmitter} from "events";
 
 /**
@@ -28,8 +28,9 @@ class UnixContent implements Content {
      * @param absoluteLogFilePath absolute path to the log file, to which the content belongs to
      * @param tail tail, that will be used to track changes in the log file's content
      * @param fileSystem file system, that contains the content of the log file
+     * @param eol end-of-line separator used in this log file's content
      */
-    constructor(private absoluteLogFilePath: string, private tail: Tail, private fileSystem: FileSystem) {
+    constructor(private absoluteLogFilePath: string, private tail: Tail, private fileSystem: FileSystem, private eol: string) {
     }
 
     /**
@@ -71,6 +72,13 @@ class UnixContent implements Content {
     /**
      * {@inheritDoc}
      */
+    async readText(): Promise<TextContent> {
+        return new TextContent(await this.read(), this.eol);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
     removeChangesListener(listener: (data: string) => void): void {
         this.tail.removeListener(UnixContent.LINE_CHANGED, listener);
     }
@@ -89,8 +97,9 @@ export class UnixLogFileFactory implements LogFileFactory {
      *
      * @param tail factor-method, that will be used to create a tail to track changes in log file's content
      * @param fileSystem file system where content of created log files is located
+     * @param eol end-of-line separator, used in unix' log files' content
      */
-    constructor(private tail: CreateTail, private fileSystem: FileSystem) {
+    constructor(private tail: CreateTail, private fileSystem: FileSystem, private eol: string) {
     }
 
     /**
@@ -99,7 +108,7 @@ export class UnixLogFileFactory implements LogFileFactory {
     create(absoluteLogFilePath: string): LogFile {
         const tail = this.tail();
         tail.watch();
-        const content: Content = new UnixContent(absoluteLogFilePath, tail, this.fileSystem);
+        const content: Content = new UnixContent(absoluteLogFilePath, tail, this.fileSystem, this.eol);
         return new LogFile(absoluteLogFilePath, content);
     }
 }
