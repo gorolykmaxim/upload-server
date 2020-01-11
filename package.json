@@ -32,6 +32,9 @@
     "url": "https://github.com/gorolykmaxim/upload-server/issues"
   },
   "homepage": "https://github.com/gorolykmaxim/upload-server#readme",
+  "dependencies": {
+    "nodejs-tail": "^1.1.0"
+  },
   "devDependencies": {
     "@types/chai": "^4.2.7",
     "@types/mocha": "^5.2.7",
