@@ -34,6 +34,51 @@ export interface Collection<T> {
 }
 
 /**
+ * Simple generic collection of scalar values.
+ */
+export class ValuesCollection<T> implements Collection<T> {
+    private values: Array<T> = [];
+
+    /**
+     * {@inheritDoc}
+     */
+    async add(item: T): Promise<void> {
+        this.values.push(item);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    async contains(id: any): Promise<boolean> {
+        return this.values.indexOf(id) >= 0;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    async findById(id: any): Promise<T> {
+        const index = this.findIndexOf(id);
+        return this.values[index];
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    async remove(item: T): Promise<void> {
+        const index = this.findIndexOf(item);
+        this.values.splice(index, 1);
+    }
+
+    private findIndexOf(item: any): number {
+        const index = this.values.indexOf(item);
+        if (index < 0) {
+            throw new EntityNotFoundError(item);
+        }
+        return index;
+    }
+}
+
+/**
  * A generic collection-related error.
  */
 export class CollectionError extends Error {
@@ -45,5 +90,20 @@ export class CollectionError extends Error {
     constructor(message: string) {
         super(message);
         Object.setPrototypeOf(this, CollectionError);
+    }
+}
+
+/**
+ * Failed to find entity in the collection.
+ */
+export class EntityNotFoundError extends CollectionError {
+    /**
+     * Construct an error.
+     *
+     * @param entity entity or ID of that entity
+     */
+    constructor(entity: any) {
+        super(`Failed to find entity '${entity}' in collection`);
+        Object.setPrototypeOf(this, EntityNotFoundError);
     }
 }

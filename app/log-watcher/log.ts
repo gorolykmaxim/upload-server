@@ -1,5 +1,5 @@
 import {Stats} from "fs";
-import {Collection, CollectionError} from "../collection";
+import {Collection, EntityNotFoundError} from "../collection";
 
 /**
  * Callback, that gets called when contents of a log files got changed.
@@ -237,21 +237,6 @@ export class LogFileCollection implements Collection<LogFile> {
                 return i;
             }
         }
-        throw new LogFileNotFoundError(item);
-    }
-}
-
-/**
- * Failed to find log file in the collection.
- */
-export class LogFileNotFoundError extends CollectionError {
-    /**
-     * Construct an error.
-     *
-     * @param logFile either an instance of the log file or an absolute path to it
-     */
-    constructor(logFile: LogFile | string) {
-        super(`Failed to find ${logFile} in log files collection`);
-        Object.setPrototypeOf(this, LogFileNotFoundError);
+        throw new EntityNotFoundError(item);
     }
 }
