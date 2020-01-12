@@ -6,6 +6,10 @@ import {EOL} from "os";
 import {expect} from "chai";
 import {Readable} from "stream";
 import {Stats} from "fs";
+import * as chai from "chai";
+import chaiAsPromised = require("chai-as-promised");
+
+chai.use(chaiAsPromised);
 
 describe('WindowsContent', function () {
     const tailBinaryPath = 'tail.exe';

@@ -4,6 +4,10 @@ import {CreateTail, Tail, UnixLogFileFactory} from "../../app/log-watcher/unix";
 import {expect} from "chai";
 import {Stats} from "fs";
 import {EOL} from "os";
+import * as chai from "chai";
+import chaiAsPromised = require("chai-as-promised");
+
+chai.use(chaiAsPromised);
 
 const RealTail = require('nodejs-tail');
 
