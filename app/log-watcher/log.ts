@@ -150,7 +150,7 @@ export class LogFile {
      * {@inheritDoc}
      */
     toString(): string {
-        return `LogFile{absolutePath=${this.absolutePath}`;
+        return `LogFile{absolutePath=${this.absolutePath}}`;
     }
 }
 
