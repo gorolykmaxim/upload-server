@@ -33,13 +33,17 @@
   },
   "homepage": "https://github.com/gorolykmaxim/upload-server#readme",
   "dependencies": {
-    "nodejs-tail": "^1.1.0"
+    "nodejs-tail": "^1.1.0",
+    "ws": "^7.2.1",
+    "uuid": "^3.3.3"
   },
   "devDependencies": {
     "@types/chai": "^4.2.7",
     "@types/mocha": "^5.2.7",
     "@types/node": "^13.1.6",
     "@types/chai-as-promised": "^7.1.2",
+    "@types/ws": "^6.0.4",
+    "@types/uuid": "^3.4.6",
     "chai": "^4.2.0",
     "chai-as-promised": "^7.1.1",
     "mocha": "^7.0.0",
