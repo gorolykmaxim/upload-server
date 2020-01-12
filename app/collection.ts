@@ -89,7 +89,7 @@ export class CollectionError extends Error {
      */
     constructor(message: string) {
         super(message);
-        Object.setPrototypeOf(this, CollectionError);
+        Object.setPrototypeOf(this, CollectionError.prototype);
     }
 }
 
@@ -104,6 +104,6 @@ export class EntityNotFoundError extends CollectionError {
      */
     constructor(entity: any) {
         super(`Failed to find entity '${entity}' in collection`);
-        Object.setPrototypeOf(this, EntityNotFoundError);
+        Object.setPrototypeOf(this, EntityNotFoundError.prototype);
     }
 }
