@@ -1,4 +1,13 @@
-import {Content, FileSystem, LogFile, LogFileFactory, OnChange, TextContent} from "./log";
+import {
+    Content,
+    ContentReadError,
+    ContentSizeError,
+    FileSystem,
+    LogFile,
+    LogFileFactory,
+    OnChange,
+    TextContent
+} from "./log";
 import {ChildProcess} from "child_process";
 import {EventEmitter} from "events";
 
@@ -76,15 +85,23 @@ class WindowsContent implements Content {
      * {@inheritDoc}
      */
     async getSize(): Promise<number> {
-        return (await this.fileSystem.statAsync(this.absoluteLogFilePath)).size;
+        try {
+            return (await this.fileSystem.statAsync(this.absoluteLogFilePath)).size;
+        } catch (e) {
+            throw new ContentSizeError(this.absoluteLogFilePath, e);
+        }
     }
 
     /**
      * {@inheritDoc}
      */
     async readText(): Promise<TextContent> {
-        const rawContent = await this.fileSystem.readFileAsync(this.absoluteLogFilePath);
-        return new TextContent(rawContent, this.eol);
+        try {
+            const rawContent = await this.fileSystem.readFileAsync(this.absoluteLogFilePath);
+            return new TextContent(rawContent, this.eol);
+        } catch (e) {
+            throw new ContentReadError(this.absoluteLogFilePath, e);
+        }
     }
 
     private handleData(data: string, buffer: Buffer): void {

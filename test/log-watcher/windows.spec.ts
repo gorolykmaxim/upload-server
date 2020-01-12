@@ -1,4 +1,4 @@
-import {FileSystem, LogFileFactory} from "../../app/log-watcher/log";
+import {ContentReadError, ContentSizeError, FileSystem, LogFileFactory} from "../../app/log-watcher/log";
 import {ChildProcess} from "child_process";
 import {CreateChildProcess, WindowsLogFileFactory} from "../../app/log-watcher/windows";
 import {instance, mock, verify, when} from "ts-mockito";
@@ -67,6 +67,20 @@ describe('WindowsContent', function () {
         const size = await log.getContentSize();
         // then
         expect(size).to.equal(expectedSize);
+    });
+    it('should fail to read size of log file content', async function () {
+        // given
+        when(fileSystem.statAsync(fileName)).thenReject(new Error());
+        const log = factory.create(fileName);
+        // then
+        await expect(log.getContentSize()).to.be.rejectedWith(ContentSizeError);
+    });
+    it('should fail to read content of the log file', async function () {
+        // given
+        when(fileSystem.readFileAsync(fileName)).thenReject(new Error());
+        const log = factory.create(fileName);
+        // then
+        await expect(log.getContentAsString()).to.be.rejectedWith(ContentReadError);
     });
     it('should return content of the log file', async function () {
         // given

@@ -1,4 +1,4 @@
-import {Content, FileSystem, LogFile, LogFileFactory, TextContent} from "./log";
+import {Content, ContentReadError, ContentSizeError, FileSystem, LogFile, LogFileFactory, TextContent} from "./log";
 import {EventEmitter} from "events";
 
 /**
@@ -52,7 +52,11 @@ class UnixContent implements Content {
      * {@inheritDoc}
      */
     async getSize(): Promise<number> {
-        return (await this.fileSystem.statAsync(this.absoluteLogFilePath)).size;
+        try {
+            return (await this.fileSystem.statAsync(this.absoluteLogFilePath)).size;
+        } catch (e) {
+            throw new ContentSizeError(this.absoluteLogFilePath, e);
+        }
     }
 
     /**
@@ -66,8 +70,12 @@ class UnixContent implements Content {
      * {@inheritDoc}
      */
     async readText(): Promise<TextContent> {
-        const rawContent = await this.fileSystem.readFileAsync(this.absoluteLogFilePath);
-        return new TextContent(rawContent, this.eol);
+        try {
+            const rawContent = await this.fileSystem.readFileAsync(this.absoluteLogFilePath);
+            return new TextContent(rawContent, this.eol);
+        } catch (e) {
+            throw new ContentReadError(this.absoluteLogFilePath, e);
+        }
     }
 
     /**

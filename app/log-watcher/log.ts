@@ -282,3 +282,50 @@ export class LogFileCollection implements Collection<LogFile> {
         throw new EntityNotFoundError(item);
     }
 }
+
+/**
+ * Generic error, that might happen while trying to read log file content or it's properties.
+ */
+export class ContentError extends Error {
+    /**
+     * Construct an error.
+     *
+     * @param message message of the error
+     */
+    constructor(message: string) {
+        super(message);
+        Object.setPrototypeOf(this, ContentError.prototype);
+    }
+}
+
+/**
+ * Failed to read content of a log file.
+ */
+export class ContentReadError extends ContentError {
+    /**
+     * Construct an error.
+     *
+     * @param absoluteLogFilePath absolute path to the log file
+     * @param cause reason of the failure
+     */
+    constructor(absoluteLogFilePath: string, cause: Error) {
+        super(`Failed to read content of ${absoluteLogFilePath}. Reason: ${cause}`);
+        Object.setPrototypeOf(this, ContentReadError.prototype);
+    }
+}
+
+/**
+ * Failed to read size of the log file's content.
+ */
+export class ContentSizeError extends ContentError {
+    /**
+     * Construct an error.
+     *
+     * @param absoluteLogFilePath absolute path to the log file
+     * @param cause reason fo the failure
+     */
+    constructor(absoluteLogFilePath: string, cause: Error) {
+        super(`Failed to read size of ${absoluteLogFilePath}. Reason: ${cause}`);
+        Object.setPrototypeOf(this, ContentSizeError.prototype);
+    }
+}
