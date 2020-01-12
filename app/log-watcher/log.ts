@@ -2,7 +2,7 @@ import {Stats} from "fs";
 import {Collection, EntityNotFoundError} from "../collection";
 
 /**
- * Callback, that gets called when contents of a log files got changed.
+ * Callback, that gets called when a new line gets added to contents of the log file.
  *
  * @param data change in the contents
  */
