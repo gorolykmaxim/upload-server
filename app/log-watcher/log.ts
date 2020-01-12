@@ -265,7 +265,11 @@ export class LogFileCollection implements Collection<LogFile> {
             this.findIndexOf(id);
             return true;
         } catch (e) {
-            return false;
+            if (e instanceof EntityNotFoundError) {
+                return false;
+            } else {
+                throw e;
+            }
         }
     }
 
