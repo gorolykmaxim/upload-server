@@ -1,5 +1,5 @@
 import {ContentError, LogFile, LogFileCollection} from "./log";
-import {Collection, EntityNotFoundError} from "../collection";
+import {Collection, EntityComparison, EntityNotFoundError, InMemoryCollection} from "../collection";
 import WebSocket = require("ws");
 
 /**
@@ -21,7 +21,7 @@ export class Watcher {
      * @param messageFactory message factory, that will be used by the watcher to construct messages, that the watcher
      * will send back to the actual API client
      */
-    constructor(private id: string, private connection: WebSocket, private messageFactory: MessageFactory) {
+    constructor(public id: string, private connection: WebSocket, private messageFactory: MessageFactory) {
     }
 
     /**
@@ -226,4 +226,36 @@ export class DefaultMessageFactory extends LegacyMessageFactory implements Messa
     toString(): string {
         return 'DefaultMessageFactory{}';
     }
+}
+
+/**
+ * Collection of watchers.
+ */
+export class WatcherCollection extends InMemoryCollection<Watcher> {
+    /**
+     * Construct a collection.
+     */
+    constructor() {
+        super(new WatcherComparison());
+    }
+}
+
+/**
+ * Comparison of watchers and their IDs.
+ */
+export class WatcherComparison implements EntityComparison<Watcher> {
+    /**
+     * {@inheritDoc}
+     */
+    equal(entity: Watcher, anotherEntity: Watcher): boolean {
+        return entity.id === anotherEntity.id;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    hasId(entity: Watcher, id: any): boolean {
+        return entity.id === id;
+    }
+
 }

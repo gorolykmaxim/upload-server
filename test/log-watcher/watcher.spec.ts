@@ -2,7 +2,7 @@ import {
     CantWatchLogMultipleTimesError,
     DefaultMessageFactory,
     LegacyMessageFactory,
-    MessageFactory, Watcher,
+    MessageFactory, Watcher, WatcherComparison,
     WatcherFactory, WatcherIsNotWatchingLogFileError
 } from "../../app/log-watcher/watcher";
 import {Content, ContentReadError, LogFile, TextContent} from "../../app/log-watcher/log";
@@ -13,6 +13,7 @@ import uuid = require("uuid");
 import * as chai from "chai";
 import chaiAsPromised = require("chai-as-promised");
 import {EOL} from "os";
+import {EntityComparison} from "../../app/collection";
 
 chai.use(chaiAsPromised);
 
@@ -156,5 +157,27 @@ describe('DefaultMessageFactory', function () {
         const message = factory.createErrorMessage(error);
         // then
         expect(message).to.equal(JSON.stringify({type: 'error', message: error.message}));
+    });
+});
+
+describe('WatcherComparison', function () {
+    const comparison: EntityComparison<Watcher> = new WatcherComparison();
+    const watcher1: Watcher = new Watcher('12345', null, null);
+    const watcher2: Watcher = new Watcher('54321', null, null);
+    it('should return true since both watchers have the same ID', function () {
+        // then
+        expect(comparison.equal(watcher1, watcher1)).to.be.true;
+    });
+    it('should return false since watchers have different IDs', function () {
+        // then
+        expect(comparison.equal(watcher1, watcher2)).to.be.false;
+    });
+    it('should return true since the watcher has specified ID', function () {
+        // then
+        expect(comparison.hasId(watcher1, watcher1.id)).to.be.true;
+    });
+    it('should return false since the watcher has a different ID', function () {
+        // then
+        expect(comparison.hasId(watcher1, watcher2.id)).to.be.false;
     });
 });
