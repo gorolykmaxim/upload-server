@@ -14,6 +14,15 @@ describe('ValuesCollection', function () {
     beforeEach(function () {
         collection = new ValuesCollection();
     });
+    it('should find all values in the collection', async function () {
+        // given
+        const expectedValues = [1,2,3,4];
+        await Promise.all(expectedValues.map(collection.add.bind(collection)));
+        // when
+        const values = await collection.findAll();
+        // then
+        expect(values).to.eql(expectedValues);
+    });
     it('should add value to the collection', async function () {
         // when
         await collection.add(value);
@@ -69,6 +78,15 @@ describe('InMemoryCollection', function () {
         when(comparison.hasId(anything(), anything())).thenReturn(true);
         when(comparison.equal(anything(), anything())).thenReturn(true);
         collection = new InMemoryCollection(instance(comparison));
+    });
+    it('should find all entities in the collection', async function () {
+        // given
+        const expectedEntities = [{a: 1}, {a: 2}, {a: 3}];
+        await Promise.all(expectedEntities.map(collection.add.bind(collection)));
+        // when
+        const entities = await collection.findAll();
+        // then
+        expect(entities).to.eql(expectedEntities);
     });
     it('should add entity to collection', async function () {
         // when

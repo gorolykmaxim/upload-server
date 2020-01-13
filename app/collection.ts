@@ -3,6 +3,11 @@
  */
 export interface Collection<T> {
     /**
+     * Find all entities, that are stored in the collection.
+     */
+    findAll(): Promise<Array<T>>;
+
+    /**
      * Find entity with the specified ID and return it. If there is no entity, matching the search criteria - throw
      * {@link CollectionError}.
      *
@@ -73,6 +78,13 @@ export class InMemoryCollection<T> implements Collection<T> {
     /**
      * {@inheritDoc}
      */
+    async findAll(): Promise<Array<T>> {
+        return Object.assign([], this.entities);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
     async findById(id: any): Promise<T> {
         const index = this.findIndexOfId(id);
         return this.entities[index];
@@ -85,13 +97,13 @@ export class InMemoryCollection<T> implements Collection<T> {
         const index = this.findIndexOfItem(item);
         this.entities.splice(index, 1);
     }
-
     private findIndexOfId(id: any): number {
         return this.findIndexOf(e => this.comparison.hasId(e, id), id);
     }
     private findIndexOfItem(item: T): number {
         return this.findIndexOf(e => this.comparison.equal(e, item), item);
     }
+
     private findIndexOf(predicate: (e: T) => boolean, entity: any): number {
         const index = this.entities.findIndex(predicate);
         if (index < 0) {
@@ -140,6 +152,13 @@ export class ValuesCollection<T> implements Collection<T> {
      */
     async contains(id: any): Promise<boolean> {
         return this.values.indexOf(id) >= 0;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    async findAll(): Promise<Array<T>> {
+        return Object.assign([], this.values);
     }
 
     /**
