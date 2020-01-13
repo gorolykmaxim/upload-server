@@ -116,6 +116,25 @@ describe('Watcher', function () {
         // then
         verify(content.addChangesListener(anyFunction())).once();
     });
+    it('should notify the API client about the specified error', function () {
+        // given
+        const expectedError = new Error();
+        // when
+        watcher.notifyAboutError(expectedError);
+        // then
+        verify(connection.send(messageFactory.createErrorMessage(expectedError))).once();
+    });
+    it('should stop watching all the logs, it has been watching, and return them', async function () {
+        // given
+        const anotherLog: LogFile = new LogFile('/var/log/messages.log', instance(content));
+        await watcher.watchLog(logFile);
+        await watcher.watchLog(anotherLog);
+        // when
+        const freedLogs: Array<LogFile> = await watcher.stopWatchingLogs();
+        // then
+        expect(freedLogs).to.eql([logFile, anotherLog]);
+        verify(content.removeChangesListener(anyFunction())).twice();
+    });
 });
 
 describe('LegacyMessageFactory', function () {

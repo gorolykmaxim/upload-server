@@ -88,11 +88,23 @@ export class Watcher {
             throw e;
         }
     }
-    private notifyAboutChangeIn(logFile: LogFile, changes: Array<string>) {
-        this.connection.send(this.messageFactory.createLogChangeMessage(logFile, changes));
-    }
-    private notifyAboutError(error: Error) {
+
+    /**
+     * Notify the watcher about an error.
+     *
+     * @param error error that needs to be send to watcher
+     */
+    notifyAboutError(error: Error) {
         this.connection.send(this.messageFactory.createErrorMessage(error));
+    }
+
+    /**
+     * Stop watching changes in all the log files, the watcher is currently watching, and return those log files.
+     */
+    async stopWatchingLogs(): Promise<Array<LogFile>> {
+        const watchedLogs = await this.watchedLogs.findAll();
+        await Promise.all(watchedLogs.map(this.stopWatchingLog.bind(this)));
+        return watchedLogs;
     }
 
     /**
@@ -100,6 +112,10 @@ export class Watcher {
      */
     toString(): string {
         return `Watcher{id=${this.id}, messageFactory=${this.messageFactory}}`;
+    }
+
+    private notifyAboutChangeIn(logFile: LogFile, changes: Array<string>) {
+        this.connection.send(this.messageFactory.createLogChangeMessage(logFile, changes));
     }
 }
 
