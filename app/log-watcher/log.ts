@@ -1,5 +1,5 @@
 import {Stats} from "fs";
-import {Collection, EntityNotFoundError} from "../collection";
+import {EntityComparison, InMemoryCollection} from "../collection";
 
 /**
  * Callback, that gets called when a new line gets added to contents of the log file.
@@ -231,55 +231,32 @@ export class RestrictedLogFileFactory implements LogFileFactory {
 /**
  * Collection of log files.
  */
-export class LogFileCollection implements Collection<LogFile> {
-    private logFiles: Array<LogFile> = [];
+export class LogFileCollection extends InMemoryCollection<LogFile> {
+    /**
+     * Construct a collection.
+     */
+    constructor() {
+        super(new LogFileComparison());
+    }
+}
+
+/**
+ * Comparison of log files and their absolute paths.
+ */
+export class LogFileComparison implements EntityComparison<LogFile> {
 
     /**
      * {@inheritDoc}
      */
-    async add(item: LogFile): Promise<void> {
-        this.logFiles.push(item);
+    equal(entity: LogFile, anotherEntity: LogFile): boolean {
+        return entity.absolutePath === anotherEntity.absolutePath;
     }
 
     /**
      * {@inheritDoc}
      */
-    async findById(id: any): Promise<LogFile> {
-        const index = this.findIndexOf(id);
-        return this.logFiles[index];
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    async remove(item: LogFile): Promise<void> {
-        const index = this.findIndexOf(item);
-        this.logFiles.splice(index, 1);
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    async contains(id: any): Promise<boolean> {
-        try {
-            this.findIndexOf(id);
-            return true;
-        } catch (e) {
-            if (e instanceof EntityNotFoundError) {
-                return false;
-            } else {
-                throw e;
-            }
-        }
-    }
-
-    private findIndexOf(item: LogFile | string): number {
-        for (let i = 0; i < this.logFiles.length; i++) {
-            if (this.logFiles[i].absolutePath === (item instanceof LogFile ? item.absolutePath : item)) {
-                return i;
-            }
-        }
-        throw new EntityNotFoundError(item);
+    hasId(entity: LogFile, id: any): boolean {
+        return entity.absolutePath === id;
     }
 }
 

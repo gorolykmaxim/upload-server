@@ -2,16 +2,17 @@ import {
     Content,
     LogFile,
     LogFileAccessError,
-    LogFileCollection,
+    LogFileComparison,
     LogFileFactory,
     OnChange,
-    RestrictedLogFileFactory, TextContent
+    RestrictedLogFileFactory,
+    TextContent
 } from "../../app/log-watcher/log";
 import {instance, mock, verify, when} from "ts-mockito";
 import * as chai from "chai";
 import {expect} from "chai";
 import * as chaiAsPromised from "chai-as-promised";
-import {Collection} from "../../app/collection";
+import {EntityComparison} from "../../app/collection";
 import {EOL} from "os";
 
 chai.use(chaiAsPromised);
@@ -134,53 +135,24 @@ describe('RestrictedLogFileFactory', () => {
     });
 });
 
-describe('LogFileCollection', function () {
-    const logFile = new LogFile('/a/b/c/access.log', null);
-    let collection: Collection<LogFile>;
-    beforeEach(function () {
-        collection = new LogFileCollection();
-    });
-    it('should add log file to collection', async function () {
-        // when
-        await collection.add(logFile);
+describe('LogFileComparison', function () {
+    const comparison: EntityComparison<LogFile> = new LogFileComparison();
+    const logFile1: LogFile = new LogFile('/a/b/c/access.log', null);
+    const logFile2: LogFile = new LogFile('/a/b/c/error.log', null);
+    it('should return true since both log files have the same absolute path', function () {
         // then
-        expect(await collection.findById(logFile.absolutePath)).to.equal(logFile);
+        expect(comparison.equal(logFile1, logFile1)).to.be.true;
     });
-    it('should find log file in collection', async function () {
-        // given
-        await collection.add(logFile);
-        // when
-        const actualLogFile = await collection.findById(logFile.absolutePath);
+    it('should return false since log files have different absolute paths', function () {
         // then
-        expect(actualLogFile).to.equal(logFile);
+        expect(comparison.equal(logFile2, logFile1)).to.be.false;
     });
-    it('should not find log file in collection', async function () {
-        await expect(collection.findById(logFile.absolutePath)).to.be.rejected;
-    });
-    it('should remove log file from collection', async function () {
-        // given
-        await collection.add(logFile);
-        // when
-        await collection.remove(logFile);
+    it('should return true since the log file has specified absolute path', function () {
         // then
-        expect(await collection.contains(logFile.absolutePath)).to.be.false;
+        expect(comparison.hasId(logFile1, logFile1.absolutePath)).to.be.true;
     });
-    it('should fail to remove log file from collection, since the collection does not have the log file', async function () {
+    it('should return false since the log file has a different absolute path', function () {
         // then
-        await expect(collection.remove(logFile)).to.be.rejected;
-    });
-    it('should contain log file', async function () {
-        // given
-        await collection.add(logFile);
-        // when
-        const containsLogFile = await collection.contains(logFile.absolutePath);
-        // then
-        expect(containsLogFile).to.be.true;
-    });
-    it('should not contain log file', async function () {
-        // when
-        const containsLogFile = await collection.contains(logFile.absolutePath);
-        // then
-        expect(containsLogFile).to.be.false;
+        expect(comparison.hasId(logFile1, logFile2.absolutePath)).to.be.false;
     });
 });
