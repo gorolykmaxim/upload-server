@@ -181,8 +181,8 @@ describe('DefaultMessageFactory', function () {
 
 describe('WatcherComparison', function () {
     const comparison: EntityComparison<Watcher> = new WatcherComparison();
-    const watcher1: Watcher = new Watcher('12345', null, null);
-    const watcher2: Watcher = new Watcher('54321', null, null);
+    const watcher1: Watcher = new Watcher('12345', null, null, null);
+    const watcher2: Watcher = new Watcher('54321', null, null, null);
     it('should return true since both watchers have the same ID', function () {
         // then
         expect(comparison.equal(watcher1, watcher1)).to.be.true;

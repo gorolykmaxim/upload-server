@@ -11,8 +11,6 @@ export type CreateUUID = () => string;
  * An API client, that watches for changes in log files.
  */
 export class Watcher {
-    private watchedLogs: Collection<LogFile> = new LogFileCollection();
-
     /**
      * Construct a watcher.
      *
@@ -20,8 +18,10 @@ export class Watcher {
      * @param connection websocket connection, the client, represented by this watcher, uses to interact with API
      * @param messageFactory message factory, that will be used by the watcher to construct messages, that the watcher
      * will send back to the actual API client
+     * @param watchedLogs collection, where the watcher will store log files, watched by him
      */
-    constructor(public id: string, private connection: WebSocket, private messageFactory: MessageFactory) {
+    constructor(public id: string, private connection: WebSocket, private messageFactory: MessageFactory,
+                private watchedLogs: Collection<LogFile>) {
     }
 
     /**
@@ -173,7 +173,7 @@ export class WatcherFactory {
      * @param connection connection of the API client, that corresponds to the created watcher
      */
     create(connection: WebSocket): Watcher {
-        return new Watcher(this.createUUID(), connection, this.messageFactory);
+        return new Watcher(this.createUUID(), connection, this.messageFactory, new LogFileCollection());
     }
 }
 
