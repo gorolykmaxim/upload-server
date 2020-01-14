@@ -1,5 +1,9 @@
-import {Content, ContentReadError, ContentSizeError, FileSystem, LogFile, LogFileFactory, TextContent} from "./log";
 import {EventEmitter} from "events";
+import {Content, ContentReadError, ContentSizeError} from "./content";
+import {FileSystem} from "./file-system";
+import {TextContent} from "./text-content";
+import {LogFileFactory} from "./log-file-factory";
+import {LogFile} from "./log-file";
 
 /**
  * Interface of a nodejs-tail.
@@ -85,7 +89,6 @@ class UnixContent implements Content {
         this.tail.removeListener(UnixContent.LINE_CHANGED, listener);
     }
 }
-
 
 export type CreateTail = () => Tail;
 

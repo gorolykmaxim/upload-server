@@ -1,14 +1,15 @@
-import {ContentReadError, ContentSizeError, FileSystem, LogFileFactory} from "../../app/log-watcher/log";
 import {ChildProcess} from "child_process";
-import {CreateChildProcess, WindowsLogFileFactory} from "../../app/log-watcher/windows";
 import {instance, mock, verify, when} from "ts-mockito";
+import {Readable} from "stream";
 import {EOL} from "os";
 import {expect} from "chai";
-import {Readable} from "stream";
-import {Stats} from "fs";
 import * as chai from "chai";
+import {Stats} from "fs";
+import {FileSystem} from "../../../app/log-watcher/log/file-system";
+import {CreateChildProcess, WindowsLogFileFactory} from "../../../app/log-watcher/log/windows-log-file-factory";
+import {LogFileFactory} from "../../../app/log-watcher/log/log-file-factory";
+import {ContentReadError, ContentSizeError} from "../../../app/log-watcher/log/content";
 import chaiAsPromised = require("chai-as-promised");
-
 chai.use(chaiAsPromised);
 
 describe('WindowsContent', function () {

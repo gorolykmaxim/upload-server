@@ -1,20 +1,20 @@
-import {
-    CantWatchLogMultipleTimesError,
-    DefaultMessageFactory,
-    LegacyMessageFactory,
-    MessageFactory, Watcher, WatcherComparison,
-    WatcherFactory, WatcherIsNotWatchingLogFileError
-} from "../../app/log-watcher/watcher";
-import {Content, ContentReadError, LogFile, TextContent} from "../../app/log-watcher/log";
-import { expect } from "chai";
+import {EOL} from "os";
 import WebSocket = require("ws");
 import {anyFunction, anything, capture, instance, mock, resetCalls, verify, when} from "ts-mockito";
-import uuid = require("uuid");
+import {expect} from "chai";
 import * as chai from "chai";
+import uuid = require("uuid");
+import {TextContent} from "../../../app/log-watcher/log/text-content";
+import {Content, ContentReadError} from "../../../app/log-watcher/log/content";
+import {LogFile} from "../../../app/log-watcher/log/log-file";
+import {DefaultMessageFactory} from "../../../app/log-watcher/watcher/default-message-factory";
+import {WatcherFactory} from "../../../app/log-watcher/watcher/watcher-factory";
+import {
+    CantWatchLogMultipleTimesError,
+    Watcher,
+    WatcherIsNotWatchingLogFileError
+} from "../../../app/log-watcher/watcher/watcher";
 import chaiAsPromised = require("chai-as-promised");
-import {EOL} from "os";
-import {EntityComparison} from "../../app/collection";
-
 chai.use(chaiAsPromised);
 
 describe('Watcher', function () {
@@ -134,69 +134,5 @@ describe('Watcher', function () {
         // then
         expect(freedLogs).to.eql([logFile, anotherLog]);
         verify(content.removeChangesListener(anyFunction())).twice();
-    });
-});
-
-describe('LegacyMessageFactory', function () {
-    const logFile = new LogFile('/a/b/c/log-file.log', null);
-    const factory: MessageFactory = new LegacyMessageFactory();
-    it('should create message about changes', function () {
-        // given
-        const changes = ['line 1', 'line 2'];
-        // when
-        const message = factory.createLogChangeMessage(logFile, changes);
-        // then
-        expect(message).to.equal(JSON.stringify({type: 'change', file: logFile.absolutePath, changes: changes}));
-    });
-    it('should create message about an error', function () {
-        // given
-        const error = new Error('Some error has happened');
-        // when
-        const message = factory.createErrorMessage(error);
-        // then
-        expect(message).to.equal(JSON.stringify({type: 'error', message: error.message}));
-    });
-});
-
-describe('DefaultMessageFactory', function () {
-    const logFile = new LogFile('/a/b/c/log-file.log', null);
-    const factory: MessageFactory = new DefaultMessageFactory();
-    it('should create message about changes', function () {
-        // given
-        const changes = ['line 1', 'line 2'];
-        // when
-        const message = factory.createLogChangeMessage(logFile, changes);
-        // then
-        expect(message).to.equal(JSON.stringify({type: 'change', changes: changes}));
-    });
-    it('should create message about an error', function () {
-        // given
-        const error = new Error('Some error has happened');
-        // when
-        const message = factory.createErrorMessage(error);
-        // then
-        expect(message).to.equal(JSON.stringify({type: 'error', message: error.message}));
-    });
-});
-
-describe('WatcherComparison', function () {
-    const comparison: EntityComparison<Watcher> = new WatcherComparison();
-    const watcher1: Watcher = new Watcher('12345', null, null, null);
-    const watcher2: Watcher = new Watcher('54321', null, null, null);
-    it('should return true since both watchers have the same ID', function () {
-        // then
-        expect(comparison.equal(watcher1, watcher1)).to.be.true;
-    });
-    it('should return false since watchers have different IDs', function () {
-        // then
-        expect(comparison.equal(watcher1, watcher2)).to.be.false;
-    });
-    it('should return true since the watcher has specified ID', function () {
-        // then
-        expect(comparison.hasId(watcher1, watcher1.id)).to.be.true;
-    });
-    it('should return false since the watcher has a different ID', function () {
-        // then
-        expect(comparison.hasId(watcher1, watcher2.id)).to.be.false;
     });
 });

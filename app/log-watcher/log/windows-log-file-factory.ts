@@ -1,15 +1,10 @@
-import {
-    Content,
-    ContentReadError,
-    ContentSizeError,
-    FileSystem,
-    LogFile,
-    LogFileFactory,
-    OnChange,
-    TextContent
-} from "./log";
-import {ChildProcess} from "child_process";
+import {Content, ContentReadError, ContentSizeError, OnChange} from "./content";
 import {EventEmitter} from "events";
+import {ChildProcess} from "child_process";
+import {FileSystem} from "./file-system";
+import {TextContent} from "./text-content";
+import {LogFileFactory} from "./log-file-factory";
+import {LogFile} from "./log-file";
 
 class Buffer {
     private data: string = null;

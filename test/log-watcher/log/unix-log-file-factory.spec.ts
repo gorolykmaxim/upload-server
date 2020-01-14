@@ -1,15 +1,15 @@
-import {ContentReadError, ContentSizeError, FileSystem, LogFileFactory} from "../../app/log-watcher/log";
 import {instance, mock, spy, verify, when} from "ts-mockito";
-import {CreateTail, Tail, UnixLogFileFactory} from "../../app/log-watcher/unix";
-import {expect} from "chai";
-import {Stats} from "fs";
 import {EOL} from "os";
+import {expect} from "chai";
 import * as chai from "chai";
+import {Stats} from "fs";
+import {CreateTail, Tail, UnixLogFileFactory} from "../../../app/log-watcher/log/unix-log-file-factory";
+import {LogFileFactory} from "../../../app/log-watcher/log/log-file-factory";
+import {FileSystem} from "../../../app/log-watcher/log/file-system";
+import {ContentReadError, ContentSizeError} from "../../../app/log-watcher/log/content";
 import chaiAsPromised = require("chai-as-promised");
-
+const RealTail = require("nodejs-tail");
 chai.use(chaiAsPromised);
-
-const RealTail = require('nodejs-tail');
 
 describe('UnixContent', function () {
     const fileName = 'error.log';
