@@ -24,7 +24,12 @@ describe('UnixContent', function () {
         tail = spy(realTail);
         when(tail.watch()).thenCall(listener);
         when(tail.close()).thenCall(listener);
-        const createTail: CreateTail = () => realTail;
+        const createTail: CreateTail = (file) => {
+            if (file !== fileName) {
+                throw new Error(`Expected - ${fileName}. Got - ${file}`);
+            }
+            return realTail;
+        };
         factory = new UnixLogFileFactory(createTail, instance(fileSystem), EOL);
     });
     it('should start watching tail on log files creation', function () {

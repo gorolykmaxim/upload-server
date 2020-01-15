@@ -90,7 +90,7 @@ class UnixContent implements Content {
     }
 }
 
-export type CreateTail = () => Tail;
+export type CreateTail = (absolutePathToFile: string) => Tail;
 
 /**
  * Factory of log files on any kind of Unix OS.
@@ -111,7 +111,7 @@ export class UnixLogFileFactory implements LogFileFactory {
      * {@inheritDoc}
      */
     create(absoluteLogFilePath: string): LogFile {
-        const tail = this.tail();
+        const tail = this.tail(absoluteLogFilePath);
         tail.watch();
         const content: Content = new UnixContent(absoluteLogFilePath, tail, this.fileSystem, this.eol);
         return new LogFile(absoluteLogFilePath, content);
