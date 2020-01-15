@@ -55,21 +55,12 @@ describe('Watcher', function () {
         // then
         verify(connection.send(messageFactory.createLogChangeMessage(logFile, textContent.getLines()))).once();
     });
-    it('should fail to read log file from the beginning and notify API client about it', async function () {
+    it('should fail to read log file from the beginning', async function () {
         // given
         const expectedError = new ContentReadError(logFile.absolutePath, new Error());
         when(content.readText()).thenReject(expectedError);
         // then
         await expect(watcher.readFromTheBeginning(logFile)).to.be.rejectedWith(ContentReadError);
-        verify(connection.send(messageFactory.createErrorMessage(expectedError))).once();
-    });
-    it('should not try to notify API client about a failed attempt to notify API client', async function () {
-        // given
-        const expectedError = new Error();
-        when(connection.send(anything())).thenThrow(expectedError);
-        // then
-        await expect(watcher.readFromTheBeginning(logFile)).to.be.rejectedWith(Error);
-        verify(connection.send(messageFactory.createErrorMessage(expectedError))).never();
     });
     it('should watch log file from the beginning', async function () {
         // given
@@ -104,7 +95,6 @@ describe('Watcher', function () {
         const expectedError = new WatcherIsNotWatchingLogFileError(watcher, logFile);
         // then
         await expect(watcher.stopWatchingLog(logFile)).to.be.rejectedWith(WatcherIsNotWatchingLogFileError);
-        verify(connection.send(messageFactory.createErrorMessage(expectedError)))
     });
     it('should be able to watch changes in a log file again after stopping doing so', async function () {
         // given

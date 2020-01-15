@@ -1,7 +1,6 @@
 import {Collection, EntityNotFoundError} from "../../collection/collection";
 import {MessageFactory} from "./message-factory";
 import {LogFile} from "../log/log-file";
-import {ContentError} from "../log/content";
 import WebSocket = require("ws");
 
 /**
@@ -46,9 +45,6 @@ export class Watcher {
         try {
             this.notifyAboutChangeIn(logFile, await logFile.getContentLines());
         } catch (e) {
-            if (e instanceof ContentError) {
-                this.notifyAboutError(e);
-            }
             throw e;
         }
     }
@@ -80,7 +76,6 @@ export class Watcher {
         } catch (e) {
             if (e instanceof EntityNotFoundError) {
                 e = new WatcherIsNotWatchingLogFileError(this, logFile);
-                this.notifyAboutError(e);
             }
             throw e;
         }
