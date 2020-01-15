@@ -95,7 +95,7 @@ export class UnknownMessageTypeError extends Error {
      * @param type unknown message type
      */
     constructor(type: string) {
-        super(`Unknown message "type": ${type}. Can be one of the following: ${MessageTypes.ALL}'`);
+        super(`Unknown message "type": ${type}. Can be one of the following: ${MessageTypes.ALL}`);
         Object.setPrototypeOf(this, UnknownMessageTypeError.prototype);
     }
 }
