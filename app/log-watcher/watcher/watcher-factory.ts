@@ -1,6 +1,6 @@
 import {MessageFactory} from "./message-factory";
 import {Watcher} from "./watcher";
-import {LogFileCollection} from "../log/log-file-collection";
+import {WatchedLogFileCollection} from "./watched-log-file-collection";
 import WebSocket = require("ws");
 
 /**
@@ -28,6 +28,6 @@ export class WatcherFactory {
      * @param connection connection of the API client, that corresponds to the created watcher
      */
     create(connection: WebSocket): Watcher {
-        return new Watcher(this.createUUID(), connection, this.messageFactory, new LogFileCollection());
+        return new Watcher(this.createUUID(), connection, this.messageFactory, new WatchedLogFileCollection());
     }
 }

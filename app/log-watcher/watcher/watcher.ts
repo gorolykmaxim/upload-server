@@ -2,6 +2,8 @@ import {Collection, EntityNotFoundError} from "../../collection/collection";
 import {MessageFactory} from "./message-factory";
 import {LogFile} from "../log/log-file";
 import WebSocket = require("ws");
+import {OnChange} from "../log/content";
+import {WatchedLogFile} from "./watched-log-file";
 
 /**
  * An API client, that watches for changes in log files.
@@ -17,7 +19,7 @@ export class Watcher {
      * @param watchedLogs collection, where the watcher will store log files, watched by him
      */
     constructor(public id: string, private connection: WebSocket, private messageFactory: MessageFactory,
-                private watchedLogs: Collection<LogFile>) {
+                private watchedLogs: Collection<WatchedLogFile>) {
     }
 
     /**
@@ -31,8 +33,9 @@ export class Watcher {
         if (await this.watchedLogs.contains(logFile.absolutePath)) {
             throw new CantWatchLogMultipleTimesError(this, logFile);
         }
-        logFile.addContentChangesListener(line => this.notifyAboutChangeIn(logFile, [line]));
-        await this.watchedLogs.add(logFile);
+        const listener: OnChange = line => this.notifyAboutChangeIn(logFile, [line]);
+        logFile.addContentChangesListener(listener);
+        await this.watchedLogs.add(new WatchedLogFile(logFile, listener));
     }
 
     /**
@@ -71,8 +74,9 @@ export class Watcher {
      */
     async stopWatchingLog(logFile: LogFile): Promise<void> {
         try {
-            logFile.removeContentChangesListener(line => this.notifyAboutChangeIn(logFile, [line]));
-            await this.watchedLogs.remove(logFile);
+            const watchedLogFile: WatchedLogFile = await this.watchedLogs.findById(logFile.absolutePath);
+            logFile.removeContentChangesListener(watchedLogFile.listener);
+            await this.watchedLogs.remove(watchedLogFile);
         } catch (e) {
             if (e instanceof EntityNotFoundError) {
                 e = new WatcherIsNotWatchingLogFileError(this, logFile);
@@ -94,7 +98,7 @@ export class Watcher {
      * Stop watching changes in all the log files, the watcher is currently watching, and return those log files.
      */
     async stopWatchingLogs(): Promise<Array<LogFile>> {
-        const watchedLogs = await this.watchedLogs.findAll();
+        const watchedLogs: Array<LogFile> = (await this.watchedLogs.findAll()).map(wl => wl.logFile);
         await Promise.all(watchedLogs.map(this.stopWatchingLog.bind(this)));
         return watchedLogs;
     }
