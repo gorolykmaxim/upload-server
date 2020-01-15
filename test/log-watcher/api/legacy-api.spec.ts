@@ -36,7 +36,18 @@ describe('LegacyAPI', function () {
         allowedLogFiles = mock<Collection<string>>();
         content = mock<Content>();
         logFilePool = mock(LogFilePool);
-        watcher = mock(Watcher);
+        const realWatcher = new Watcher(null, null, null, null);
+        // Instead of making a simple mock of a watcher, we are spying on a real object:
+        // ts-mockito mocks fail when their toString() gets called. toString() of the watcher would get called
+        // multiple times throughout the test.
+        watcher = spy(realWatcher);
+        when(watcher.notifyAboutError(anything())).thenReturn();
+        when(watcher.stopWatchingLogs()).thenResolve();
+        when(watcher.stopWatchingLog(anything())).thenResolve();
+        when(watcher.watchLog(anything())).thenResolve();
+        when(watcher.watchFromTheBeginning(anything())).thenResolve();
+        when(watcher.id).thenReturn("15");
+        when(watcher.readFromTheBeginning(anything())).thenResolve();
         watcherFactory = mock(WatcherFactory);
         realConnection = new WebSocket(null);
         connection = spy(realConnection);
@@ -45,7 +56,7 @@ describe('LegacyAPI', function () {
         when(allowedLogFiles.contains(absoluteLogFilePath)).thenResolve(true);
         when(logFilePool.getLog(absoluteLogFilePath)).thenResolve(logFile);
         when(watcher.stopWatchingLogs()).thenResolve([logFile]);
-        when(watcherFactory.create(realConnection)).thenReturn(instance(watcher));
+        when(watcherFactory.create(realConnection)).thenReturn(realWatcher);
         legacyAPI = new LegacyAPI(instance(allowedLogFiles), instance(logFilePool), instance(watcherFactory), server);
         server.emit('connection', realConnection);
     });

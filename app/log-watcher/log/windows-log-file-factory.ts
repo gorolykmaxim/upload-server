@@ -5,6 +5,7 @@ import {FileSystem} from "./file-system";
 import {TextContent} from "./text-content";
 import {LogFileFactory} from "./log-file-factory";
 import {LogFile} from "./log-file";
+import {Stats} from "fs";
 
 class Buffer {
     private data: string = null;
@@ -19,6 +20,9 @@ class Buffer {
     }
     clear(): void {
         this.data = null;
+    }
+    toString() {
+        return `Buffer{data=${this.data}}`;
     }
 }
 
@@ -81,7 +85,9 @@ class WindowsContent implements Content {
      */
     async getSize(): Promise<number> {
         try {
-            return (await this.fileSystem.statAsync(this.absoluteLogFilePath)).size;
+            const stats: Stats = await this.fileSystem.statAsync(this.absoluteLogFilePath);
+            console.debug("%s returns it's size, and it is %i", this, stats.size);
+            return stats.size;
         } catch (e) {
             throw new ContentSizeError(this.absoluteLogFilePath, e);
         }
@@ -93,6 +99,7 @@ class WindowsContent implements Content {
     async readText(): Promise<TextContent> {
         try {
             const rawContent = await this.fileSystem.readFileAsync(this.absoluteLogFilePath);
+            console.debug("%s returns its content as a string", this);
             return new TextContent(rawContent, this.eol);
         } catch (e) {
             throw new ContentReadError(this.absoluteLogFilePath, e);
@@ -100,6 +107,7 @@ class WindowsContent implements Content {
     }
 
     private handleData(data: string, buffer: Buffer): void {
+        console.debug("%s has a new content change: '%s'. It will use buffer %s to handle it", this, data, buffer);
         if (!buffer.isEmpty()) {
             // Non-empty buffer means, that last chunk of content, had last line
             // interrupted. This means that the first line of current chunk is the continuation of that line.
@@ -114,6 +122,13 @@ class WindowsContent implements Content {
             buffer.write(lastLine);
         }
         lines.forEach(line => this.events.emit(WindowsContent.LINE_CHANGED, line));
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    toString() {
+        return `WindowsContent{absoluteLogFilePath=${this.absoluteLogFilePath}, eol=${this.eol.charCodeAt(0)}, stdoutBuffer=${this.stdoutBuffer}, stderrBuffer=${this.stderrBuffer}}`;
     }
 }
 

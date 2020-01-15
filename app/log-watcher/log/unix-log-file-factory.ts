@@ -4,6 +4,7 @@ import {FileSystem} from "./file-system";
 import {TextContent} from "./text-content";
 import {LogFileFactory} from "./log-file-factory";
 import {LogFile} from "./log-file";
+import {Stats} from "fs";
 
 /**
  * Interface of a nodejs-tail.
@@ -57,7 +58,9 @@ class UnixContent implements Content {
      */
     async getSize(): Promise<number> {
         try {
-            return (await this.fileSystem.statAsync(this.absoluteLogFilePath)).size;
+            const stats: Stats = await this.fileSystem.statAsync(this.absoluteLogFilePath);
+            console.debug("%s returns it's size, and it is %i", this, stats.size);
+            return stats.size;
         } catch (e) {
             throw new ContentSizeError(this.absoluteLogFilePath, e);
         }
@@ -76,6 +79,7 @@ class UnixContent implements Content {
     async readText(): Promise<TextContent> {
         try {
             const rawContent = await this.fileSystem.readFileAsync(this.absoluteLogFilePath);
+            console.debug("%s returns its content as a string", this);
             return new TextContent(rawContent, this.eol);
         } catch (e) {
             throw new ContentReadError(this.absoluteLogFilePath, e);
@@ -87,6 +91,13 @@ class UnixContent implements Content {
      */
     removeChangesListener(listener: (data: string) => void): void {
         this.tail.removeListener(UnixContent.LINE_CHANGED, listener);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    toString() {
+        return `UnixContent{absoluteLogFilePath=${this.absoluteLogFilePath}, eol=${this.eol.charCodeAt(0)}}`;
     }
 }
 

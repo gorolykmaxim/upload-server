@@ -26,6 +26,7 @@ export class LegacyAPI {
     }
 
     private handleConnectionOpening(connection: WebSocket): void {
+        console.info("%s got a new connection %s", this, webSocketToString(connection));
         const watcher = this.watcherFactory.create(connection);
         connection.on('message', message => this.handleMessage(message.toString(), watcher));
         connection.on('close', () => this.handleConnectionClosure(watcher));
@@ -33,6 +34,7 @@ export class LegacyAPI {
 
     private async handleMessage(rawMessage: string, watcher: Watcher): Promise<void> {
         try {
+            console.info("%s got a new message '%s' from %s", this, rawMessage, watcher);
             let {type, file, fromStart} = JSON.parse(rawMessage);
             if (!file) {
                 throw new FileNameMissingError();
@@ -71,8 +73,16 @@ export class LegacyAPI {
     }
 
     private async handleConnectionClosure(watcher: Watcher): Promise<void> {
+        console.info("%s has disconnected from %s. Going to dispose all of it's logs if nobody else watches them", watcher, this);
         const freedLogFiles: Array<LogFile> = await watcher.stopWatchingLogs();
         await this.logFilePool.disposeAllIfNecessary(freedLogFiles);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    toString() {
+        return "LegacyAPI{}";
     }
 }
 
@@ -110,4 +120,8 @@ export class FileNameMissingError extends Error {
     constructor() {
         super('"file" attribute is missing. It should contain an absolute path to the file you want to watch.');
     }
+}
+
+function webSocketToString(socket: WebSocket): string {
+    return `WebSocket{binaryType=${socket.binaryType}, bufferedAmount=${socket.bufferedAmount}, extensions=${socket.extensions}, protocol=${socket.protocol}, readyState=${socket.readyState}, url=${socket.url}}`;
 }
