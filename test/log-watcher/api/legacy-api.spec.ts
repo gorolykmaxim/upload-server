@@ -1,5 +1,4 @@
 import {FileNameMissingError, LegacyAPI, UnknownMessageTypeError} from "../../../app/log-watcher/api/legacy-api";
-import {Collection} from "../../../app/collection/collection";
 import {LogFilePool, LogFilePoolError} from "../../../app/log-watcher/log/log-file-pool";
 import {WatcherFactory} from "../../../app/log-watcher/watcher/watcher-factory";
 import {Server} from "ws";
@@ -7,7 +6,6 @@ import {anything, instance, mock, spy, verify, when} from "ts-mockito";
 import {Content} from "../../../app/log-watcher/log/content";
 import {LogFile} from "../../../app/log-watcher/log/log-file";
 import {Watcher} from "../../../app/log-watcher/watcher/watcher";
-import {LogFileAccessError} from "../../../app/log-watcher/log/restricted-log-file-factory";
 import {expect} from "chai";
 import WebSocket = require("ws");
 
@@ -23,7 +21,6 @@ describe('LegacyAPI', function () {
         file: absoluteLogFilePath
     };
     let legacyAPI: LegacyAPI;
-    let allowedLogFiles: Collection<string>;
     let content: Content;
     let logFile: LogFile;
     let logFilePool: LogFilePool;
@@ -33,7 +30,6 @@ describe('LegacyAPI', function () {
     let connection: WebSocket;
     let server: Server;
     beforeEach(function () {
-        allowedLogFiles = mock<Collection<string>>();
         content = mock<Content>();
         logFilePool = mock(LogFilePool);
         const realWatcher = new Watcher(null, null, null, null);
@@ -53,11 +49,10 @@ describe('LegacyAPI', function () {
         connection = spy(realConnection);
         server = new Server({noServer: true});
         logFile = new LogFile(absoluteLogFilePath, instance(content));
-        when(allowedLogFiles.contains(absoluteLogFilePath)).thenResolve(true);
         when(logFilePool.getLog(absoluteLogFilePath)).thenResolve(logFile);
         when(watcher.stopWatchingLogs()).thenResolve([logFile]);
         when(watcherFactory.create(realConnection)).thenReturn(realWatcher);
-        legacyAPI = new LegacyAPI(instance(allowedLogFiles), instance(logFilePool), instance(watcherFactory), server);
+        legacyAPI = new LegacyAPI(instance(logFilePool), instance(watcherFactory), server);
         server.emit('connection', realConnection);
     });
     it('should start watching log file changes', function (done) {
@@ -71,16 +66,6 @@ describe('LegacyAPI', function () {
         when(watcher.watchFromTheBeginning(logFile)).thenCall(_ => done());
         // when
         realConnection.emit('message', JSON.stringify(watchMessageFromStart));
-    });
-    it('should forbid watching changes in a restricted log file', function (done) {
-        // given
-        when(allowedLogFiles.contains(absoluteLogFilePath)).thenResolve(false);
-        when(watcher.notifyAboutError(anything())).thenCall((e: Error) => {
-            expect(e.message).to.equal(new LogFileAccessError(absoluteLogFilePath).message);
-            done();
-        });
-        // when
-        realConnection.emit('message', JSON.stringify(watchMessage));
     });
     it('should notify watcher about a failed attempt to start watching changes in a log file', function (done) {
         // given

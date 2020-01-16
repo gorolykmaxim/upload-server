@@ -1,11 +1,9 @@
 import {Server} from "ws";
-import WebSocket = require("ws");
-import {Collection} from "../../collection/collection";
 import {WatcherFactory} from "../watcher/watcher-factory";
 import {LogFilePool} from "../log/log-file-pool";
 import {Watcher} from "../watcher/watcher";
-import {LogFileAccessError} from "../log/restricted-log-file-factory";
 import {LogFile} from "../log/log-file";
+import WebSocket = require("ws");
 
 /**
  * Log-watcher API, used in previous versions of upload-server. The API is still available for backward-compatibility
@@ -15,13 +13,11 @@ export class LegacyAPI {
     /**
      * Construct an API.
      *
-     * @param allowedLogFiles collection of absolute paths to log files, that are allowed to be watched
      * @param logFilePool pool of log files to obtain references to watchable log files from
      * @param watcherFactory factory to use to create watchers for incoming client connection
      * @param server server to listen to incoming websocket connection on
      */
-    constructor(private allowedLogFiles: Collection<string>,
-                private logFilePool: LogFilePool, private watcherFactory: WatcherFactory, server: Server) {
+    constructor(private logFilePool: LogFilePool, private watcherFactory: WatcherFactory, server: Server) {
         server.on('connection', this.handleConnectionOpening.bind(this));
     }
 
@@ -55,9 +51,6 @@ export class LegacyAPI {
     }
 
     private async handleWatchMessage(file: string, watcher: Watcher, fromStart: boolean = false): Promise<void> {
-        if (!await this.allowedLogFiles.contains(file)) {
-            throw new LogFileAccessError(file);
-        }
         const logFile: LogFile = await this.logFilePool.getLog(file);
         if (fromStart) {
             await watcher.watchFromTheBeginning(logFile);
