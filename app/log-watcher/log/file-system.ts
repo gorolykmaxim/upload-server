@@ -20,4 +20,11 @@ export interface FileSystem {
      * @param options additional options
      */
     readFileAsync(path: string, options?: any): Promise<string>;
+
+    /**
+     * Check if the user, running the process of this application, can access a file, located by the specified path.
+     *
+     * @param path absolute path to the file
+     */
+    accessAsync(path: string): Promise<void>;
 }
