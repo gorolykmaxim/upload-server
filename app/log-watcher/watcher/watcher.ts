@@ -39,8 +39,7 @@ export class Watcher {
     }
 
     /**
-     * Read all the contents of the specified log file and send them to the actual API client. Notify API client, if
-     * read operation will fail for some reason.
+     * Read all the contents of the specified log file and send them to the actual API client.
      *
      * @param logFile log file to read
      */
@@ -55,7 +54,6 @@ export class Watcher {
     /**
      * Start watching for changes in the specified log file from the beginning: first send existing contents of the
      * log file to the API client and after that - notify the client each time a new line gets added to the log file.
-     * Any kind of error, that will occur in the process, will get send to the client.
      * If the watcher will fail to start watching the changes in the log file - it will not attempt to read the existing
      * log file content.
      *

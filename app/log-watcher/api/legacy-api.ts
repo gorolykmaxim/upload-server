@@ -7,7 +7,7 @@ import WebSocket = require("ws");
 
 /**
  * Log-watcher API, used in previous versions of upload-server. The API is still available for backward-compatibility
- * purposes, since the changes are there are a bunch of folks still using it in their automated scripts.
+ * purposes, since the chances are there are a bunch of folks still using it in their automated scripts.
  */
 export class LegacyAPI {
     /**
