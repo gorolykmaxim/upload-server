@@ -1,4 +1,4 @@
-import {URL} from "../app/url";
+import {URL, URLIsAlreadyFinishedError} from "../app/url";
 import { expect } from "chai";
 
 describe('URL', function () {
@@ -23,5 +23,43 @@ describe('URL', function () {
         const url: URL = baseURL.append('entity');
         // then
         expect(baseURL.value).to.equal('/api');
+    });
+    it('should create exact URL from the specified string without changing anything', function () {
+        // given
+        const rawURL: string = '/a/b/c?d=1&e=true';
+        // when
+        const url: URL = new URL(rawURL);
+        // then
+        expect(url.value).to.equal(rawURL);
+    });
+    it('should return null while trying to find query value in newly created URL', function () {
+        // given
+        const url: URL = URL.createNew('api');
+        // when
+        const value: string = url.getQueryValueOf('name');
+        // then
+        expect(value).to.be.null;
+    });
+    it('should return null while trying to find query value in URL that is created from a string', function () {
+        // given
+        const url: URL = new URL('/a/b/c?');
+        // when
+        const value: string = url.getQueryValueOf('name');
+        // then
+        expect(value).to.be.null;
+    });
+    it('should return value of a query parameter', function () {
+        // given
+        const url: URL = new URL('/a/b/c?name=Tom');
+        // when
+        const value: string = url.getQueryValueOf('name');
+        // then
+        expect(value).to.equal('Tom');
+    });
+    it('should fail to append a part to a URL that already has a query part', function () {
+        // given
+        const url: URL = new URL('/a/b/c?age=18');
+        // then
+        expect(() => url.append('d')).to.throw(URLIsAlreadyFinishedError);
     });
 });
