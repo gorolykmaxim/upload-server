@@ -1,4 +1,4 @@
-import {FileNameMissingError, LegacyAPI, UnknownMessageTypeError} from "../../../app/log-watcher/api/legacy-api";
+import {FileNameMissingError, LegacyWebSocketAPI, UnknownMessageTypeError} from "../../../app/log-watcher/api/legacy-web-socket-api";
 import {LogFilePool, LogFilePoolError} from "../../../app/log-watcher/log/log-file-pool";
 import {WatcherFactory} from "../../../app/log-watcher/watcher/watcher-factory";
 import {Server} from "ws";
@@ -9,7 +9,7 @@ import {Watcher} from "../../../app/log-watcher/watcher/watcher";
 import {expect} from "chai";
 import WebSocket = require("ws");
 
-describe('LegacyAPI', function () {
+describe('LegacyWebSocketAPI', function () {
     const absoluteLogFilePath = '/a/b/c/access.log';
     const watchMessage = {
         type: 'watch',
@@ -20,7 +20,7 @@ describe('LegacyAPI', function () {
         type: 'unwatch',
         file: absoluteLogFilePath
     };
-    let legacyAPI: LegacyAPI;
+    let legacyAPI: LegacyWebSocketAPI;
     let content: Content;
     let logFile: LogFile;
     let logFilePool: LogFilePool;
@@ -28,7 +28,6 @@ describe('LegacyAPI', function () {
     let watcherFactory: WatcherFactory;
     let realConnection: WebSocket;
     let connection: WebSocket;
-    let server: Server;
     beforeEach(function () {
         content = mock<Content>();
         logFilePool = mock(LogFilePool);
@@ -47,13 +46,12 @@ describe('LegacyAPI', function () {
         watcherFactory = mock(WatcherFactory);
         realConnection = new WebSocket(null);
         connection = spy(realConnection);
-        server = new Server({noServer: true});
         logFile = new LogFile(absoluteLogFilePath, instance(content));
         when(logFilePool.getLog(absoluteLogFilePath)).thenResolve(logFile);
         when(watcher.stopWatchingLogs()).thenResolve([logFile]);
         when(watcherFactory.create(realConnection)).thenReturn(realWatcher);
-        legacyAPI = new LegacyAPI(instance(logFilePool), instance(watcherFactory), server);
-        server.emit('connection', realConnection);
+        legacyAPI = new LegacyWebSocketAPI(instance(logFilePool), instance(watcherFactory));
+        legacyAPI.onConnectionOpen(realConnection, null);
     });
     it('should start watching log file changes', function (done) {
         // given

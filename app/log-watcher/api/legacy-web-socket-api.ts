@@ -1,35 +1,37 @@
-import {Server} from "ws";
 import {WatcherFactory} from "../watcher/watcher-factory";
 import {LogFilePool} from "../log/log-file-pool";
 import {Watcher} from "../watcher/watcher";
 import {LogFile} from "../log/log-file";
-import WebSocket = require("ws");
 import {webSocketToString} from "./web-socket";
+import {WebSocketAPI} from "./web-socket-api";
+import WebSocket = require("ws");
+import {Request} from "express";
 
 /**
  * Log-watcher API, used in previous versions of upload-server. The API is still available for backward-compatibility
  * purposes, since the chances are there are a bunch of folks still using it in their automated scripts.
  */
-export class LegacyAPI {
+export class LegacyWebSocketAPI implements WebSocketAPI {
     /**
      * Construct an API.
      *
      * @param logFilePool pool of log files to obtain references to watchable log files from
      * @param watcherFactory factory to use to create watchers for incoming client connection
-     * @param server server to listen to incoming websocket connection on
      */
-    constructor(private logFilePool: LogFilePool, private watcherFactory: WatcherFactory, server: Server) {
-        server.on('connection', this.handleConnectionOpening.bind(this));
+    constructor(private logFilePool: LogFilePool, private watcherFactory: WatcherFactory) {
     }
 
-    private handleConnectionOpening(connection: WebSocket): void {
+    /**
+     * {@inheritDoc}
+     */
+    async onConnectionOpen(connection: WebSocket, request: Request): Promise<void> {
         console.info("%s got a new connection %s", this, webSocketToString(connection));
         const watcher = this.watcherFactory.create(connection);
-        connection.on('message', message => this.handleMessage(message.toString(), watcher));
-        connection.on('close', () => this.handleConnectionClosure(watcher));
+        connection.on('message', message => this.onMessage(message.toString(), watcher));
+        connection.on('close', () => this.onConnectionClosed(watcher));
     }
 
-    private async handleMessage(rawMessage: string, watcher: Watcher): Promise<void> {
+    private async onMessage(rawMessage: string, watcher: Watcher): Promise<void> {
         try {
             console.info("%s got a new message '%s' from %s", this, rawMessage, watcher);
             let {type, file, fromStart} = JSON.parse(rawMessage);
@@ -38,10 +40,10 @@ export class LegacyAPI {
             }
             switch (type) {
                 case MessageTypes.WATCH:
-                    await this.handleWatchMessage(file, watcher, fromStart);
+                    await this.onWatcherMessage(file, watcher, fromStart);
                     break;
                 case MessageTypes.UNWATCH:
-                    await this.handleUnWatchMessage(file, watcher);
+                    await this.onUnWatchMessage(file, watcher);
                     break;
                 default:
                     throw new UnknownMessageTypeError(type);
@@ -51,7 +53,7 @@ export class LegacyAPI {
         }
     }
 
-    private async handleWatchMessage(file: string, watcher: Watcher, fromStart: boolean = false): Promise<void> {
+    private async onWatcherMessage(file: string, watcher: Watcher, fromStart: boolean = false): Promise<void> {
         const logFile: LogFile = await this.logFilePool.getLog(file);
         if (fromStart) {
             await watcher.watchFromTheBeginning(logFile);
@@ -60,13 +62,13 @@ export class LegacyAPI {
         }
     }
 
-    private async handleUnWatchMessage(file: string, watcher: Watcher): Promise<void> {
+    private async onUnWatchMessage(file: string, watcher: Watcher): Promise<void> {
         const logFile: LogFile = await this.logFilePool.getLog(file);
         await watcher.stopWatchingLog(logFile);
         await this.logFilePool.disposeIfNecessary(logFile);
     }
 
-    private async handleConnectionClosure(watcher: Watcher): Promise<void> {
+    private async onConnectionClosed(watcher: Watcher): Promise<void> {
         console.info("%s has disconnected from %s. Going to dispose all of it's logs if nobody else watches them", watcher, this);
         const freedLogFiles: Array<LogFile> = await watcher.stopWatchingLogs();
         await this.logFilePool.disposeAllIfNecessary(freedLogFiles);
@@ -76,7 +78,7 @@ export class LegacyAPI {
      * {@inheritDoc}
      */
     toString() {
-        return "LegacyAPI{}";
+        return "LegacyWebSocketAPI{}";
     }
 }
 
