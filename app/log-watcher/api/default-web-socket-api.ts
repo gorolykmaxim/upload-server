@@ -29,7 +29,7 @@ export class DefaultWebSocketAPI implements WebSocketAPI {
         let watcher: Watcher;
         let logFile: LogFile;
         try {
-            console.info("%s got a new connection %s with query %s. Going to start watching a log file immediately.", this, webSocketToString(connection), request.query);
+            console.info("%s got a new connection %s with query %s. Going to start watching a log file immediately.", this, webSocketToString(connection), JSON.stringify(request.query));
             watcher = this.watcherFactory.create(connection);
             connection.on('close', () => this.onConnectionClosed(watcher));
             const absoluteLogFilePath: string = request.query.absolutePath;
