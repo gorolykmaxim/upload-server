@@ -26,6 +26,7 @@ describe('DefaultWebSocketAPI', function () {
     beforeEach(function () {
         connection = new WebSocket(null);
         connectionSpy = spy(connection);
+        when(connectionSpy.close(anything(), anything())).thenCall(() => {});
         requestMock = mock<Request>();
         request = instance(requestMock);
         watcher = new Watcher(null, null, null, null);
@@ -66,9 +67,19 @@ describe('DefaultWebSocketAPI', function () {
         // then
         verify(watcherSpy.watchFromTheBeginning(logFile)).once();
     });
-    it('should notify watched about a failed attempt to start listening to changes in the specified log file', async function () {
+    it('should immediately close a connection, that attempted to watches changes in a forbidden log file', async function () {
         // given
         const expectedError = new LogFileAccessError(absoluteLogFilePath);
+        when(pool.getLog(absoluteLogFilePath)).thenReject(expectedError);
+        // when
+        await api.onConnectionOpen(connection, request);
+        // then
+        verify(connectionSpy.close(1008, expectedError.message)).once();
+        verify(watcherSpy.notifyAboutError(expectedError)).never();
+    });
+    it('should notify watcher about a failed attempt to watch for changes in a log file', async function () {
+        // given
+        const expectedError = new Error();
         when(pool.getLog(absoluteLogFilePath)).thenReject(expectedError);
         // when
         await api.onConnectionOpen(connection, request);

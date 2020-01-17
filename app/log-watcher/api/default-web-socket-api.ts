@@ -7,6 +7,7 @@ import {webSocketToString} from "./web-socket";
 import {WebSocketAPI} from "./web-socket-api";
 import {Request} from "express";
 import WebSocket = require("ws");
+import {LogFileAccessError} from "../log/restricted-log-file-pool";
 
 /**
  * Current web-socket API of upload-server, used to obtain information about changes in log files in a real time.
@@ -43,7 +44,11 @@ export class DefaultWebSocketAPI implements WebSocketAPI {
                 await watcher.watchLog(logFile);
             }
         } catch (e) {
-            watcher?.notifyAboutError(e);
+            if (e instanceof LogFileAccessError) {
+                connection.close(1008, e.message);
+            } else {
+                watcher?.notifyAboutError(e);
+            }
         }
     }
 
