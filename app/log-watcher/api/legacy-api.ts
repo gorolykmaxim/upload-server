@@ -4,6 +4,7 @@ import {LogFilePool} from "../log/log-file-pool";
 import {Watcher} from "../watcher/watcher";
 import {LogFile} from "../log/log-file";
 import WebSocket = require("ws");
+import {webSocketToString} from "./web-socket";
 
 /**
  * Log-watcher API, used in previous versions of upload-server. The API is still available for backward-compatibility
@@ -113,8 +114,4 @@ export class FileNameMissingError extends Error {
     constructor() {
         super('"file" attribute is missing. It should contain an absolute path to the file you want to watch.');
     }
-}
-
-function webSocketToString(socket: WebSocket): string {
-    return `WebSocket{binaryType=${socket.binaryType}, bufferedAmount=${socket.bufferedAmount}, extensions=${socket.extensions}, protocol=${socket.protocol}, readyState=${socket.readyState}, url=${socket.url}}`;
 }
