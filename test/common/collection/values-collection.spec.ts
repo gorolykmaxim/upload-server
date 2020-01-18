@@ -1,6 +1,6 @@
 import {expect} from "chai";
-import {Collection} from "../../app/collection/collection";
-import {ValuesCollection} from "../../app/collection/values-collection";
+import {Collection} from "../../../app/common/collection/collection";
+import {ValuesCollection} from "../../../app/common/collection/values-collection";
 
 describe('ValuesCollection', function () {
     const value = 42;

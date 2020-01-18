@@ -1,5 +1,5 @@
 import {LogFile} from "./log-file";
-import {EntityComparison, InMemoryCollection} from "../../collection/in-memory-collection";
+import {EntityComparison, InMemoryCollection} from "../../common/collection/in-memory-collection";
 
 /**
  * Collection of log files.

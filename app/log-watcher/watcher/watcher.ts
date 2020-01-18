@@ -1,4 +1,4 @@
-import {Collection, EntityNotFoundError} from "../../collection/collection";
+import {Collection, EntityNotFoundError} from "../../common/collection/collection";
 import {MessageFactory} from "./message-factory";
 import {LogFile} from "../log/log-file";
 import WebSocket = require("ws");

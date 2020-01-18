@@ -1,5 +1,3 @@
-import {URLSearchParams} from "url";
-
 /**
  * A part of a URL, that starts after the "host:port" declaration.
  */

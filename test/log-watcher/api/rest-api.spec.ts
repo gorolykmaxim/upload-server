@@ -1,6 +1,6 @@
-import {URL} from "../../../app/url";
+import {URL} from "../../../app/common/url";
 import {Application, Request, RequestHandler, Response} from "express";
-import {Collection, EntityNotFoundError} from "../../../app/collection/collection";
+import {Collection, EntityNotFoundError} from "../../../app/common/collection/collection";
 import {LogFilePool} from "../../../app/log-watcher/log/log-file-pool";
 import {FileSystem} from "../../../app/log-watcher/log/file-system";
 import {anything, capture, instance, mock, verify, when} from "ts-mockito";

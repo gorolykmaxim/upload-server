@@ -1,8 +1,8 @@
-import {Collection} from "../../../app/collection/collection";
+import {Collection} from "../../../app/common/collection/collection";
 import {LogFile} from "../../../app/log-watcher/log/log-file";
 import {LogFileFactory} from "../../../app/log-watcher/log/log-file-factory";
 import {LogFilePool} from "../../../app/log-watcher/log/log-file-pool";
-import {ValuesCollection} from "../../../app/collection/values-collection";
+import {ValuesCollection} from "../../../app/common/collection/values-collection";
 import {instance, mock, when} from "ts-mockito";
 import {LogFileAccessError, RestrictedLogFilePool} from "../../../app/log-watcher/log/restricted-log-file-pool";
 import { expect } from "chai";

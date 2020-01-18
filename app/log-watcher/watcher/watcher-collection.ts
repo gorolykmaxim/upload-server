@@ -1,5 +1,5 @@
 import {Watcher} from "./watcher";
-import {EntityComparison, InMemoryCollection} from "../../collection/in-memory-collection";
+import {EntityComparison, InMemoryCollection} from "../../common/collection/in-memory-collection";
 
 /**
  * Collection of watchers.

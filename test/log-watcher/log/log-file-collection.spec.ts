@@ -1,7 +1,7 @@
 import {expect} from "chai";
 import {LogFile} from "../../../app/log-watcher/log/log-file";
 import {LogFileComparison} from "../../../app/log-watcher/log/log-file-collection";
-import {EntityComparison} from "../../../app/collection/in-memory-collection";
+import {EntityComparison} from "../../../app/common/collection/in-memory-collection";
 
 describe('LogFileComparison', function () {
     const comparison: EntityComparison<LogFile> = new LogFileComparison();

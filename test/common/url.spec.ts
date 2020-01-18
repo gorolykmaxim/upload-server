@@ -1,4 +1,4 @@
-import {URL, URLIsAlreadyFinishedError} from "../app/url";
+import {URL, URLIsAlreadyFinishedError} from "../../app/common/url";
 import { expect } from "chai";
 
 describe('URL', function () {

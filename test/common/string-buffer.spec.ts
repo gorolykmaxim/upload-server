@@ -1,4 +1,4 @@
-import {StringBuffer} from "../app/string-buffer";
+import {StringBuffer} from "../../app/common/string-buffer";
 import {EOL} from "os";
 import { expect } from "chai";
 

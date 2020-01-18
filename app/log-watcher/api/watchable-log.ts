@@ -1,4 +1,4 @@
-import {URL} from "../../url";
+import {URL} from "../../common/url";
 
 /**
  * A log file, that can be watched by users of the "log-watcher" API.

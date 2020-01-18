@@ -6,7 +6,7 @@ import {TextContent} from "./text-content";
 import {LogFileFactory} from "./log-file-factory";
 import {LogFile} from "./log-file";
 import {Stats} from "fs";
-import {StringBuffer} from "../../string-buffer";
+import {StringBuffer} from "../../common/string-buffer";
 
 /**
  * Content of a log file in a Windows OS.

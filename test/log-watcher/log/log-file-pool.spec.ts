@@ -1,4 +1,4 @@
-import {Collection, EntityNotFoundError} from "../../../app/collection/collection";
+import {Collection, EntityNotFoundError} from "../../../app/common/collection/collection";
 import {instance, mock, verify, when} from "ts-mockito";
 import {expect} from "chai";
 import * as chai from "chai";

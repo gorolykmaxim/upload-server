@@ -1,6 +1,6 @@
 import {LogFilePool} from "./log-file-pool";
 import {LogFile} from "./log-file";
-import {Collection} from "../../collection/collection";
+import {Collection} from "../../common/collection/collection";
 import {LogFileFactory} from "./log-file-factory";
 
 /**

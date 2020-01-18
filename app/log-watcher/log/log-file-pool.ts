@@ -1,4 +1,4 @@
-import {Collection, EntityNotFoundError} from "../../collection/collection";
+import {Collection, EntityNotFoundError} from "../../common/collection/collection";
 import {LogFile} from "./log-file";
 import {LogFileFactory} from "./log-file-factory";
 

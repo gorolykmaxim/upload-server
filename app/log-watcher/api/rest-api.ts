@@ -1,8 +1,8 @@
 import {Application, Request, Response} from "express";
-import {Collection, EntityNotFoundError} from "../../collection/collection";
+import {Collection, EntityNotFoundError} from "../../common/collection/collection";
 import {LogFile} from "../log/log-file";
 import {FileSystem} from "../log/file-system";
-import {URL} from "../../url";
+import {URL} from "../../common/url";
 import {WatchableLog} from "./watchable-log";
 import {LogFilePool} from "../log/log-file-pool";
 import {ArgumentError} from "common-errors";

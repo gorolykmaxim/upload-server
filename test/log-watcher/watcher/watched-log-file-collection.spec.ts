@@ -1,4 +1,4 @@
-import {EntityComparison} from "../../../app/collection/in-memory-collection";
+import {EntityComparison} from "../../../app/common/collection/in-memory-collection";
 import {WatchedLogFile} from "../../../app/log-watcher/watcher/watched-log-file";
 import {WatchedLogFileComparison} from "../../../app/log-watcher/watcher/watched-log-file-collection";
 import {LogFile} from "../../../app/log-watcher/log/log-file";

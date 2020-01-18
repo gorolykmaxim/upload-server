@@ -1,7 +1,7 @@
 import {expect} from "chai";
 import {WatcherComparison} from "../../../app/log-watcher/watcher/watcher-collection";
 import {Watcher} from "../../../app/log-watcher/watcher/watcher";
-import {EntityComparison} from "../../../app/collection/in-memory-collection";
+import {EntityComparison} from "../../../app/common/collection/in-memory-collection";
 
 describe('WatcherComparison', function () {
     const comparison: EntityComparison<Watcher> = new WatcherComparison();

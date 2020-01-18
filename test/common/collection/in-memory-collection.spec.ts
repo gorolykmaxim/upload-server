@@ -1,7 +1,7 @@
 import {anything, instance, mock, when} from "ts-mockito";
 import {expect} from "chai";
-import {EntityComparison, InMemoryCollection} from "../../app/collection/in-memory-collection";
-import {Collection, EntityNotFoundError} from "../../app/collection/collection";
+import {EntityComparison, InMemoryCollection} from "../../../app/common/collection/in-memory-collection";
+import {Collection, EntityNotFoundError} from "../../../app/common/collection/collection";
 
 describe('InMemoryCollection', function () {
     const object = {};

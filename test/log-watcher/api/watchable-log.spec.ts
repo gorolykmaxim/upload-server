@@ -1,5 +1,5 @@
 import {WatchableLog} from "../../../app/log-watcher/api/watchable-log";
-import {URL} from "../../../app/url";
+import {URL} from "../../../app/common/url";
 import { expect } from "chai";
 
 describe('WatchableLog', function () {
