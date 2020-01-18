@@ -7,6 +7,7 @@ import {LogFileFactory} from "./log-file-factory";
 import {LogFile} from "./log-file";
 import {Stats} from "fs";
 import {StringBuffer} from "../../common/string-buffer";
+import {CreateChildProcess} from "../../common/child-process";
 
 /**
  * Content of a log file in a Windows OS.
@@ -103,8 +104,6 @@ class WindowsContent implements Content {
         return `WindowsContent{absoluteLogFilePath=${this.absoluteLogFilePath}, eol=${this.eol.charCodeAt(0)}, stdoutBuffer=${this.stdoutBuffer}, stderrBuffer=${this.stderrBuffer}}`;
     }
 }
-
-export type CreateChildProcess = (binaryPath: string, args: Array<string>) => ChildProcess;
 
 /**
  * Factory of log files in Windows OS.
