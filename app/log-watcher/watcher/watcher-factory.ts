@@ -2,11 +2,7 @@ import {MessageFactory} from "./message-factory";
 import {Watcher} from "./watcher";
 import {WatchedLogFileCollection} from "./watched-log-file-collection";
 import WebSocket = require("ws");
-
-/**
- * Factory-method that returns a new UUID in as a string.
- */
-export type CreateUUID = () => string;
+import {CreateUUID} from "../../common/uuid";
 
 /**
  * Factory of {@link Watcher}.
