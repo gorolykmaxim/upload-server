@@ -6,25 +6,7 @@ import {TextContent} from "./text-content";
 import {LogFileFactory} from "./log-file-factory";
 import {LogFile} from "./log-file";
 import {Stats} from "fs";
-
-class Buffer {
-    private data: string = null;
-    write(data: string): void {
-        this.data = data;
-    }
-    read(): string {
-        return this.data;
-    }
-    isEmpty(): boolean {
-        return  this.data === null;
-    }
-    clear(): void {
-        this.data = null;
-    }
-    toString() {
-        return `Buffer{data=${this.data}}`;
-    }
-}
+import {StringBuffer} from "../../string-buffer";
 
 /**
  * Content of a log file in a Windows OS.
@@ -32,8 +14,8 @@ class Buffer {
 class WindowsContent implements Content {
     private static readonly LINE_CHANGED = "line changed";
     private events: EventEmitter = new EventEmitter();
-    private stdoutBuffer: Buffer = new Buffer();
-    private stderrBuffer: Buffer = new Buffer();
+    private readonly stdoutBuffer: StringBuffer;
+    private readonly stderrBuffer: StringBuffer;
 
     /**
      * Construct a log file content.
@@ -45,6 +27,8 @@ class WindowsContent implements Content {
      */
     constructor(private absoluteLogFilePath: string, private tailProcess: ChildProcess, private eol: string,
                 private fileSystem: FileSystem) {
+        this.stdoutBuffer = new StringBuffer(eol);
+        this.stderrBuffer = new StringBuffer(eol);
         tailProcess.stdout.on('data', data => this.handleData(data.toString(), this.stdoutBuffer));
         tailProcess.stderr.on('data', data => this.handleData(data.toString(), this.stderrBuffer));
     }
@@ -106,21 +90,9 @@ class WindowsContent implements Content {
         }
     }
 
-    private handleData(data: string, buffer: Buffer): void {
+    private handleData(data: string, buffer: StringBuffer): void {
         console.debug("%s has a new content change: '%s'. It will use buffer %s to handle it", this, data, buffer);
-        if (!buffer.isEmpty()) {
-            // Non-empty buffer means, that last chunk of content, had last line
-            // interrupted. This means that the first line of current chunk is the continuation of that line.
-            data = buffer.read() + data;
-        }
-        const lines: Array<string> = data.split(this.eol);
-        const lastLine: string = lines.pop();
-        if (lastLine !== '') {
-            // We've just split a string by line-ending delimiter. That string didn't end with a line-ending symbol,
-            // it means that line was not complete. We will not emit that line and save it until next time, since next
-            // time we will receive the rest of that line.
-            buffer.write(lastLine);
-        }
+        const lines: Array<string> = buffer.readLines(data);
         lines.forEach(line => this.events.emit(WindowsContent.LINE_CHANGED, line));
     }
 
