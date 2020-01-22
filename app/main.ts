@@ -5,7 +5,6 @@ import {EOL} from "os";
 import {LogFilePool} from "./log-watcher/log/log-file-pool";
 import {RestrictedLogFilePool} from "./log-watcher/log/restricted-log-file-pool";
 import {Collection} from "./common/collection/collection";
-import {ValuesCollection} from "./common/collection/values-collection";
 import {LogFile} from "./log-watcher/log/log-file";
 import {LogFileCollection} from "./log-watcher/log/log-file-collection";
 import {LegacyWebSocketAPI} from "./log-watcher/api/legacy-web-socket-api";
@@ -19,17 +18,23 @@ import {RestAPI} from "./log-watcher/api/rest-api";
 import * as expressWs from "express-ws";
 import {WebSocketAPI} from "./log-watcher/api/web-socket-api";
 import {CreateUUID} from "./common/uuid";
+import {Database, open} from "sqlite";
+import {AllowedLogsCollection} from "./log-watcher/log/allowed-logs-collection";
 import bodyParser = require("body-parser");
 import Bluebird = require("bluebird");
 import uuid = require("uuid");
 
 async function main(): Promise<void> {
+    const db: Database = await open('../../upload-server.db');
+    // TODO: remove force: 'last'
+    await db.migrate({force: 'last', migrationsPath: '../../migrations'});
+
     const Tail = require('nodejs-tail');
     const fileSystem = Bluebird.promisifyAll(require('fs'));
 
     const createTail: CreateTail = absolutePathToFile => new Tail(absolutePathToFile, {usePolling: true});
     const logFileFactory: LogFileFactory = new UnixLogFileFactory(createTail, fileSystem, EOL);
-    const allowedLogs: Collection<string> = new ValuesCollection();
+    const allowedLogs: Collection<string> = new AllowedLogsCollection(db);
     const logFiles: Collection<LogFile> = new LogFileCollection();
     const logFilePool: LogFilePool = new RestrictedLogFilePool(allowedLogs, logFiles, logFileFactory);
 
