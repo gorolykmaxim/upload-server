@@ -25,8 +25,9 @@ export class CommandFactory {
      *
      * @param name name of the command
      * @param script actual body of the command, that will be executed in a shell
+     * @param id ID of the created command
      */
-    create(name: string, script: string): Command {
-        return new Command(this.createUUID(), name, script, this.createChildProcess, this.eol, this.clock);
+    create(name: string, script: string, id?: string): Command {
+        return new Command(id ?? this.createUUID(), name, script, this.createChildProcess, this.eol, this.clock);
     }
 }
