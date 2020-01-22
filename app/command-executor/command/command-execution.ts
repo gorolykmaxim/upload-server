@@ -68,7 +68,7 @@ export class CommandExecution {
     }
 
     private constructor(public readonly commandId: string, public readonly startTime: number,
-                        private readonly eol: string, private readonly process?: ChildProcess,
+                        public readonly eol: string, private readonly process?: ChildProcess,
                         private readonly outputLines?: Array<string>, private status?: ExecutionStatus) {
         this.stdoutBuffer = new StringBuffer(eol);
         this.stderrBuffer = new StringBuffer(eol);
