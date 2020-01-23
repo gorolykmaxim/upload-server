@@ -87,3 +87,102 @@ Connect to the endpoint of the log file, you want watch.
 to read existing contents of the file before receiving updates about changes in it.
 
 Only log files, returned by `GET /api/log-watcher/log`, can be watched.
+
+### Command Executor
+
+#### HTTP
+
+```
+GET /api/command-executor/command
+```
+
+Get list of all commands, that can be executed.
+
+```
+POST /api/command-executor/command
+
+{"name": "<name of the command>", "script": "<actual shell script command>"}
+```
+
+Create a new command.
+This endpoint is only available while running the server in `-insecure` mode.
+
+```
+DELETE /api/command-executor/command
+```
+
+Delete a command. History of all of this command's executions will be deleted as well.
+This endpoint is only available while running the server in `-insecure` mode.
+
+```
+GET /api/command-executor/command/<command ID>/execution
+```
+
+Get history of all executions of the specified command. Command execution output is
+not returned by this endpoint.
+
+```
+POST /api/command-executor/command/<command ID>/execution
+```
+
+Execute specified command.
+
+```
+GET /api/command-executor/command/<command ID>/execution/<execution start time>?noSplit=<true/false>
+```
+
+Get information about the specified command execution. The response will contain
+executions output.
+"noSplit" parameter is optional and can be omitted. Be default output of the command
+is returned as an array of lines. Specify "noSplit=true" in order to return the output
+as a single string.
+
+```
+DELETE /api/command-executor/command/<command ID>/execution/<execution start time>
+```
+
+Delete information about the specified command execution.
+
+```
+POST /api/command-executor/command/<command ID>/execution/<execution start time>/terminate
+```
+
+Gracefully terminate specified execution of the command.
+
+```
+POST /api/command-executor/command/<command ID>/execution/<execution start time>/halt
+```
+
+Forcefully terminate specified execution of the command.
+
+#### Web Socket
+
+```
+/api/command-executor/event
+```
+
+Connect to this endpoint if you want to receive notifications about all command-related
+events.
+
+```
+/api/command-executor/command/<command ID>/execution/<execution start time>
+```
+
+Connect to this endpoint if you want to receive notifications about all events,
+related to the specified command execution.
+
+```
+/api/command-executor/command/<command ID>/execution/<execution start time>/status
+```
+
+Connect to this endpoint if you want to receive notifications about status change
+of the specified command execution.
+
+```
+/api/command-executor/command/<command ID>/execution/<execution start time>/output?fromStart=<true/false>
+```
+
+Connect to to this endpoint if you want to receive notifications about changes in
+the output (STDOUT and STDERR) of the specified command execution.
+"fromStart" parameter is optional and can be omitted. Specify it set to "true" if you want
+to read existing output of the command before receiving updates about changes in it.
