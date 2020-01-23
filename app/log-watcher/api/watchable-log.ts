@@ -4,7 +4,7 @@ import {URL} from "../../common/url";
  * A log file, that can be watched by users of the "log-watcher" API.
  */
 export class WatchableLog {
-    public webSocketlinks: WebSocketLinks;
+    public webSocketLinks: WebSocketLinks;
     public httpLinks: HTTPLinks;
 
     /**
@@ -17,7 +17,7 @@ export class WatchableLog {
      */
     constructor(public absolutePath: string, logURL: URL, logSizeURL: URL, logContentURL: URL) {
         const thisLogURL = `${logURL.value}?absolutePath=${absolutePath}`;
-        this.webSocketlinks = {
+        this.webSocketLinks = {
             watch: thisLogURL,
             watchFromBeginning: `${thisLogURL}&fromStart=true`
         };

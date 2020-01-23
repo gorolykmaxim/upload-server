@@ -14,11 +14,11 @@ describe('WatchableLog', function () {
     });
     it('should create watchable log with a ready-to-use "watch" link', function () {
         // then
-        expect(log.webSocketlinks.watch).to.equal(`/api/log-watcher/log?absolutePath=${absolutePath}`);
+        expect(log.webSocketLinks.watch).to.equal(`/api/log-watcher/log?absolutePath=${absolutePath}`);
     });
     it('should create watchable log with a ready-to-use "watchFromBeginning" link', function () {
         // then
-        expect(log.webSocketlinks.watchFromBeginning).to.equal(`/api/log-watcher/log?absolutePath=${absolutePath}&fromStart=true`);
+        expect(log.webSocketLinks.watchFromBeginning).to.equal(`/api/log-watcher/log?absolutePath=${absolutePath}&fromStart=true`);
     });
     it('should create watchable log with a ready-to-use "remove" link', function () {
         // then
