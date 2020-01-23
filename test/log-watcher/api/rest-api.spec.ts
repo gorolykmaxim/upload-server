@@ -4,11 +4,11 @@ import {Collection, EntityNotFoundError} from "../../../app/common/collection/co
 import {LogFilePool} from "../../../app/log-watcher/log/log-file-pool";
 import {FileSystem} from "../../../app/log-watcher/log/file-system";
 import {anything, capture, instance, mock, verify, when} from "ts-mockito";
-import {APIError, RestAPI} from "../../../app/log-watcher/api/rest-api";
-import {WatchableLog} from "../../../app/log-watcher/api/watchable-log";
+import {APIError, RestAPI, WatchableLog} from "../../../app/log-watcher/api/rest-api";
 import {ArgumentError} from "common-errors";
 import {LogFile} from "../../../app/log-watcher/log/log-file";
 import {LogFileAccessError} from "../../../app/log-watcher/log/restricted-log-file-pool";
+import {expect} from "chai";
 
 describe('RestAPI', function () {
     const baseURL: URL = URL.createNew('api').append('log-watcher');
@@ -261,5 +261,37 @@ describe('RestAPI', function () {
         verify(logFilePool.disposeIfNecessary(logFile)).once();
         verify(resMock.status(500)).once();
         verify(resMock.end(APIError.logContent(absoluteLogFilePath, expectedInternalError).message)).once();
+    });
+});
+
+describe('WatchableLog', function () {
+    const absolutePath = '/var/log/messages';
+    const logURL: URL = URL.createNew("api").append('log-watcher').append('log');
+    const logSizeURL: URL = logURL.append('size');
+    const logContentURL: URL = logURL.append('content');
+    const log: WatchableLog = new WatchableLog(absolutePath, logURL, logSizeURL, logContentURL);
+    it('should create watchable log with the specified absolute path', function () {
+        // then
+        expect(log.absolutePath).to.equal(absolutePath);
+    });
+    it('should create watchable log with a ready-to-use "watch" link', function () {
+        // then
+        expect(log.webSocketLinks.watch).to.equal(`/api/log-watcher/log?absolutePath=${absolutePath}`);
+    });
+    it('should create watchable log with a ready-to-use "watchFromBeginning" link', function () {
+        // then
+        expect(log.webSocketLinks.watchFromBeginning).to.equal(`/api/log-watcher/log?absolutePath=${absolutePath}&fromStart=true`);
+    });
+    it('should create watchable log with a ready-to-use "remove" link', function () {
+        // then
+        expect(log.httpLinks.remove).to.equal(`/api/log-watcher/log?absolutePath=${absolutePath}`);
+    });
+    it('should create watchable log with a ready-to-use "getSize" link', function () {
+        // then
+        expect(log.httpLinks.getSize).to.equal(`/api/log-watcher/log/size?absolutePath=${absolutePath}`);
+    });
+    it('should create watchable log with a ready-to-use "getContent" link', function () {
+        // then
+        expect(log.httpLinks.getContent).to.equal(`/api/log-watcher/log/content?absolutePath=${absolutePath}`);
     });
 });
