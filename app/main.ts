@@ -16,7 +16,7 @@ import {DefaultWebSocketAPI} from "./log-watcher/api/default-web-socket-api";
 import {URL} from "./common/url";
 import {RestAPI} from "./log-watcher/api/rest-api";
 import * as expressWs from "express-ws";
-import {WebSocketAPI} from "./log-watcher/api/web-socket-api";
+import {WebSocketAPI} from "./common/web-socket";
 import {CreateUUID} from "./common/uuid";
 import {Database, open} from "sqlite";
 import {AllowedLogsCollection} from "./log-watcher/log/allowed-logs-collection";

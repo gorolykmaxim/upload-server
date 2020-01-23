@@ -2,8 +2,7 @@ import {WatcherFactory} from "../watcher/watcher-factory";
 import {LogFilePool} from "../log/log-file-pool";
 import {Watcher} from "../watcher/watcher";
 import {LogFile} from "../log/log-file";
-import {webSocketToString} from "./web-socket";
-import {WebSocketAPI} from "./web-socket-api";
+import {webSocketToString, WebSocketAPI} from "../../common/web-socket";
 import WebSocket = require("ws");
 import {Request} from "express";
 
