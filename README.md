@@ -114,7 +114,7 @@ Delete a command. History of all of this command's executions will be deleted as
 This endpoint is only available while running the server in `-insecure` mode.
 
 ```
-DELETE /api/command-executor/command
+DELETE /api/command-executor/command/<command ID>
 ```
 
 Get history of all executions of the specified command. Command execution output is
