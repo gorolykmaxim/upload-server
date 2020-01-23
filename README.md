@@ -1,55 +1,89 @@
-Slightly modified version of original https://www.npmjs.com/package/upload-server made by Antonio Aguilar.
+## API
 
-Difference is in case specified file should be uploaded to a sub-directory of a default directory,
-a necessary directory structure will be automatically created.
-Also handles some security things a tiny bit better. 
+### Log Watcher
 
-# Simple file upload server
+#### HTTP
 
-Simple file server with multipart/form-data and large file support
-
-### Install 
-
-```bash
-npm install -g upload-server
+```
+GET /api/log-watcher/log
 ```
 
-### Usage
+Get list of all log files, that can be watched.
 
-```bash
-upload-server --help
+```
+POST /api/log-watcher/log
 
-File upload server v1.1.5
-
-usage: upload-server [options]
-
-options:
-  -p --port    Port number (default: 8090)
-  -f --folder  Folder to upload files (default: files)
-  -S --tls     Enable TLS / HTTPS
-  -C --cert    Server certificate file
-  -K --key     Private key file
-  -h --help    Print this list and exit
-  -v --version Print the current version
+{"absolutePath": <path to log>}
 ```
 
-### Example
+Allow watching the log file with the specified "absolutePath".
+This endpoint is only available while running the server in `-insecure` mode.
 
-This code snippet shows how to upload a file using AngularJS:
+```
+DELETE /api/log-watcher/log?absolutePath=<path to log>
+```
 
-```javascript
-function uploadFile(content, filename) {
+Disallow watching the log file with the specified "absolutePath".
+This endpoint is only available while running the server in `-insecure` mode.
 
-  var form = new FormData();
-  form.append('file', filename);
-  form.append('data', content);
+```
+GET /api/log-watcher/log/size?absolutePath=<path to log>
+```
 
-  $http({
-    method: 'POST',
-    url: '//localhost:8090/',
-    data: form,
-    headers: { 'Content-Type': undefined }
-  }).then(function success(response) {}, function failure(error) {});
+Get size of the log file with the specified "absolutePath". Only size of log files,
+returned by `GET /api/log-watcher/log`, can be obtained.
 
+```
+GET /api/log-watcher/log/content?absolutePath=<path to log>&noSplit=<true/false>
+```
+Get content of the log file with the specified "absolutePath". Only content of log files,
+returned by `GET /api/log-watcher/log`, can be obtained. By default, returned content
+is split into an array of lines. To return content as a single string, specify "noSplit=true".
+Otherwise, "noSplit" parameter is optional and can be omitted.
+
+#### Web Socket
+
+##### Legacy
+
+```
+/
+```
+
+Works just like in the previous versions. 
+
+Connect to the endpoint. Send "watch" message to watch changes in a log file:
+
+```json
+{
+  "type": "watch",
+  "file": "<absolute path to log file>",
+  "fromStart": true
 }
 ```
+
+"fromStart" parameter is optional and can be omitted. Specify it set to "true" if you want
+to read existing contents of the file before receiving updates about changes in it.
+
+Only log files, returned by `GET /api/log-watcher/log`, can be watched.
+
+To stop watching changes in a log file - use "unwatch" message:
+
+```json
+{
+  "type": "unwatch",
+  "file": "<absolute path to log file>"
+}
+```
+
+##### Default
+
+Connect to the endpoint of the log file, you want watch.
+
+```
+/api/log-watcher/log?absolutePath=<path to log>&fromStart=<true/false>
+```
+
+"fromStart" parameter is optional and can be omitted. Specify it set to "true" if you want
+to read existing contents of the file before receiving updates about changes in it.
+
+Only log files, returned by `GET /api/log-watcher/log`, can be watched.
