@@ -1,5 +1,6 @@
 import {URL, URLIsAlreadyFinishedError} from "../../app/common/url";
 import { expect } from "chai";
+import uuid = require("uuid");
 
 describe('URL', function () {
     it('should create new URL, while prepending the "/"', function () {
@@ -61,5 +62,18 @@ describe('URL', function () {
         const url: URL = new URL('/a/b/c?age=18');
         // then
         expect(() => url.append('d')).to.throw(URLIsAlreadyFinishedError);
+    });
+    it('should replace a placeholder in a URL with a new part', function () {
+        // given
+        const id: string = uuid();
+        const template: URL = URL.createNew('api')
+            .append('command-executor')
+            .append('command')
+            .append(':commandId')
+            .append('execution');
+        // when
+        const actual: URL = template.replace(':commandId', id);
+        // then
+        expect(actual.value).equal(`/api/command-executor/command/${id}/execution`);
     });
 });

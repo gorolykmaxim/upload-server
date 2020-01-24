@@ -44,6 +44,16 @@ export class URL {
     }
 
     /**
+     * Replaces the specified placeholder in the URL with a new value and returns a new resulting URL.
+     *
+     * @param placeholder part to be replaced
+     * @param newValue value to replace the placeholder with
+     */
+    replace(placeholder: string, newValue: string): URL {
+        return new URL(this.value.replace(placeholder, newValue))
+    }
+
+    /**
      * Get value of a query parameter (e.g. a parameter, that is located after a '?' in the URL) with the specified
      * name. If there is no such parameter in the URL - return null.
      *
