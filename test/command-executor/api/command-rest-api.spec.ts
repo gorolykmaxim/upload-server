@@ -2,7 +2,6 @@ import {URL} from "../../../app/common/url";
 import {
     APIError,
     CommandRestAPI,
-    CommandURL,
     ExecutableCommand
 } from "../../../app/command-executor/api/command-rest-api";
 import uuid = require("uuid");
@@ -17,8 +16,7 @@ import {ArgumentError} from "common-errors";
 describe('CommandRestAPI', function () {
     const baseURL: URL = URL.createNew('api').append('command-executor');
     const command: Command = new Command('12345', 'list files', 'ls', null, null, null);
-    const commandURL: CommandURL = CommandURL.createFrom(baseURL.append('command'));
-    const executableCommand: ExecutableCommand = new ExecutableCommand(command, commandURL, commandURL.append('execution'));
+    const executableCommand: ExecutableCommand = new ExecutableCommand(command, baseURL);
     const expectedError: Error = new Error();
     const expectedEntityNotFoundError: EntityNotFoundError = new EntityNotFoundError(command.id);
     let reqMock: Request;
@@ -131,9 +129,9 @@ describe('CommandRestAPI', function () {
 });
 
 describe('ExecutableCommand', function () {
-    const commandURL: CommandURL = CommandURL.createFrom(URL.createNew('api').append('command-executor').append('command'));
+    const baseURL: URL = URL.createNew('api').append('command-executor');
     const command: Command = new Command(uuid(), 'list files', 'ls -lh', null, null, null);
-    const executableCommand: ExecutableCommand = new ExecutableCommand(command, commandURL, commandURL.append('execution'));
+    const executableCommand: ExecutableCommand = new ExecutableCommand(command, baseURL);
     it('should create executable command with the specified ID', function () {
         // then
         expect(executableCommand.id).equal(command.id);
