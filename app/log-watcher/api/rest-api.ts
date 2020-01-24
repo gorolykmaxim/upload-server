@@ -6,6 +6,7 @@ import {URL} from "../../common/url";
 import {LogFilePool} from "../log/log-file-pool";
 import {ArgumentError} from "common-errors";
 import {LogFileAccessError} from "../log/restricted-log-file-pool";
+import {Arguments} from "../../common/arguments";
 
 /**
  * REST API of a log-watcher.
@@ -60,11 +61,9 @@ export class RestAPI {
     private async addAllowedLog(req: Request, res: Response): Promise<void> {
         let absoluteLogFilePath: string;
         try {
-            absoluteLogFilePath = req.body.absolutePath;
+            const args: Arguments = new Arguments(req.body, ['absolutePath']);
+            absoluteLogFilePath = args.get('absolutePath');
             console.info("%s receives a request to allow a log '%s' to be watched", this, absoluteLogFilePath);
-            if (!absoluteLogFilePath) {
-                throw new ArgumentError("absolutePath");
-            }
             let responseBody = new WatchableLog(absoluteLogFilePath, this.logURL, this.logSizeURL, this.logContentURL);
             if (!await this.allowedLogs.contains(absoluteLogFilePath)) {
                 await this.allowedLogs.add(absoluteLogFilePath);
@@ -84,10 +83,8 @@ export class RestAPI {
     private async removeAllowedLog(req: Request, res: Response): Promise<void> {
         let absoluteLogFilePath: string;
         try  {
-            absoluteLogFilePath = req.query.absolutePath;
-            if (!absoluteLogFilePath) {
-                throw new ArgumentError("absolutePath");
-            }
+            const args: Arguments = new Arguments(req.query, ['absolutePath']);
+            absoluteLogFilePath = args.get('absolutePath');
             console.info("%s receives a request to disallow a log '%s' to be watched", this, absoluteLogFilePath);
             await this.allowedLogs.remove(absoluteLogFilePath);
             res.end();
@@ -108,10 +105,8 @@ export class RestAPI {
         let absoluteLogFilePath: string;
         let logFile: LogFile;
         try {
-            absoluteLogFilePath = req.query.absolutePath;
-            if (!absoluteLogFilePath) {
-                throw new ArgumentError("absolutePath");
-            }
+            const args: Arguments = new Arguments(req.query, ['absolutePath']);
+            absoluteLogFilePath = args.get('absolutePath');
             console.info("%s receives a request to read size of log '%s'", this, absoluteLogFilePath);
             logFile = await this.logFilePool.getLog(absoluteLogFilePath);
             const sizeInBytes = await logFile.getContentSize();
@@ -137,10 +132,8 @@ export class RestAPI {
         let absoluteLogFilePath: string;
         let logFile: LogFile;
         try {
-            absoluteLogFilePath = req.query.absolutePath;
-            if (!absoluteLogFilePath) {
-                throw new ArgumentError("absolutePath");
-            }
+            const args: Arguments = new Arguments(req.query, ['absolutePath']);
+            absoluteLogFilePath = args.get('absolutePath');
             const noSplit: boolean = req.query.noSplit || false;
             console.info("%s receives a request to read content of log '%s'. Content will be split into lines - %s", this, absoluteLogFilePath, noSplit);
             logFile = await this.logFilePool.getLog(absoluteLogFilePath);
