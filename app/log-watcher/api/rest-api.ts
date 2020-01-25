@@ -51,7 +51,7 @@ export class RestAPI {
         try {
             console.info("%s receives a request to find all logs, that are allowed to be watched", this);
             const allowedLogs: Array<string> = await this.allowedLogs.findAll();
-            const watchableLogs: Array<WatchableLog> = allowedLogs.map(al => new WatchableLog(al, this.logURL, this.logSizeURL, this.logContentURL));
+            const watchableLogs: Array<WatchableLog> = allowedLogs.map(al => new WatchableLog(al));
             res.end(JSON.stringify(watchableLogs));
         } catch (e) {
             res.status(500).end(APIError.allowedLogsLookup(e).message);
@@ -64,7 +64,7 @@ export class RestAPI {
             const args: Arguments = new Arguments(req.body, ['absolutePath']);
             absoluteLogFilePath = args.get('absolutePath');
             console.info("%s receives a request to allow a log '%s' to be watched", this, absoluteLogFilePath);
-            let responseBody = new WatchableLog(absoluteLogFilePath, this.logURL, this.logSizeURL, this.logContentURL);
+            let responseBody = new WatchableLog(absoluteLogFilePath);
             if (!await this.allowedLogs.contains(absoluteLogFilePath)) {
                 await this.allowedLogs.add(absoluteLogFilePath);
             }
@@ -230,56 +230,12 @@ export class APIError extends Error {
  * A log file, that can be watched by users of the "log-watcher" API.
  */
 export class WatchableLog {
-    public webSocketLinks: WebSocketLinks;
-    public httpLinks: HTTPLinks;
 
     /**
      * Construct a watchable log.
      *
      * @param absolutePath absolute path to the log file
-     * @param logURL base URL of a watchable log entity
-     * @param logSizeURL URL to obtain a size of a watchable log entity
-     * @param logContentURL URL to obtain a content of a watchable log entity
      */
-    constructor(public absolutePath: string, logURL: URL, logSizeURL: URL, logContentURL: URL) {
-        const thisLogURL = `${logURL.value}?absolutePath=${absolutePath}`;
-        this.webSocketLinks = {
-            watch: thisLogURL,
-            watchFromBeginning: `${thisLogURL}&fromStart=true`
-        };
-        this.httpLinks = {
-            remove: thisLogURL,
-            getSize: `${logSizeURL.value}?absolutePath=${absolutePath}`,
-            getContent: `${logContentURL.value}?absolutePath=${absolutePath}`
-        };
+    constructor(public absolutePath: string) {
     }
-}
-
-/**
- * Set of websocket links, that can be used to access a watchable log.
- */
-export interface WebSocketLinks {
-    /**
-     * Link to start watching new changes in the watchable log.
-     */
-    watch?: string,
-    /**
-     * Link to read existing content of a watchable log and start listening to new changes in it.
-     */
-    watchFromBeginning?: string,
-}
-
-export interface HTTPLinks {
-    /**
-     * Link to delete the watchable log.
-     */
-    remove?: string,
-    /**
-     * Link to get size of the watchable log in bytes.
-     */
-    getSize?: string,
-    /**
-     * Link to get content of the watchable log.
-     */
-    getContent?: string
 }

@@ -6,7 +6,6 @@ import {Application, Request, Response} from "express";
 import {ArgumentError} from "common-errors";
 import {Arguments} from "../../common/arguments";
 import {CommandURL} from "./command-url";
-import {CommandExecutionURL} from "./command-execution-url";
 
 /**
  * REST API of a command-executor, that allows querying/creating/removing executable commands.
@@ -24,7 +23,7 @@ export class CommandRestAPI {
      * @param factory factory, that will be used to create new commands
      * @param commands collection, that will be used to store commands
      */
-    constructor(server: Application, private baseURL: URL, private factory: CommandFactory, private commands: Collection<Command>) {
+    constructor(server: Application, baseURL: URL, private factory: CommandFactory, private commands: Collection<Command>) {
         server.get(CommandURL.allCommands(baseURL).value, this.findAllCommands.bind(this));
         server.post(CommandURL.allCommands(baseURL).value, this.createCommand.bind(this));
         server.delete(CommandURL.singleCommand(baseURL).value, this.removeCommand.bind(this));
@@ -33,7 +32,7 @@ export class CommandRestAPI {
     private async findAllCommands(req: Request, res: Response): Promise<void> {
         try {
             const foundCommands: Array<Command> = await this.commands.findAll();
-            const executableCommands: Array<ExecutableCommand> = foundCommands.map(c => new ExecutableCommand(c, this.baseURL));
+            const executableCommands: Array<ExecutableCommand> = foundCommands.map(c => new ExecutableCommand(c));
             res.end(JSON.stringify(executableCommands));
         } catch (e) {
             res.status(500).end(APIError.commandsLookup(e).message);
@@ -49,7 +48,7 @@ export class CommandRestAPI {
             script = args.get('script');
             const command: Command = this.factory.create(name, script);
             await this.commands.add(command);
-            const executableCommand: ExecutableCommand = new ExecutableCommand(command, this.baseURL);
+            const executableCommand: ExecutableCommand = new ExecutableCommand(command);
             res.end(JSON.stringify(executableCommand));
         } catch (e) {
             let code;
@@ -137,42 +136,15 @@ export class ExecutableCommand {
     public readonly id: string;
     public readonly name: string;
     public readonly script: string;
-    public readonly httpLinks: HTTPLinks;
 
     /**
      * Construct a command.
      *
      * @param command an actual command, to construct from
-     * @param baseURL base URL of the command executor API
      */
-    constructor(command: Command, baseURL: URL) {
+    constructor(command: Command) {
         this.id = command.id;
         this.name = command.name;
         this.script = command.script;
-        const commandURL: CommandURL = CommandURL.singleCommand(baseURL).setCommandId(this.id);
-        const commandExecutionURL: CommandExecutionURL = CommandExecutionURL.allExecutions(commandURL);
-        this.httpLinks = {
-            remove: commandURL.value,
-            getExecutionHistory: commandExecutionURL.value,
-            execute: commandExecutionURL.value
-        };
     }
-}
-
-/**
- * HTTP links to a command and resources, related to it.
- */
-export interface HTTPLinks {
-    /**
-     * Link to remove a specific command.
-     */
-    remove?: string;
-    /**
-     * Link to get a history of executions of this specific command.
-     */
-    getExecutionHistory?: string
-    /**
-     * Link to execute the command.
-     */
-    execute?: string;
 }

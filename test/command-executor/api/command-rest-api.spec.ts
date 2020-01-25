@@ -16,7 +16,7 @@ import {ArgumentError} from "common-errors";
 describe('CommandRestAPI', function () {
     const baseURL: URL = URL.createNew('api').append('command-executor');
     const command: Command = new Command('12345', 'list files', 'ls', null, null, null);
-    const executableCommand: ExecutableCommand = new ExecutableCommand(command, baseURL);
+    const executableCommand: ExecutableCommand = new ExecutableCommand(command);
     const expectedError: Error = new Error();
     const expectedEntityNotFoundError: EntityNotFoundError = new EntityNotFoundError(command.id);
     let reqMock: Request;
@@ -129,9 +129,8 @@ describe('CommandRestAPI', function () {
 });
 
 describe('ExecutableCommand', function () {
-    const baseURL: URL = URL.createNew('api').append('command-executor');
     const command: Command = new Command(uuid(), 'list files', 'ls -lh', null, null, null);
-    const executableCommand: ExecutableCommand = new ExecutableCommand(command, baseURL);
+    const executableCommand: ExecutableCommand = new ExecutableCommand(command);
     it('should create executable command with the specified ID', function () {
         // then
         expect(executableCommand.id).equal(command.id);
@@ -143,17 +142,5 @@ describe('ExecutableCommand', function () {
     it('should create executable command with the specified script', function () {
         // then
         expect(executableCommand.script).equal(command.script);
-    });
-    it('should create executable command with the specified remove HTTP link', function () {
-        // then
-        expect(executableCommand.httpLinks.remove).equal(`/api/command-executor/command/${command.id}`);
-    });
-    it('should create executable command with the specified get execution history HTTP link', function () {
-        // then
-        expect(executableCommand.httpLinks.getExecutionHistory).equal(`/api/command-executor/command/${command.id}/execution`);
-    });
-    it('should create executable command with the specified execute HTTP link', function () {
-        // then
-        expect(executableCommand.httpLinks.execute).equal(`/api/command-executor/command/${command.id}/execution`);
     });
 });
