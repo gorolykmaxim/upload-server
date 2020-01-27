@@ -16,7 +16,7 @@ export type OnStatusChange = (newStatus: ExecutionStatus) => void;
  * Status of a command execution.
  */
 export enum ExecutionStatus {
-    executing, finished, failed
+    executing = 'executing', finished = 'finished', failed = 'failed'
 }
 
 /**
@@ -34,6 +34,25 @@ export class CommandExecution {
     private readonly stderrBuffer: StringBuffer;
     private readonly outputChanges: EventEmitter = new EventEmitter();
     private readonly statusChanges: EventEmitter = new EventEmitter();
+
+    /**
+     * Compare two executions and return:
+     * -1 if a is newer than b
+     * 0 if a is as old as b
+     * 1 if a is older than b
+     *
+     * @param a one execution
+     * @param b another execution
+     */
+    static compare(a: CommandExecution, b: CommandExecution): number {
+        if (a.startTime > b.startTime) {
+            return -1;
+        } else if (b.startTime > a.startTime) {
+            return 1;
+        } else {
+            return 0;
+        }
+    }
 
     /**
      * Start new command execution. Use this factory-method, when you actually want to run a physical command
@@ -157,6 +176,14 @@ export class CommandExecution {
     }
 
     /**
+     * Forcefully ends the execution and finalizes it without waiting for the actual process to receive the signal.
+     */
+    haltAbruptly(): void {
+        this.halt();
+        this.forcefullyFinalize();
+    }
+
+    /**
      * Detach this execution from it's underlying process and make it a plain data representation of an execution, which
      * was active once upon a time. Clean-up all the resources, that were associated with this execution.
      * Only a finished command execution can be finalized.
@@ -165,6 +192,10 @@ export class CommandExecution {
         if (!FINISHED_STATUSES.has(this.status)) {
             throw new FinalizationInWrongStateError(this.commandId, this.startTime, this.status);
         }
+        this.forcefullyFinalize();
+    }
+
+    private forcefullyFinalize(): void {
         this.stdoutBuffer.clear();
         this.stderrBuffer.clear();
         this.outputChanges.removeAllListeners();

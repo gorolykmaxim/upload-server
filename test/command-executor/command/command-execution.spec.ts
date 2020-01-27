@@ -3,13 +3,15 @@ import {
     CommandExecution,
     ExecutionStatus,
     FinalizationInWrongStateError,
-    OnOutputLine, OnStatusChange, TerminationInWrongStateError
+    OnOutputLine,
+    OnStatusChange,
+    TerminationInWrongStateError
 } from "../../../app/command-executor/command/command-execution";
-import uuid = require("uuid");
 import {Readable} from "stream";
 import {ChildProcess} from "child_process";
 import {capture, instance, mock, verify, when} from "ts-mockito";
-import { expect } from "chai";
+import {expect} from "chai";
+import uuid = require("uuid");
 
 describe('CommandExecution', function () {
     const expectedError = new Error('Failed to start the process');
@@ -24,6 +26,7 @@ describe('CommandExecution', function () {
     const startTime = Date.now();
     let process: ChildProcess;
     let execution: CommandExecution;
+    const anotherExecution: CommandExecution = CommandExecution.finished(commandId, startTime - 1000, [], ExecutionStatus.finished, EOL);
     beforeEach(function () {
         const stdoutStream: Readable = new Readable();
         const stderrStream: Readable = new Readable();
@@ -224,6 +227,28 @@ describe('CommandExecution', function () {
         finish(0, null);
         // then
         expect(() => execution.halt()).to.throw(TerminationInWrongStateError);
+    });
+    it('should return 1 since the first execution was created earlier than the second', function () {
+        // then
+        expect(CommandExecution.compare(anotherExecution, execution)).equal(1);
+    });
+    it('should return 0 since both executions were created at the same time', function () {
+        // then
+        expect(CommandExecution.compare(execution, execution)).equal(0);
+    });
+    it('should return -1 since the second execution was created earlier than the first', function () {
+        // then
+        expect(CommandExecution.compare(execution, anotherExecution)).equal(-1);
+    });
+    it('should send SIGKILL signal to the executing process and finalize itself immediately', function (done) {
+        // given
+        execution.addOutputListener(line => done(new Error('Output listeners should not be called after finalization')));
+        execution.addStatusListener(line => done(new Error('Output listeners should not be called after finalization')));
+        // when
+        execution.haltAbruptly();
+        // then
+        verify(process.kill(constants.signals.SIGKILL)).once();
+        done();
     });
 });
 
