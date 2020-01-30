@@ -14,12 +14,17 @@ import {LegacyMessageFactory} from "./log-watcher/watcher/legacy-message-factory
 import {DefaultMessageFactory} from "./log-watcher/watcher/default-message-factory";
 import {DefaultWebSocketAPI} from "./log-watcher/api/default-web-socket-api";
 import {URL} from "./common/url";
-import {RestAPI} from "./log-watcher/api/rest-api";
 import * as expressWs from "express-ws";
 import {WebSocketAPI} from "./common/web-socket";
 import {CreateUUID} from "./common/uuid";
 import {Database, open} from "sqlite";
 import {AllowedLogsCollection} from "./log-watcher/log/allowed-logs-collection";
+import {FindAllowedLogs} from "./log-watcher/api/rest/find-allowed-logs";
+import {APIRequest} from "./common/api/request";
+import {GetLogSize} from "./log-watcher/api/rest/get-log-size";
+import {GetLogContent} from "./log-watcher/api/rest/get-log-content";
+import {AllowLog} from "./log-watcher/api/rest/allow-log";
+import {DisallowLog} from "./log-watcher/api/rest/disallow-log";
 import bodyParser = require("body-parser");
 import Bluebird = require("bluebird");
 import uuid = require("uuid");
@@ -56,7 +61,20 @@ async function main(): Promise<void> {
     const defaultWebSocketAPI: WebSocketAPI = new DefaultWebSocketAPI(logFilePool, watcherFactory);
     application.ws(baseLogWatcherAPIURL.append('log').value, defaultWebSocketAPI.onConnectionOpen.bind(defaultWebSocketAPI));
 
-    const restAPI: RestAPI = new RestAPI(baseLogWatcherAPIURL, application, allowedLogs, logFilePool, fileSystem);
+    const logURL: URL = baseLogWatcherAPIURL.append('log');
+    const logSizeURL: URL = logURL.append('size');
+    const logContentURL: URL = logURL.append('content');
+    let request: APIRequest;
+    request = FindAllowedLogs.create(allowedLogs);
+    application.get(logURL.value, request.process.bind(request));
+    request = GetLogSize.create(logFilePool);
+    application.get(logSizeURL.value, request.process.bind(request));
+    request = GetLogContent.create(logFilePool);
+    application.get(logContentURL.value, request.process.bind(request));
+    request = AllowLog.create(allowedLogs, fileSystem);
+    application.post(logURL.value, request.process.bind(request));
+    request = DisallowLog.create(allowedLogs);
+    application.delete(logURL.value, request.process.bind(request));
 
     application.listen(8080, () => {console.log('Listening on 8080...')});
 }
