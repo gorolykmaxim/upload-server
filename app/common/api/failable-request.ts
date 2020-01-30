@@ -13,8 +13,10 @@ export class FailableRequest implements APIRequest {
      *
      * @param actualRequest actual request that might produce an error
      * @param requestIntent intent of the specified request, that will be mentioned in the error message
+     * @param actualDisposableRequest actual request, that have to be disposed after the execution
      */
-    constructor(private actualRequest: APIRequest, private requestIntent: string) {
+    constructor(private actualRequest: APIRequest, private requestIntent: string,
+                private actualDisposableRequest?: DisposableRequest) {
     }
 
     /**
@@ -36,6 +38,19 @@ export class FailableRequest implements APIRequest {
         } catch (e) {
             const code: number = this.errorTypeToCode[e.constructor.name] ?? 500;
             res.status(code).end(`Failed to ${this.requestIntent}. Reason: ${e.message}`);
+        } finally {
+            await this.actualDisposableRequest?.dispose();
         }
     }
+}
+
+/**
+ * A request that has resources that should be disposed regardless of the actual request processing being successful
+ * or not.
+ */
+export interface DisposableRequest {
+    /**
+     * Dispose resources, used by the request.
+     */
+    dispose(): Promise<void>;
 }
