@@ -1,20 +1,20 @@
-import {APIRequest} from "../../../common/api/request";
+import {Endpoint} from "../../../common/api/endpoint";
 import {Request, Response} from "express";
 import {Collection} from "../../../common/collection/collection";
-import {FailableRequest} from "../../../common/api/failable-request";
+import {FailableEndpoint} from "../../../common/api/failable-endpoint";
 import {WatchableLog} from "./watchable-log";
 
 /**
  * Find all log files, that are allowed to be watched using the API.
  */
-export class FindAllowedLogs implements APIRequest {
+export class FindAllowedLogs implements Endpoint {
     /**
-     * Create a request.
+     * Create an endpoint.
      *
      * @param allowedLogs collection, that contains absolute paths to log files, that are allowed to be watched
      */
-    static create(allowedLogs: Collection<string>): APIRequest {
-        return new FailableRequest(new FindAllowedLogs(allowedLogs), 'lookup logs, that are allowed to be watched');
+    static create(allowedLogs: Collection<string>): Endpoint {
+        return new FailableEndpoint(new FindAllowedLogs(allowedLogs), 'lookup logs, that are allowed to be watched');
     }
 
     private constructor(private allowedLogs: Collection<string>) {

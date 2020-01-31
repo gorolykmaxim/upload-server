@@ -1,20 +1,20 @@
-import {ArgumentsConsumer, RequestWithArguments} from "../../../app/common/api/request-with-arguments";
-import {APIRequest} from "../../../app/common/api/request";
+import {ArgumentsConsumer, EndpointWithArguments} from "../../../app/common/api/endpoint-with-arguments";
+import {Endpoint} from "../../../app/common/api/endpoint";
 import {Request, Response} from "express";
 import {capture, instance, mock, verify, when} from "ts-mockito";
 import {Arguments} from "../../../app/common/arguments";
 import {expect} from "chai";
 import {ArgumentError} from "common-errors";
 
-describe('RequestWithArguments', function () {
-    let actualRequest: ArgumentsConsumer;
-    let request: APIRequest;
+describe('EndpointWithArguments', function () {
+    let actualEndpoint: ArgumentsConsumer;
+    let endpoint: Endpoint;
     let reqMock: Request;
     let resMock: Response;
     let req: Request;
     let res: Response;
     beforeEach(function () {
-        actualRequest = mock<ArgumentsConsumer>();
+        actualEndpoint = mock<ArgumentsConsumer>();
         reqMock = mock<Request>();
         resMock = mock<Response>();
         req = instance(reqMock);
@@ -24,22 +24,22 @@ describe('RequestWithArguments', function () {
         // given
         const expectedArguments = {name: 'Tom', age: '15', gender: 'male'};
         when(reqMock.query).thenReturn(expectedArguments);
-        request = new RequestWithArguments(instance(actualRequest), 'query', ['name', 'age']);
+        endpoint = new EndpointWithArguments(instance(actualEndpoint), 'query', ['name', 'age']);
         // when
-        await request.process(req, res);
+        await endpoint.process(req, res);
         // then
-        const args: Arguments = capture(actualRequest.setArguments).last()[0];
+        const args: Arguments = capture(actualEndpoint.setArguments).last()[0];
         expect(args.get('name')).equal(expectedArguments.name);
         expect(args.get('age')).equal(expectedArguments.age);
         expect(args.get('gender')).equal(expectedArguments.gender);
-        verify(actualRequest.process(req, res)).once();
+        verify(actualEndpoint.process(req, res)).once();
     });
     it('should fail to find one of the mandatory arguments', async function () {
         // given
         when(reqMock.body).thenReturn({});
-        request = new RequestWithArguments(instance(actualRequest), 'body', ['id']);
+        endpoint = new EndpointWithArguments(instance(actualEndpoint), 'body', ['id']);
         // then
-        await expect(request.process(req, res)).rejectedWith(ArgumentError);
-        verify(actualRequest.process(req, res)).never();
+        await expect(endpoint.process(req, res)).rejectedWith(ArgumentError);
+        verify(actualEndpoint.process(req, res)).never();
     });
 });

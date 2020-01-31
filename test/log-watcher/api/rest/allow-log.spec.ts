@@ -1,20 +1,20 @@
 import {Mocks} from "./mocks";
-import {APIRequest} from "../../../../app/common/api/request";
+import {Endpoint} from "../../../../app/common/api/endpoint";
 import {AllowLog} from "../../../../app/log-watcher/api/rest/allow-log";
 import {instance, verify, when} from "ts-mockito";
 
 describe('AllowLog', function () {
     let mocks: Mocks;
-    let request: APIRequest;
+    let endpoint: Endpoint;
     beforeEach(function () {
         mocks = new Mocks();
-        request = AllowLog.create(instance(mocks.allowedLogs), instance(mocks.fileSystem));
+        endpoint = AllowLog.create(instance(mocks.allowedLogs), instance(mocks.fileSystem));
     });
     it('should allow watching a log file', async function () {
         // given
         when(mocks.allowedLogs.contains(mocks.absoluteLogFilePath)).thenResolve(false);
         // when
-        await request.process(mocks.req, mocks.res);
+        await endpoint.process(mocks.req, mocks.res);
         // then
         verify(mocks.allowedLogs.add(mocks.absoluteLogFilePath)).once();
         verify(mocks.resMock.end(JSON.stringify(mocks.expectedWatchableLog))).once();
@@ -23,7 +23,7 @@ describe('AllowLog', function () {
         // given
         when(mocks.allowedLogs.contains(mocks.absoluteLogFilePath)).thenResolve(true);
         // when
-        await request.process(mocks.req, mocks.res);
+        await endpoint.process(mocks.req, mocks.res);
         // then
         verify(mocks.allowedLogs.add(mocks.absoluteLogFilePath)).never();
         verify(mocks.resMock.end(JSON.stringify(mocks.expectedWatchableLog))).once();
@@ -34,7 +34,7 @@ describe('AllowLog', function () {
         when(mocks.allowedLogs.contains(mocks.absoluteLogFilePath)).thenResolve(false);
         when(mocks.fileSystem.accessAsync(mocks.absoluteLogFilePath)).thenReject(new Error());
         // when
-        await request.process(mocks.req, mocks.res);
+        await endpoint.process(mocks.req, mocks.res);
         // then
         verify(mocks.resMock.end(JSON.stringify(Object.assign({notice: expectedNotice}, mocks.expectedWatchableLog)))).once();
     });

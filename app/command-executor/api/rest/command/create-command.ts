@@ -1,11 +1,11 @@
-import {ArgumentsConsumer, RequestWithArguments} from "../../../../common/api/request-with-arguments";
+import {ArgumentsConsumer, EndpointWithArguments} from "../../../../common/api/endpoint-with-arguments";
 import {Arguments} from "../../../../common/arguments";
 import {Request, Response} from "express";
 import {CommandFactory} from "../../../command/command-factory";
 import {Collection} from "../../../../common/collection/collection";
 import {Command} from "../../../command/command";
-import {APIRequest} from "../../../../common/api/request";
-import {FailableRequest} from "../../../../common/api/failable-request";
+import {Endpoint} from "../../../../common/api/endpoint";
+import {FailableEndpoint} from "../../../../common/api/failable-endpoint";
 import {ArgumentError} from "common-errors";
 import {ExecutableCommand} from "./executable-command";
 
@@ -16,17 +16,17 @@ export class CreateCommand implements ArgumentsConsumer {
     private args: Arguments;
 
     /**
-     * Create a request.
+     * Create an endpoint.
      *
      * @param factory factory, that will be used to construct new commands
      * @param commands collection, where new commands will be stored
      */
-    static create(factory: CommandFactory, commands: Collection<Command>): APIRequest {
-        const request: ArgumentsConsumer = new CreateCommand(factory, commands);
-        const requestWithArguments = new RequestWithArguments(request, 'body', ['name', 'script']);
-        const failableRequest: FailableRequest = new FailableRequest(requestWithArguments, 'create a command');
-        failableRequest.respondWithCodeOnErrorType(400, ArgumentError);
-        return failableRequest;
+    static create(factory: CommandFactory, commands: Collection<Command>): Endpoint {
+        const endpoint: ArgumentsConsumer = new CreateCommand(factory, commands);
+        const endpointWithArguments = new EndpointWithArguments(endpoint, 'body', ['name', 'script']);
+        const failableEndpoint: FailableEndpoint = new FailableEndpoint(endpointWithArguments, 'create a command');
+        failableEndpoint.respondWithCodeOnErrorType(400, ArgumentError);
+        return failableEndpoint;
     }
 
     private constructor(private factory: CommandFactory, private commands: Collection<Command>) {

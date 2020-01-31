@@ -1,32 +1,32 @@
-import {ArgumentsConsumer, RequestWithArguments} from "../../../common/api/request-with-arguments";
-import {DisposableRequest, FailableRequest} from "../../../common/api/failable-request";
+import {ArgumentsConsumer, EndpointWithArguments} from "../../../common/api/endpoint-with-arguments";
+import {DisposableEndpoint, FailableEndpoint} from "../../../common/api/failable-endpoint";
 import {Arguments} from "../../../common/arguments";
 import {Request, Response} from "express";
 import {LogFile} from "../../log/log-file";
 import {LogFilePool} from "../../log/log-file-pool";
-import {APIRequest} from "../../../common/api/request";
+import {Endpoint} from "../../../common/api/endpoint";
 import {ArgumentError} from "common-errors";
 import {LogFileAccessError} from "../../log/restricted-log-file-pool";
 
 /**
  * Get the size of the specified log file in bytes.
  */
-export class GetLogSize implements ArgumentsConsumer, DisposableRequest{
+export class GetLogSize implements ArgumentsConsumer, DisposableEndpoint{
     private args: Arguments;
     private logFile: LogFile;
 
     /**
-     * Create a request.
+     * Create an endpoint.
      *
      * @param logFilePool pool of log files, to obtain the log file from
      */
-    static create(logFilePool: LogFilePool): APIRequest {
-        const request: GetLogSize = new GetLogSize(logFilePool);
-        const requestWithArguments: RequestWithArguments = new RequestWithArguments(request, 'query', ['absolutePath']);
-        const failableRequest: FailableRequest = new FailableRequest(requestWithArguments, 'read size of a log file', request);
-        failableRequest.respondWithCodeOnErrorType(400, ArgumentError);
-        failableRequest.respondWithCodeOnErrorType(403, LogFileAccessError);
-        return failableRequest;
+    static create(logFilePool: LogFilePool): Endpoint {
+        const endpoint: GetLogSize = new GetLogSize(logFilePool);
+        const endpointWithArguments: EndpointWithArguments = new EndpointWithArguments(endpoint, 'query', ['absolutePath']);
+        const failableEndpoint: FailableEndpoint = new FailableEndpoint(endpointWithArguments, 'read size of a log file', endpoint);
+        failableEndpoint.respondWithCodeOnErrorType(400, ArgumentError);
+        failableEndpoint.respondWithCodeOnErrorType(403, LogFileAccessError);
+        return failableEndpoint;
     }
 
     private constructor(private logFilePool: LogFilePool) {

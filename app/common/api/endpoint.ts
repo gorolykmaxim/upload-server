@@ -1,9 +1,9 @@
 import {Request, Response} from "express";
 
 /**
- * An HTTP API request, that can process itself.
+ * An HTTP API endpoint, that can process requests, incoming to it.
  */
-export interface APIRequest {
+export interface Endpoint {
     /**
      * Process the incoming request and write a response if necessary.
      *

@@ -1,10 +1,10 @@
-import {APIRequest} from "../../../common/api/request";
+import {Endpoint} from "../../../common/api/endpoint";
 import {Request, Response} from "express";
 import {Collection} from "../../../common/collection/collection";
-import {ArgumentsConsumer, RequestWithArguments} from "../../../common/api/request-with-arguments";
+import {ArgumentsConsumer, EndpointWithArguments} from "../../../common/api/endpoint-with-arguments";
 import {Arguments} from "../../../common/arguments";
 import {FileSystem} from "../../log/file-system";
-import {FailableRequest} from "../../../common/api/failable-request";
+import {FailableEndpoint} from "../../../common/api/failable-endpoint";
 import {ArgumentError} from "common-errors";
 import {WatchableLog} from "./watchable-log";
 
@@ -15,17 +15,17 @@ export class AllowLog implements ArgumentsConsumer {
     private args: Arguments;
 
     /**
-     * Create a request.
+     * Create an endpoint.
      *
      * @param allowedLogs collection, that contains absolute paths to log files, that are allowed to be watched
      * @param fileSystem file system, on which the log file is supposed to exist
      */
-    static create(allowedLogs: Collection<string>, fileSystem: FileSystem): APIRequest {
-        const request: ArgumentsConsumer = new AllowLog(allowedLogs, fileSystem);
-        const requestWithArguments: RequestWithArguments = new RequestWithArguments(request, 'body', ['absolutePath']);
-        const failableRequest: FailableRequest = new FailableRequest(requestWithArguments, 'allow a log file to be watched');
-        failableRequest.respondWithCodeOnErrorType(400, ArgumentError);
-        return failableRequest;
+    static create(allowedLogs: Collection<string>, fileSystem: FileSystem): Endpoint {
+        const endpoint: ArgumentsConsumer = new AllowLog(allowedLogs, fileSystem);
+        const endpointWithArguments: EndpointWithArguments = new EndpointWithArguments(endpoint, 'body', ['absolutePath']);
+        const failableEndpoint: FailableEndpoint = new FailableEndpoint(endpointWithArguments, 'allow a log file to be watched');
+        failableEndpoint.respondWithCodeOnErrorType(400, ArgumentError);
+        return failableEndpoint;
     }
 
     private constructor(private allowedLogs: Collection<string>, private fileSystem: FileSystem) {

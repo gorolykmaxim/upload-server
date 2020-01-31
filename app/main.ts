@@ -20,7 +20,7 @@ import {CreateUUID} from "./common/uuid";
 import {Database, open} from "sqlite";
 import {AllowedLogsCollection} from "./log-watcher/log/allowed-logs-collection";
 import {FindAllowedLogs} from "./log-watcher/api/rest/find-allowed-logs";
-import {APIRequest} from "./common/api/request";
+import {Endpoint} from "./common/api/endpoint";
 import {GetLogSize} from "./log-watcher/api/rest/get-log-size";
 import {GetLogContent} from "./log-watcher/api/rest/get-log-content";
 import {AllowLog} from "./log-watcher/api/rest/allow-log";
@@ -64,17 +64,17 @@ async function main(): Promise<void> {
     const logURL: URL = baseLogWatcherAPIURL.append('log');
     const logSizeURL: URL = logURL.append('size');
     const logContentURL: URL = logURL.append('content');
-    let request: APIRequest;
-    request = FindAllowedLogs.create(allowedLogs);
-    application.get(logURL.value, request.process.bind(request));
-    request = GetLogSize.create(logFilePool);
-    application.get(logSizeURL.value, request.process.bind(request));
-    request = GetLogContent.create(logFilePool);
-    application.get(logContentURL.value, request.process.bind(request));
-    request = AllowLog.create(allowedLogs, fileSystem);
-    application.post(logURL.value, request.process.bind(request));
-    request = DisallowLog.create(allowedLogs);
-    application.delete(logURL.value, request.process.bind(request));
+    let endpoint: Endpoint;
+    endpoint = FindAllowedLogs.create(allowedLogs);
+    application.get(logURL.value, endpoint.process.bind(endpoint));
+    endpoint = GetLogSize.create(logFilePool);
+    application.get(logSizeURL.value, endpoint.process.bind(endpoint));
+    endpoint = GetLogContent.create(logFilePool);
+    application.get(logContentURL.value, endpoint.process.bind(endpoint));
+    endpoint = AllowLog.create(allowedLogs, fileSystem);
+    application.post(logURL.value, endpoint.process.bind(endpoint));
+    endpoint = DisallowLog.create(allowedLogs);
+    application.delete(logURL.value, endpoint.process.bind(endpoint));
 
     application.listen(8080, () => {console.log('Listening on 8080...')});
 }

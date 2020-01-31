@@ -1,10 +1,10 @@
-import {ArgumentsConsumer, RequestWithArguments} from "../../../../../common/api/request-with-arguments";
+import {ArgumentsConsumer, EndpointWithArguments} from "../../../../../common/api/endpoint-with-arguments";
 import {Arguments} from "../../../../../common/arguments";
 import {Request, Response} from "express";
 import {CommandExecution} from "../../../../command/command-execution";
 import {Collection, EntityNotFoundError} from "../../../../../common/collection/collection";
-import {APIRequest} from "../../../../../common/api/request";
-import {FailableRequest} from "../../../../../common/api/failable-request";
+import {Endpoint} from "../../../../../common/api/endpoint";
+import {FailableEndpoint} from "../../../../../common/api/failable-endpoint";
 import {ArgumentError} from "common-errors";
 
 /**
@@ -14,30 +14,30 @@ export class TerminateCommandExecution implements ArgumentsConsumer {
     private args: Arguments;
 
     /**
-     * Construct a request, that will terminate execution of the command.
+     * Construct an endpoint, that will terminate execution of the command.
      *
      * @param activeExecutions collection, that contains all active executions, that can be terminated
      */
-    static createTerminate(activeExecutions: Collection<CommandExecution>): APIRequest {
+    static createTerminate(activeExecutions: Collection<CommandExecution>): Endpoint {
         return this.create(activeExecutions, false);
     }
 
     /**
-     * Construct a request, that will halt execution of the command.
+     * Construct an endpoint, that will halt execution of the command.
      *
      * @param activeExecutions collection, that contains all active executions, that can be halt
      */
-    static createHalt(activeExecutions: Collection<CommandExecution>): APIRequest {
+    static createHalt(activeExecutions: Collection<CommandExecution>): Endpoint {
         return this.create(activeExecutions, true);
     }
 
-    private static create(activeExecutions: Collection<CommandExecution>, isHalt: boolean): APIRequest {
-        const request: ArgumentsConsumer = new TerminateCommandExecution(activeExecutions, isHalt);
-        const requestWithArguments: APIRequest = new RequestWithArguments(request, 'params', ['commandId', 'startTime']);
-        const failableRequest: FailableRequest = new FailableRequest(requestWithArguments, `${isHalt ? 'halt' : 'terminate'} execution of a command`);
-        failableRequest.respondWithCodeOnErrorType(400, ArgumentError);
-        failableRequest.respondWithCodeOnErrorType(404, EntityNotFoundError);
-        return failableRequest;
+    private static create(activeExecutions: Collection<CommandExecution>, isHalt: boolean): Endpoint {
+        const endpoint: ArgumentsConsumer = new TerminateCommandExecution(activeExecutions, isHalt);
+        const endpointWithArguments: Endpoint = new EndpointWithArguments(endpoint, 'params', ['commandId', 'startTime']);
+        const failableEndpoint: FailableEndpoint = new FailableEndpoint(endpointWithArguments, `${isHalt ? 'halt' : 'terminate'} execution of a command`);
+        failableEndpoint.respondWithCodeOnErrorType(400, ArgumentError);
+        failableEndpoint.respondWithCodeOnErrorType(404, EntityNotFoundError);
+        return failableEndpoint;
     }
 
     private constructor(private activeExecutions: Collection<CommandExecution>, private isHalt: boolean) {

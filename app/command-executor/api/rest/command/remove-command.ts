@@ -1,10 +1,10 @@
-import {ArgumentsConsumer, RequestWithArguments} from "../../../../common/api/request-with-arguments";
+import {ArgumentsConsumer, EndpointWithArguments} from "../../../../common/api/endpoint-with-arguments";
 import {Arguments} from "../../../../common/arguments";
 import {Request, Response} from "express";
 import {Collection, EntityNotFoundError} from "../../../../common/collection/collection";
 import {Command} from "../../../command/command";
-import {APIRequest} from "../../../../common/api/request";
-import {FailableRequest} from "../../../../common/api/failable-request";
+import {Endpoint} from "../../../../common/api/endpoint";
+import {FailableEndpoint} from "../../../../common/api/failable-endpoint";
 import {ArgumentError} from "common-errors";
 
 /**
@@ -14,17 +14,17 @@ export class RemoveCommand implements ArgumentsConsumer {
     private args: Arguments;
 
     /**
-     * Create a request.
+     * Create an endpoint.
      *
      * @param commands collection of commands, from which the command will be removed
      */
-    static create(commands: Collection<Command>): APIRequest {
-        const request: ArgumentsConsumer = new RemoveCommand(commands);
-        const requestWithArguments: APIRequest = new RequestWithArguments(request, 'params', ['commandId']);
-        const failableRequest: FailableRequest = new FailableRequest(requestWithArguments, 'remove a command');
-        failableRequest.respondWithCodeOnErrorType(400, ArgumentError);
-        failableRequest.respondWithCodeOnErrorType(404, EntityNotFoundError);
-        return failableRequest;
+    static create(commands: Collection<Command>): Endpoint {
+        const endpoint: ArgumentsConsumer = new RemoveCommand(commands);
+        const endpointWithArguments: Endpoint = new EndpointWithArguments(endpoint, 'params', ['commandId']);
+        const failableEndpoint: FailableEndpoint = new FailableEndpoint(endpointWithArguments, 'remove a command');
+        failableEndpoint.respondWithCodeOnErrorType(400, ArgumentError);
+        failableEndpoint.respondWithCodeOnErrorType(404, EntityNotFoundError);
+        return failableEndpoint;
     }
 
     private constructor(private commands: Collection<Command>) {

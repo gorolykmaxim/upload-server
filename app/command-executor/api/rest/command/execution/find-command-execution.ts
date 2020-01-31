@@ -1,10 +1,10 @@
-import {ArgumentsConsumer, RequestWithArguments} from "../../../../../common/api/request-with-arguments";
+import {ArgumentsConsumer, EndpointWithArguments} from "../../../../../common/api/endpoint-with-arguments";
 import {Arguments} from "../../../../../common/arguments";
 import {Request, Response} from "express";
 import {CommandExecution} from "../../../../command/command-execution";
 import {Collection, EntityNotFoundError} from "../../../../../common/collection/collection";
-import {APIRequest} from "../../../../../common/api/request";
-import {FailableRequest} from "../../../../../common/api/failable-request";
+import {Endpoint} from "../../../../../common/api/endpoint";
+import {FailableEndpoint} from "../../../../../common/api/failable-endpoint";
 import {ArgumentError} from "common-errors";
 import {CommandExecutionModel} from "./command-execution-model";
 
@@ -15,18 +15,18 @@ export class FindCommandExecution implements ArgumentsConsumer {
     private args: Arguments;
 
     /**
-     * Create a request.
+     * Create an endpoint.
      *
      * @param activeExecutions collection that contains executions, that are currently being executed
      * @param completeExecutions collection that contains executions, that are complete
      */
-    static create(activeExecutions: Collection<CommandExecution>, completeExecutions: Collection<CommandExecution>): APIRequest {
-        const request: ArgumentsConsumer = new FindCommandExecution(activeExecutions, completeExecutions);
-        const requestWithArguments: APIRequest = new RequestWithArguments(request, 'params', ['commandId', 'startTime']);
-        const failableRequest: FailableRequest = new FailableRequest(requestWithArguments, 'find execution of a command');
-        failableRequest.respondWithCodeOnErrorType(400, ArgumentError);
-        failableRequest.respondWithCodeOnErrorType(404, EntityNotFoundError);
-        return failableRequest;
+    static create(activeExecutions: Collection<CommandExecution>, completeExecutions: Collection<CommandExecution>): Endpoint {
+        const endpoint: ArgumentsConsumer = new FindCommandExecution(activeExecutions, completeExecutions);
+        const endpointWithArguments: Endpoint = new EndpointWithArguments(endpoint, 'params', ['commandId', 'startTime']);
+        const failableEndpoint: FailableEndpoint = new FailableEndpoint(endpointWithArguments, 'find execution of a command');
+        failableEndpoint.respondWithCodeOnErrorType(400, ArgumentError);
+        failableEndpoint.respondWithCodeOnErrorType(404, EntityNotFoundError);
+        return failableEndpoint;
     }
 
     private constructor(private activeExecutions: Collection<CommandExecution>,

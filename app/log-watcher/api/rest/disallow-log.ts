@@ -1,9 +1,9 @@
-import {ArgumentsConsumer, RequestWithArguments} from "../../../common/api/request-with-arguments";
+import {ArgumentsConsumer, EndpointWithArguments} from "../../../common/api/endpoint-with-arguments";
 import {Arguments} from "../../../common/arguments";
 import {Request, Response} from "express";
 import {Collection, EntityNotFoundError} from "../../../common/collection/collection";
-import {APIRequest} from "../../../common/api/request";
-import {FailableRequest} from "../../../common/api/failable-request";
+import {Endpoint} from "../../../common/api/endpoint";
+import {FailableEndpoint} from "../../../common/api/failable-endpoint";
 import {ArgumentError} from "common-errors";
 
 /**
@@ -13,17 +13,17 @@ export class DisallowLog implements ArgumentsConsumer {
     private args: Arguments;
 
     /**
-     * Create a request.
+     * Create an endpoint.
      *
      * @param allowedLogs collection, that contains absolute paths to log files, that are allowed to be watched
      */
-    static create(allowedLogs: Collection<string>): APIRequest {
-        const request: ArgumentsConsumer = new DisallowLog(allowedLogs);
-        const requestWithArguments: RequestWithArguments = new RequestWithArguments(request, 'query', ['absolutePath']);
-        const failableRequest: FailableRequest = new FailableRequest(requestWithArguments, 'disallow a log file to be watched');
-        failableRequest.respondWithCodeOnErrorType(400, ArgumentError);
-        failableRequest.respondWithCodeOnErrorType(404, EntityNotFoundError);
-        return failableRequest;
+    static create(allowedLogs: Collection<string>): Endpoint {
+        const endpoint: ArgumentsConsumer = new DisallowLog(allowedLogs);
+        const endpointWithArguments: EndpointWithArguments = new EndpointWithArguments(endpoint, 'query', ['absolutePath']);
+        const failableEndpoint: FailableEndpoint = new FailableEndpoint(endpointWithArguments, 'disallow a log file to be watched');
+        failableEndpoint.respondWithCodeOnErrorType(400, ArgumentError);
+        failableEndpoint.respondWithCodeOnErrorType(404, EntityNotFoundError);
+        return failableEndpoint;
     }
 
     private constructor(private allowedLogs: Collection<string>) {
