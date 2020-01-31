@@ -5,7 +5,7 @@ import {Endpoint} from "./endpoint";
 /**
  * An endpoint, that requires mandatory arguments in order to process a request.
  */
-export interface ArgumentsConsumer extends Endpoint {
+export interface ArgumentsConsumer {
     /**
      * Set arguments, the endpoint will use during the processing.
      *
@@ -25,7 +25,7 @@ export class EndpointWithArguments implements Endpoint {
      * @param argumentsSourceName name of a request part, that contains the arguments: either a "query", "body" or "params"
      * @param expectedArguments list of arguments names, which are mandatory
      */
-    constructor(private actualEndpoint: ArgumentsConsumer, private argumentsSourceName: string,
+    constructor(private actualEndpoint: Endpoint & ArgumentsConsumer, private argumentsSourceName: string,
                 private expectedArguments: Array<string>) {
     }
 

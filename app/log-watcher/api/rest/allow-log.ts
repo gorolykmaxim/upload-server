@@ -11,7 +11,7 @@ import {WatchableLog} from "./watchable-log";
 /**
  * Allow specified log file to be watched using the API.
  */
-export class AllowLog implements ArgumentsConsumer {
+export class AllowLog implements ArgumentsConsumer, Endpoint {
     private args: Arguments;
 
     /**
@@ -21,7 +21,7 @@ export class AllowLog implements ArgumentsConsumer {
      * @param fileSystem file system, on which the log file is supposed to exist
      */
     static create(allowedLogs: Collection<string>, fileSystem: FileSystem): Endpoint {
-        const endpoint: ArgumentsConsumer = new AllowLog(allowedLogs, fileSystem);
+        const endpoint: AllowLog = new AllowLog(allowedLogs, fileSystem);
         const endpointWithArguments: EndpointWithArguments = new EndpointWithArguments(endpoint, 'body', ['absolutePath']);
         const failableEndpoint: FailableEndpoint = new FailableEndpoint(endpointWithArguments, 'allow a log file to be watched');
         failableEndpoint.respondWithCodeOnErrorType(400, ArgumentError);

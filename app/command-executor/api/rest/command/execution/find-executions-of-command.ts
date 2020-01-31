@@ -11,7 +11,7 @@ import {CommandExecutionModel} from "./command-execution-model";
 /**
  * Find all executions of the specified command.
  */
-export class FindExecutionsOfCommand implements ArgumentsConsumer {
+export class FindExecutionsOfCommand implements ArgumentsConsumer, Endpoint {
     private args: Arguments;
 
     /**
@@ -21,7 +21,7 @@ export class FindExecutionsOfCommand implements ArgumentsConsumer {
      * @param completeExecutions collection, where all complete executions are stored
      */
     static create(activeExecutions: Collection<CommandExecution>, completeExecutions: Collection<CommandExecution>): Endpoint {
-        const endpoint: ArgumentsConsumer = new FindExecutionsOfCommand(activeExecutions, completeExecutions);
+        const endpoint: FindExecutionsOfCommand = new FindExecutionsOfCommand(activeExecutions, completeExecutions);
         const endpointWithArguments: Endpoint = new EndpointWithArguments(endpoint, 'params', ['commandId']);
         const failableEndpoint: FailableEndpoint = new FailableEndpoint(endpointWithArguments, 'find executions of a command');
         failableEndpoint.respondWithCodeOnErrorType(400, ArgumentError);

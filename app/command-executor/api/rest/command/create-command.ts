@@ -12,7 +12,7 @@ import {ExecutableCommand} from "./executable-command";
 /**
  * Create a new command.
  */
-export class CreateCommand implements ArgumentsConsumer {
+export class CreateCommand implements ArgumentsConsumer, Endpoint {
     private args: Arguments;
 
     /**
@@ -22,7 +22,7 @@ export class CreateCommand implements ArgumentsConsumer {
      * @param commands collection, where new commands will be stored
      */
     static create(factory: CommandFactory, commands: Collection<Command>): Endpoint {
-        const endpoint: ArgumentsConsumer = new CreateCommand(factory, commands);
+        const endpoint: CreateCommand = new CreateCommand(factory, commands);
         const endpointWithArguments = new EndpointWithArguments(endpoint, 'body', ['name', 'script']);
         const failableEndpoint: FailableEndpoint = new FailableEndpoint(endpointWithArguments, 'create a command');
         failableEndpoint.respondWithCodeOnErrorType(400, ArgumentError);

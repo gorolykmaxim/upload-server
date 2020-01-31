@@ -22,3 +22,8 @@ export interface WebSocketAPI {
      */
     onConnectionOpen(connection: WebSocket, request: Request): Promise<void>;
 }
+
+export class APIWithArguments implements WebSocketAPI {
+    async onConnectionOpen(connection: WebSocket, request: Request): Promise<void> {
+    }
+}

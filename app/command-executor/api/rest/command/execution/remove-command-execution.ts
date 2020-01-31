@@ -10,7 +10,7 @@ import {ArgumentError} from "common-errors";
 /**
  * Remove specified command execution. If execution is currently active - it will be halt abruptly and then removed.
  */
-export class RemoveCommandExecution implements ArgumentsConsumer {
+export class RemoveCommandExecution implements ArgumentsConsumer, Endpoint {
     private args: Arguments;
 
     /**
@@ -21,7 +21,7 @@ export class RemoveCommandExecution implements ArgumentsConsumer {
      */
     static create(activeExecutions: Collection<CommandExecution>,
                   completeExecutions: Collection<CommandExecution>): Endpoint {
-        const endpoint: ArgumentsConsumer = new RemoveCommandExecution(activeExecutions, completeExecutions);
+        const endpoint: RemoveCommandExecution = new RemoveCommandExecution(activeExecutions, completeExecutions);
         const endpointWithArguments: Endpoint = new EndpointWithArguments(endpoint, 'params', ['commandId', 'startTime']);
         const failableEndpoint: FailableEndpoint = new FailableEndpoint(endpointWithArguments, 'remove execution of a command');
         failableEndpoint.respondWithCodeOnErrorType(400, ArgumentError);

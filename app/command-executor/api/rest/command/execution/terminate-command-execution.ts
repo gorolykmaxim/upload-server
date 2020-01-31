@@ -10,7 +10,7 @@ import {ArgumentError} from "common-errors";
 /**
  * Terminate or halt the specified command execution.
  */
-export class TerminateCommandExecution implements ArgumentsConsumer {
+export class TerminateCommandExecution implements ArgumentsConsumer, Endpoint {
     private args: Arguments;
 
     /**
@@ -32,7 +32,7 @@ export class TerminateCommandExecution implements ArgumentsConsumer {
     }
 
     private static create(activeExecutions: Collection<CommandExecution>, isHalt: boolean): Endpoint {
-        const endpoint: ArgumentsConsumer = new TerminateCommandExecution(activeExecutions, isHalt);
+        const endpoint: TerminateCommandExecution = new TerminateCommandExecution(activeExecutions, isHalt);
         const endpointWithArguments: Endpoint = new EndpointWithArguments(endpoint, 'params', ['commandId', 'startTime']);
         const failableEndpoint: FailableEndpoint = new FailableEndpoint(endpointWithArguments, `${isHalt ? 'halt' : 'terminate'} execution of a command`);
         failableEndpoint.respondWithCodeOnErrorType(400, ArgumentError);

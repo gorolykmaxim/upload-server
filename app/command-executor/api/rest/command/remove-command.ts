@@ -10,7 +10,7 @@ import {ArgumentError} from "common-errors";
 /**
  * Removes a command by the specified ID.
  */
-export class RemoveCommand implements ArgumentsConsumer {
+export class RemoveCommand implements ArgumentsConsumer, Endpoint {
     private args: Arguments;
 
     /**
@@ -19,7 +19,7 @@ export class RemoveCommand implements ArgumentsConsumer {
      * @param commands collection of commands, from which the command will be removed
      */
     static create(commands: Collection<Command>): Endpoint {
-        const endpoint: ArgumentsConsumer = new RemoveCommand(commands);
+        const endpoint: RemoveCommand = new RemoveCommand(commands);
         const endpointWithArguments: Endpoint = new EndpointWithArguments(endpoint, 'params', ['commandId']);
         const failableEndpoint: FailableEndpoint = new FailableEndpoint(endpointWithArguments, 'remove a command');
         failableEndpoint.respondWithCodeOnErrorType(400, ArgumentError);

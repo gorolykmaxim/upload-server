@@ -11,7 +11,7 @@ import {LogFileAccessError} from "../../log/restricted-log-file-pool";
 /**
  * Get all the content of the specified log file.
  */
-export class GetLogContent implements ArgumentsConsumer, DisposableEndpoint {
+export class GetLogContent implements ArgumentsConsumer, DisposableEndpoint, Endpoint {
     private args: Arguments;
     private logFile: LogFile;
 

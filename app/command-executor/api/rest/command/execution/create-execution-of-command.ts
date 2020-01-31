@@ -14,7 +14,7 @@ import {Endpoint} from "../../../../../common/api/endpoint";
 /**
  * Start a new execution of the specified command.
  */
-export class CreateExecutionOfCommand implements ArgumentsConsumer {
+export class CreateExecutionOfCommand implements ArgumentsConsumer, Endpoint {
     private args: Arguments;
 
     /**
@@ -27,7 +27,7 @@ export class CreateExecutionOfCommand implements ArgumentsConsumer {
      */
     static create(commands: Collection<Command>, activeExecutions: Collection<CommandExecution>,
                   completeExecutions: Collection<CommandExecution>, executionEvents: Events): Endpoint {
-        const endpoint: ArgumentsConsumer = new CreateExecutionOfCommand(commands, activeExecutions, completeExecutions,
+        const endpoint: CreateExecutionOfCommand = new CreateExecutionOfCommand(commands, activeExecutions, completeExecutions,
             executionEvents);
         const endpointWithArguments = new EndpointWithArguments(endpoint, 'params', ['commandId']);
         const failableEndpoint = new FailableEndpoint(endpointWithArguments, 'start a new execution of a command');

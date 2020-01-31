@@ -7,14 +7,14 @@ import {expect} from "chai";
 import {ArgumentError} from "common-errors";
 
 describe('EndpointWithArguments', function () {
-    let actualEndpoint: ArgumentsConsumer;
+    let actualEndpoint: ArgumentsConsumer & Endpoint;
     let endpoint: Endpoint;
     let reqMock: Request;
     let resMock: Response;
     let req: Request;
     let res: Response;
     beforeEach(function () {
-        actualEndpoint = mock<ArgumentsConsumer>();
+        actualEndpoint = mock<ArgumentsConsumer & Endpoint>();
         reqMock = mock<Request>();
         resMock = mock<Response>();
         req = instance(reqMock);

@@ -11,7 +11,7 @@ import {LogFileAccessError} from "../../log/restricted-log-file-pool";
 /**
  * Get the size of the specified log file in bytes.
  */
-export class GetLogSize implements ArgumentsConsumer, DisposableEndpoint{
+export class GetLogSize implements ArgumentsConsumer, DisposableEndpoint, Endpoint {
     private args: Arguments;
     private logFile: LogFile;
 

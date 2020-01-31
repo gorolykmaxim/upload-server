@@ -9,7 +9,7 @@ import {ArgumentError} from "common-errors";
 /**
  * Disallow the specified log file to be watched using the API.
  */
-export class DisallowLog implements ArgumentsConsumer {
+export class DisallowLog implements ArgumentsConsumer, Endpoint {
     private args: Arguments;
 
     /**
@@ -18,7 +18,7 @@ export class DisallowLog implements ArgumentsConsumer {
      * @param allowedLogs collection, that contains absolute paths to log files, that are allowed to be watched
      */
     static create(allowedLogs: Collection<string>): Endpoint {
-        const endpoint: ArgumentsConsumer = new DisallowLog(allowedLogs);
+        const endpoint: DisallowLog = new DisallowLog(allowedLogs);
         const endpointWithArguments: EndpointWithArguments = new EndpointWithArguments(endpoint, 'query', ['absolutePath']);
         const failableEndpoint: FailableEndpoint = new FailableEndpoint(endpointWithArguments, 'disallow a log file to be watched');
         failableEndpoint.respondWithCodeOnErrorType(400, ArgumentError);
