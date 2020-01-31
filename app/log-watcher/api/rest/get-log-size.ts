@@ -59,4 +59,10 @@ export class GetLogSize implements ArgumentsConsumer, DisposableEndpoint{
         }
     }
 
+    /**
+     * {@inheritDoc}
+     */
+    toString() {
+        return `GetLogSize{args=${this.args}, logFile=${this.logFile}}`;
+    }
 }

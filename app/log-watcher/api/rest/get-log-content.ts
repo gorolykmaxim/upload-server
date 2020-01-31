@@ -59,4 +59,11 @@ export class GetLogContent implements ArgumentsConsumer, DisposableEndpoint {
             await this.logFilePool.disposeIfNecessary(this.logFile);
         }
     }
+
+    /**
+     * {@inheritDoc}
+     */
+    toString() {
+        return `GetLogContent{args=${this.args}, logFile=${this.logFile}}`;
+    }
 }

@@ -55,4 +55,11 @@ export class AllowLog implements ArgumentsConsumer {
     setArguments(args: Arguments): void {
         this.args = args;
     }
+
+    /**
+     * {@inheritDoc}
+     */
+    toString() {
+        return `AllowLog{args=${this.args}}`;
+    }
 }

@@ -29,4 +29,11 @@ export class FindAllowedLogs implements Endpoint {
         const watchableLogs: Array<WatchableLog> = allowedLogs.map(al => new WatchableLog(al));
         res.end(JSON.stringify(watchableLogs));
     }
+
+    /**
+     * {@inheritDoc}
+     */
+    toString() {
+        return 'FindAllowedLogs{}';
+    }
 }

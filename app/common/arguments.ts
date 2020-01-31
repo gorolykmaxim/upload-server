@@ -26,4 +26,11 @@ export class Arguments {
     get(argumentName: string): any {
         return this.args[argumentName];
     }
+
+    /**
+     * {@inheritDoc}
+     */
+    toString() {
+        return `Arguments{args=${JSON.stringify(this.args)}}`;
+    }
 }
