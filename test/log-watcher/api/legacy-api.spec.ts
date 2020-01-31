@@ -1,7 +1,10 @@
-import {FileNameMissingError, LegacyWebSocketAPI, UnknownMessageTypeError} from "../../../app/log-watcher/api/legacy-web-socket-api";
+import {
+    FileNameMissingError,
+    LegacyWebSocketAPI,
+    UnknownMessageTypeError
+} from "../../../app/log-watcher/api/legacy-web-socket-api";
 import {LogFilePool, LogFilePoolError} from "../../../app/log-watcher/log/log-file-pool";
 import {WatcherFactory} from "../../../app/log-watcher/watcher/watcher-factory";
-import {Server} from "ws";
 import {anything, instance, mock, spy, verify, when} from "ts-mockito";
 import {Content} from "../../../app/log-watcher/log/content";
 import {LogFile} from "../../../app/log-watcher/log/log-file";
@@ -51,7 +54,7 @@ describe('LegacyWebSocketAPI', function () {
         when(watcher.stopWatchingLogs()).thenResolve([logFile]);
         when(watcherFactory.create(realConnection)).thenReturn(realWatcher);
         legacyAPI = new LegacyWebSocketAPI(instance(logFilePool), instance(watcherFactory));
-        legacyAPI.onConnectionOpen(realConnection, null);
+        legacyAPI.process(realConnection, null);
     });
     it('should start watching log file changes', function (done) {
         // given

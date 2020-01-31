@@ -2,15 +2,16 @@ import {WatcherFactory} from "../watcher/watcher-factory";
 import {LogFilePool} from "../log/log-file-pool";
 import {Watcher} from "../watcher/watcher";
 import {LogFile} from "../log/log-file";
-import {webSocketToString, WebSocketAPI} from "../../common/web-socket";
-import WebSocket = require("ws");
+import {webSocketToString} from "../../common/web-socket";
 import {Request} from "express";
+import {WebSocketEndpoint} from "../../common/api/endpoint";
+import WebSocket = require("ws");
 
 /**
  * Log-watcher API, used in previous versions of upload-server. The API is still available for backward-compatibility
  * purposes, since the chances are there are a bunch of folks still using it in their automated scripts.
  */
-export class LegacyWebSocketAPI implements WebSocketAPI {
+export class LegacyWebSocketAPI implements WebSocketEndpoint {
     /**
      * Construct an API.
      *
@@ -23,7 +24,7 @@ export class LegacyWebSocketAPI implements WebSocketAPI {
     /**
      * {@inheritDoc}
      */
-    async onConnectionOpen(connection: WebSocket, request: Request): Promise<void> {
+    async process(connection: WebSocket, request: Request): Promise<void> {
         console.info("%s got a new connection %s", this, webSocketToString(connection));
         const watcher = this.watcherFactory.create(connection);
         connection.on('message', message => this.onMessage(message.toString(), watcher));

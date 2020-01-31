@@ -3,15 +3,16 @@ import {WatcherFactory} from "../watcher/watcher-factory";
 import {Watcher} from "../watcher/watcher";
 import {LogFile} from "../log/log-file";
 import {ArgumentError} from "common-errors";
-import {webSocketToString, WebSocketAPI} from "../../common/web-socket";
+import {webSocketToString} from "../../common/web-socket";
 import {Request} from "express";
-import WebSocket = require("ws");
 import {LogFileAccessError} from "../log/restricted-log-file-pool";
+import {WebSocketEndpoint} from "../../common/api/endpoint";
+import WebSocket = require("ws");
 
 /**
  * Current web-socket API of upload-server, used to obtain information about changes in log files in a real time.
  */
-export class DefaultWebSocketAPI implements WebSocketAPI {
+export class DefaultWebSocketAPI implements WebSocketEndpoint {
     /**
      * Construct an API.
      *
@@ -24,7 +25,7 @@ export class DefaultWebSocketAPI implements WebSocketAPI {
     /**
      * {@inheritDoc}
      */
-    async onConnectionOpen(connection: WebSocket, request: Request): Promise<void> {
+    async process(connection: WebSocket, request: Request): Promise<void> {
         let watcher: Watcher;
         let logFile: LogFile;
         try {

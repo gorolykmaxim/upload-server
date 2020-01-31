@@ -48,14 +48,14 @@ describe('DefaultWebSocketAPI', function () {
         // given
         when(requestMock.query).thenReturn({});
         // when
-        await api.onConnectionOpen(connection, request);
+        await api.process(connection, request);
         // then
         const [error] = capture(watcherSpy.notifyAboutError).last();
         expect(error.message).to.equal(new ArgumentError('absolutePath').message);
     });
     it('should notify incoming connection about the changes in the specified log file', async function () {
         // when
-        await api.onConnectionOpen(connection, request);
+        await api.process(connection, request);
         // then
         verify(watcherSpy.watchLog(logFile)).once();
     });
@@ -63,7 +63,7 @@ describe('DefaultWebSocketAPI', function () {
         // given
         request.query.fromStart = true;
         // when
-        await api.onConnectionOpen(connection, request);
+        await api.process(connection, request);
         // then
         verify(watcherSpy.watchFromTheBeginning(logFile)).once();
     });
@@ -72,7 +72,7 @@ describe('DefaultWebSocketAPI', function () {
         const expectedError = new LogFileAccessError(absoluteLogFilePath);
         when(pool.getLog(absoluteLogFilePath)).thenReject(expectedError);
         // when
-        await api.onConnectionOpen(connection, request);
+        await api.process(connection, request);
         // then
         verify(connectionSpy.close(1008, expectedError.message)).once();
         verify(watcherSpy.notifyAboutError(expectedError)).never();
@@ -82,7 +82,7 @@ describe('DefaultWebSocketAPI', function () {
         const expectedError = new Error();
         when(pool.getLog(absoluteLogFilePath)).thenReject(expectedError);
         // when
-        await api.onConnectionOpen(connection, request);
+        await api.process(connection, request);
         // then
         verify(watcherSpy.notifyAboutError(expectedError)).once();
     });
@@ -90,7 +90,7 @@ describe('DefaultWebSocketAPI', function () {
         // given
         const freedLogFiles: Array<LogFile> = [logFile];
         when(watcherSpy.stopWatchingLogs()).thenResolve(freedLogFiles);
-        await api.onConnectionOpen(connection, request);
+        await api.process(connection, request);
         const closeConnection: Function = capture(connectionSpy.on).last()[1];
         // when
         await closeConnection();

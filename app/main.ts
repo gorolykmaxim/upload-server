@@ -15,7 +15,6 @@ import {DefaultMessageFactory} from "./log-watcher/watcher/default-message-facto
 import {DefaultWebSocketAPI} from "./log-watcher/api/default-web-socket-api";
 import {URL} from "./common/url";
 import * as expressWs from "express-ws";
-import {WebSocketAPI} from "./common/web-socket";
 import {CreateUUID} from "./common/uuid";
 import {Database, open} from "sqlite";
 import {AllowedLogsCollection} from "./log-watcher/log/allowed-logs-collection";
@@ -51,16 +50,14 @@ async function main(): Promise<void> {
 
     const legacyMessageFactory: MessageFactory = new LegacyMessageFactory();
     const legacyWatcherFactory: WatcherFactory = new WatcherFactory(createUUID, legacyMessageFactory);
-    const legacyAPI: WebSocketAPI = new LegacyWebSocketAPI(logFilePool, legacyWatcherFactory);
-    application.ws('/', legacyAPI.onConnectionOpen.bind(legacyAPI));
+    applicationServer.webSocket(URL.createNew(''), new LegacyWebSocketAPI(logFilePool, legacyWatcherFactory));
 
     const baseAPIURL: URL = URL.createNew('api');
     const baseLogWatcherAPIURL: URL = baseAPIURL.append('log-watcher');
 
     const messageFactory: MessageFactory = new DefaultMessageFactory();
     const watcherFactory: WatcherFactory = new WatcherFactory(createUUID, messageFactory);
-    const defaultWebSocketAPI: WebSocketAPI = new DefaultWebSocketAPI(logFilePool, watcherFactory);
-    application.ws(baseLogWatcherAPIURL.append('log').value, defaultWebSocketAPI.onConnectionOpen.bind(defaultWebSocketAPI));
+    applicationServer.webSocket(baseLogWatcherAPIURL.append('log'), new DefaultWebSocketAPI(logFilePool, watcherFactory));
 
     const logURL: URL = baseLogWatcherAPIURL.append('log');
     const logSizeURL: URL = logURL.append('size');

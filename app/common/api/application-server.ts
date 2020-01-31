@@ -1,5 +1,5 @@
 import {URL} from "../url";
-import {Endpoint} from "./endpoint";
+import {Endpoint, WebSocketEndpoint} from "./endpoint";
 import {Application} from "express";
 
 /**
@@ -12,7 +12,7 @@ export class ApplicationServer {
      *
      * @param application application to decorate
      */
-    constructor(private application: Application) {
+    constructor(private application: any) {
     }
 
     /**
@@ -53,5 +53,15 @@ export class ApplicationServer {
      */
     delete(url: URL, endpoint: Endpoint): void {
         this.application.delete(url.value, endpoint.process.bind(endpoint));
+    }
+
+    /**
+     * Register specified endpoint to process web-socket connections, coming to the specified URL.
+     *
+     * @param url URL to listen to connections on
+     * @param endpoint endpoint to register
+     */
+    webSocket(url: URL, endpoint: WebSocketEndpoint): void {
+        this.application.ws(url.value, endpoint.process.bind(endpoint));
     }
 }
