@@ -24,12 +24,6 @@ describe('StatusChangedEvent', function () {
         // then
         expect(event.newStatus).equal('finished');
     });
-    it('should create a matcher for status changed events with the specified command ID and execution start time', function () {
-        // when
-        const matcher: any = StatusChangedEvent.createMatcher(execution.commandId, execution.startTime);
-        // then
-        expect(matcher).eql({commandId: execution.commandId, startTime: execution.startTime, type: 'status'});
-    });
 });
 
 describe('OutputChangedEvent', function () {
@@ -51,11 +45,5 @@ describe('OutputChangedEvent', function () {
     it('should create output changed event with an output change', function () {
         // then
         expect(event.changes).equal(output);
-    });
-    it('should create a matcher for output changed events with the specified command ID and execution start time', function () {
-        // when
-        const matcher: any = OutputChangedEvent.createMatcher(execution.commandId, execution.startTime);
-        // then
-        expect(matcher).eql({commandId: execution.commandId, startTime: execution.startTime, type: 'output'});
     });
 });
