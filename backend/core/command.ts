@@ -1,4 +1,4 @@
-import {Observable, Subject, throwError} from "rxjs";
+import {Observable, Subscriber, throwError} from "rxjs";
 import {Dictionary} from "typescript-collections";
 
 /**
@@ -20,8 +20,11 @@ export abstract class Command {
     }
 
     /**
-     * Schedule execution of the command with the specified name. The target command is not guaranteed to be executed
-     * immediately.
+     * Schedule execution of the command with the specified name. The target command will get executed eventually and
+     * only after it's output gets a subscriber (the command will not get executed until then).
+     * Use this method when you are either interested in the output of the executed command or want to know when
+     * the execution finishes.
+     * You HAVE to subscribe to command's output in order for the command to get executed.
      *
      * @param commandName name of the command to execute
      * @param args named arguments to be passed to the specified command
@@ -33,16 +36,29 @@ export abstract class Command {
     }
 
     /**
+     * Schedule execution of the command with the specified name. The target command will get executed eventually.
+     * Use this method when you are not interested in the result of the executed command.
+     *
+     * @param commandName name of the command to execute
+     * @param args named arguments to be passed to the specified command
+     * @param input observable of data, that can be piped to the target command. If the target command supports it - it
+     * can listen to the input and react to it.
+     */
+    scheduleAndForget(commandName: string, args?: any, input?: Observable<any>): void {
+        this.schedule(commandName, args, input).subscribe();
+    }
+
+    /**
      * Execute this command. Never call this method directly. Execute a command either using the schedule() or directly
      * calling the command executor's executeCommand().
      *
-     * @param output subject, to which the output of this command should be published. Closing it manually is not
+     * @param output subscriber, to which the output of this command should be published. Closing it manually is not
      * mandatory, though when the execution finishes - the output gets automatically closed, so the execution should
      * not finish until there is nothing else to push to the output.
      * @param args optional named arguments
      * @param input optional observable of data, this command can listen to
      */
-    async abstract execute(output: Subject<any>, args?: any, input?: Observable<any>): Promise<void>;
+    async abstract execute(output: Subscriber<any>, args?: any, input?: Observable<any>): Promise<void>;
 }
 
 /**
@@ -74,18 +90,14 @@ export class CommandExecutor {
         if (!command) {
             return throwError(`Can't find command with name '${commandName}'`);
         } else {
-            const output: Subject<any> = new Subject<any>();
-            this.executeCommand(command, output, args, input);
-            return output;
+            return new Observable<any>(subscriber => {this.executeCommand(command, subscriber, args, input)});
         }
     }
 
-    private async executeCommand(command: Command, output: Subject<any>, args?: any, input?: Observable<any>): Promise<void> {
+    private async executeCommand(command: Command, output: Subscriber<any>, args?: any, input?: Observable<any>): Promise<void> {
         try {
             await command.execute(output, args, input);
-            if (!output.isStopped) {
-                output.complete();
-            }
+            output.complete();
         } catch (e) {
             output.error(e);
         }

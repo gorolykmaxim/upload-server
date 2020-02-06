@@ -1,5 +1,5 @@
 import {Command, CommandExecutor} from "../../backend/core/command";
-import {Observable, Subject} from "rxjs";
+import {Observable, Subscriber} from "rxjs";
 import * as chai from "chai";
 import {expect} from "chai";
 import chaiAsPromised = require("chai-as-promised");
@@ -13,7 +13,7 @@ class DummyCommand extends Command {
         super();
     }
 
-    async execute(output: Subject<any>, args?: any, input?: Observable<any>): Promise<void> {
+    async execute(output: Subscriber<any>, args?: any, input?: Observable<any>): Promise<void> {
         this.isExecuted = true;
         if (this.throwError) {
             output.error('error');
@@ -39,7 +39,13 @@ describe('CommandExecutor', function () {
     });
     it('should schedule execution of the specified command', function () {
         // when
-        command.schedule(childCommandName);
+        command.schedule(childCommandName).subscribe();
+        // then
+        expect(childCommand.isExecuted).true;
+    });
+    it('should schedule execution of the specified command without subscribing to its output', function () {
+        // when
+        command.scheduleAndForget(childCommandName);
         // then
         expect(childCommand.isExecuted).true;
     });
