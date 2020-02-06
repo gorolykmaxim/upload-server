@@ -37,7 +37,8 @@ export abstract class Command {
      * calling the command executor's executeCommand().
      *
      * @param output subject, to which the output of this command should be published. Closing it manually is not
-     * mandatory
+     * mandatory, though when the execution finishes - the output gets automatically closed, so the execution should
+     * not finish until there is nothing else to push to the output.
      * @param args optional named arguments
      * @param input optional observable of data, this command can listen to
      */
