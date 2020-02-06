@@ -1,4 +1,4 @@
-import {Command, CommandExecutor} from "../../app/core/command";
+import {Command, CommandExecutor} from "../../backend/core/command";
 import {Observable, Subject} from "rxjs";
 import * as chai from "chai";
 import {expect} from "chai";
