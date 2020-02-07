@@ -1,8 +1,7 @@
 import {ReadConfigArgs} from "./read-config";
-import {Command} from "../command";
 import {Observable, Subscriber} from "rxjs";
-import {JsonDB} from "node-json-db";
 import {ArgumentError} from "common-errors";
+import {ConfigCommand} from "./base";
 
 /**
  * Name, to which {@link ModifyConfig} command is assigned to.
@@ -23,16 +22,7 @@ export interface ModifyConfigArgs extends ReadConfigArgs {
 /**
  * Save specified data structure in the config by the specified path.
  */
-export class ModifyConfig extends Command {
-    /**
-     * Construct a command.
-     *
-     * @param config config, that houses the data
-     */
-    constructor(private config: JsonDB) {
-        super();
-    }
-
+export class ModifyConfig extends ConfigCommand {
     /**
      * {@inheritDoc}
      */

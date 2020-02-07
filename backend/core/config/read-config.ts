@@ -1,7 +1,6 @@
-import {Command} from "../command";
 import {Observable, Subscriber} from "rxjs";
-import {JsonDB} from "node-json-db";
 import {ArgumentError} from "common-errors";
+import {ConfigCommand} from "./base";
 
 /**
  * Name, to which {@link ReadConfig} command is assigned to.
@@ -24,16 +23,7 @@ export interface ReadConfigArgs {
 /**
  * Read data from the config.
  */
-export class ReadConfig extends Command {
-    /**
-     * Construct a command.
-     *
-     * @param config config, that houses the data
-     */
-    constructor(private config: JsonDB) {
-        super();
-    }
-
+export class ReadConfig extends ConfigCommand {
     /**
      * {@inheritDoc}
      */
