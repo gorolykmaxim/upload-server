@@ -2,7 +2,7 @@ import {Observable, Subscriber} from "rxjs";
 import {ConfigCommand} from "./base";
 import {ArgumentsConsumer} from "../command/command-with-arguments";
 
-export const NAME: string = 'modify config';
+export const MODIFY_CONFIG: string = 'modify config';
 
 /**
  * Save specified data structure in the config by the specified path.

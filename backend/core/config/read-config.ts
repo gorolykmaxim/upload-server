@@ -2,7 +2,7 @@ import {Observable, Subscriber} from "rxjs";
 import {ConfigCommand} from "./base";
 import {ArgumentsConsumer} from "../command/command-with-arguments";
 
-export const NAME: string = 'read config';
+export const READ_CONFIG: string = 'read config';
 
 /**
  * Read data from the config.
