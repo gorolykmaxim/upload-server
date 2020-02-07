@@ -2,10 +2,7 @@ import {JsonDB} from "node-json-db";
 import {Command} from "../../../backend/core/command";
 import {deepEqual, instance, mock, verify} from "ts-mockito";
 import {ModifyConfig} from "../../../backend/core/config/modify-config";
-import {Observable} from "rxjs";
 import {executeAndReturnOutput} from "../../common";
-import { expect } from "chai";
-import {ArgumentError} from "common-errors";
 
 describe('ModifyConfig', function () {
     const path: string = '/a/b/c';
@@ -21,13 +18,5 @@ describe('ModifyConfig', function () {
         executeAndReturnOutput(command, {path: path, dataToSave: expectedData}).subscribe();
         // then
         verify(config.push(path, deepEqual(expectedData))).once();
-    });
-    it('should throw an error because either path or dataToSave is missing', async function () {
-        for (let args of [undefined, {}, {path: path}, {dataToSave: expectedData}]) {
-            // when
-            const output: Observable<any> = executeAndReturnOutput(command, args);
-            // then
-            await expect(output.toPromise()).rejectedWith(ArgumentError);
-        }
     });
 });

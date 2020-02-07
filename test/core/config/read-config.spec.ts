@@ -3,9 +3,8 @@ import {Command} from "../../../backend/core/command";
 import {instance, mock, when} from "ts-mockito";
 import {ReadConfig} from "../../../backend/core/config/read-config";
 import {Observable} from "rxjs";
-import { expect } from "chai";
+import {expect} from "chai";
 import {executeAndReturnOutput} from "../../common";
-import {ArgumentError} from "common-errors";
 
 describe('ReadConfig', function () {
     const path: string = '/a/b/c';
@@ -22,13 +21,5 @@ describe('ReadConfig', function () {
         const output: Observable<any> = executeAndReturnOutput(command, {path: path});
         // then
         expect(await output.toPromise()).eql(expectedData);
-    });
-    it('should throw an error if the path to data structure is not specified', async function () {
-        for (let args of [undefined, {}]) {
-            // when
-            const output: Observable<any> = executeAndReturnOutput(command, args);
-            // then
-            await expect(output.toPromise()).rejectedWith(ArgumentError);
-        }
     });
 });
