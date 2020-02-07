@@ -20,7 +20,7 @@ class DummyCommand extends Command {
     async execute(output: Subscriber<any>, args?: any, input?: Observable<any>): Promise<void> {
         this.executionCount++;
         if (this.throwError) {
-            output.error('error');
+            output.error(new Error('error'));
         } else if (this.complete) {
             output.complete();
         } else {
@@ -67,7 +67,7 @@ describe('CommandExecutor', function () {
         // when
         const output: Observable<any> = executor.execute(childCommandName);
         // then
-        await expect(output.toPromise()).rejectedWith('error');
+        await expect(output.toPromise()).rejectedWith(Error);
     });
     it('should complete the output of the command if the command does not do it by itself', function (done) {
         // given
