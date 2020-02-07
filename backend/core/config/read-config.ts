@@ -15,5 +15,6 @@ export class ReadConfig extends ConfigCommand implements ArgumentsConsumer {
      */
     async execute(output: Subscriber<any>, args?: any, input?: Observable<any>): Promise<void> {
         output.next(this.config.getData(args.path));
+        output.complete();
     }
 }

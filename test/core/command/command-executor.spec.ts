@@ -70,12 +70,4 @@ describe('CommandExecutor', function () {
         // then
         await expect(output.toPromise()).rejectedWith(Error);
     });
-    it('should complete the output of the command if the command does not do it by itself', function (done) {
-        // given
-        executor.register(childCommandName, new DummyCommand(false, false));
-        // when
-        const output: Observable<any> = executor.execute(childCommandName);
-        // then
-        output.subscribe({complete: done});
-    });
 });

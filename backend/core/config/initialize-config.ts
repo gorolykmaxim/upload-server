@@ -28,5 +28,6 @@ export class InitializeConfig extends ConfigCommand {
     async execute(output: Subscriber<any>, args?: any, input?: Observable<any>): Promise<void> {
         this.commandExecutor.register(READ_CONFIG, new CommandWithArguments(new ReadConfig(this.config)));
         this.commandExecutor.register(MODIFY_CONFIG, new CommandWithArguments(new ModifyConfig(this.config)));
+        output.complete();
     }
 }

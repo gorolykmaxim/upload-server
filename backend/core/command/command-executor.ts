@@ -38,7 +38,6 @@ export class CommandExecutor {
     private async executeCommand(command: Command, output: Subscriber<any>, args?: any, input?: Observable<any>): Promise<void> {
         try {
             await command.execute(output, args, input);
-            output.complete();
         } catch (e) {
             output.error(e);
         }

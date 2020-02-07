@@ -14,5 +14,6 @@ export class ModifyConfig extends ConfigCommand implements ArgumentsConsumer {
      */
     async execute(output: Subscriber<any>, args?: any, input?: Observable<any>): Promise<void> {
         this.config.push(args.path, args.dataToSave);
+        output.complete();
     }
 }

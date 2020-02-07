@@ -5,6 +5,7 @@ import {JsonDB} from "node-json-db";
 import {InitializeConfig} from "../../../backend/core/config/initialize-config";
 import {READ_CONFIG} from "../../../backend/core/config/read-config";
 import {MODIFY_CONFIG} from "../../../backend/core/config/modify-config";
+import {executeAndReturnOutput} from "../../common";
 
 describe('InitializeConfig', function () {
     let command: Command;
@@ -17,7 +18,7 @@ describe('InitializeConfig', function () {
     });
     it('should register all config-related commands', async function () {
         // when
-        await command.execute(null);
+        await executeAndReturnOutput(command).toPromise();
         // then
         verify(executor.register(READ_CONFIG, anything()));
         verify(executor.register(MODIFY_CONFIG, anything()));
