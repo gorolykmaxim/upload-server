@@ -7,14 +7,18 @@ import chaiAsPromised = require("chai-as-promised");
 chai.use(chaiAsPromised);
 
 class DummyCommand extends Command {
-    isExecuted: boolean = false;
+    executionCount: number = 0;
 
     constructor(private throwError: boolean = false, private complete: boolean = true) {
         super();
     }
 
+    get isExecuted(): boolean {
+        return this.executionCount > 0;
+    }
+
     async execute(output: Subscriber<any>, args?: any, input?: Observable<any>): Promise<void> {
-        this.isExecuted = true;
+        this.executionCount++;
         if (this.throwError) {
             output.error('error');
         } else if (this.complete) {
@@ -48,6 +52,14 @@ describe('CommandExecutor', function () {
         command.scheduleAndForget(childCommandName);
         // then
         expect(childCommand.isExecuted).true;
+    });
+    it('should execute command only once even if there are multiple subscribers', function () {
+        // when
+        const output: Observable<any> = command.schedule(childCommandName);
+        output.subscribe();
+        output.subscribe();
+        // then
+        expect(childCommand.executionCount).equal(1);
     });
     it('should catch error, happened in the child command and forward it to its output', async function () {
         // given

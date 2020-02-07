@@ -1,5 +1,6 @@
 import {Observable, Subscriber, throwError} from "rxjs";
 import {Dictionary} from "typescript-collections";
+import {publish, refCount} from "rxjs/operators";
 
 /**
  * The base building block of the upload-server application.
@@ -32,7 +33,7 @@ export abstract class Command {
      * can listen to the input and react to it.
      */
     schedule(commandName: string, args?: any, input?: Observable<any>): Observable<any> {
-        return this.executor.execute(commandName, args, input);
+        return this.executor.execute(commandName, args, input).pipe(publish(), refCount());
     }
 
     /**
