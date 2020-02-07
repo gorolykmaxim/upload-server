@@ -1,10 +1,10 @@
 import {JsonDB} from "node-json-db";
-import {Command} from "../../../backend/core/command";
 import {instance, mock, when} from "ts-mockito";
 import {ReadConfig} from "../../../backend/core/config/read-config";
 import {Observable} from "rxjs";
 import {expect} from "chai";
 import {executeAndReturnOutput} from "../../common";
+import {Command} from "../../../backend/core/command/command";
 
 describe('ReadConfig', function () {
     const path: string = '/a/b/c';

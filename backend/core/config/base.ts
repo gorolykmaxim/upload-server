@@ -1,5 +1,5 @@
-import {Command} from "../command";
 import {JsonDB} from "node-json-db";
+import {Command} from "../command/command";
 
 /**
  * Base class for all the commands, that work with the config.

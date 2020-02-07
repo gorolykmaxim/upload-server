@@ -1,8 +1,8 @@
 import {JsonDB} from "node-json-db";
-import {Command} from "../../../backend/core/command";
 import {deepEqual, instance, mock, verify} from "ts-mockito";
 import {ModifyConfig} from "../../../backend/core/config/modify-config";
 import {executeAndReturnOutput} from "../../common";
+import {Command} from "../../../backend/core/command/command";
 
 describe('ModifyConfig', function () {
     const path: string = '/a/b/c';
