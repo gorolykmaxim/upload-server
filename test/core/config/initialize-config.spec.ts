@@ -20,7 +20,7 @@ describe('InitializeConfig', function () {
         // when
         await executeAndReturnOutput(command).toPromise();
         // then
-        verify(executor.register(READ_CONFIG, anything()));
-        verify(executor.register(MODIFY_CONFIG, anything()));
+        verify(executor.register(READ_CONFIG, anything())).once();
+        verify(executor.register(MODIFY_CONFIG, anything())).once();
     });
 });
