@@ -29,7 +29,7 @@ export class CommandExecutor {
     execute(commandName: string, args?: any, input?: Observable<any>): Observable<any> {
         const command: Command = this.nameToCommand.getValue(commandName);
         if (!command) {
-            return throwError(`Can't find command with name '${commandName}'`);
+            return throwError(new Error(`Can't find command with name '${commandName}'`));
         } else {
             return new Observable<any>(subscriber => {this.executeCommand(command, subscriber, args, input)});
         }
