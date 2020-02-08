@@ -20,7 +20,7 @@ export class InitializeFileSystem extends FileSystemCommand {
     /**
      * Construct a command.
      *
-     * @param commandExecutor command executor to register config-related commands in
+     * @param commandExecutor command executor to register file-system-related commands in
      * @param fileSystem file system to interact with
      */
     constructor(private commandExecutor: CommandExecutor, fileSystem: FileSystem) {
