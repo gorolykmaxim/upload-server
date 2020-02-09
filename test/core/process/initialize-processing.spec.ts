@@ -7,6 +7,7 @@ import {CREATE_PROCESS} from "../../../backend/core/process/create-process";
 import {SEND_SIGNAL_TO_PROCESS} from "../../../backend/core/process/send-signal-to-process";
 import {WATCH_PROCESS_OUTPUT} from "../../../backend/core/process/watch-process-output";
 import {EOL} from "os";
+import {WATCH_PROCESS_STATUS} from "../../../backend/core/process/watch-process-status";
 
 describe('InitializeProcessing', function () {
     let executor: CommandExecutor;
@@ -22,5 +23,6 @@ describe('InitializeProcessing', function () {
         verify(executor.register(CREATE_PROCESS, anything())).once();
         verify(executor.register(SEND_SIGNAL_TO_PROCESS, anything())).once();
         verify(executor.register(WATCH_PROCESS_OUTPUT, anything())).once();
+        verify(executor.register(WATCH_PROCESS_STATUS, anything())).once();
     });
 });

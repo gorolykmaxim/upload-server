@@ -7,6 +7,7 @@ import {CommandWithArguments} from "../command/command-with-arguments";
 import {SEND_SIGNAL_TO_PROCESS, SendSignalToProcess} from "./send-signal-to-process";
 import {WATCH_PROCESS_OUTPUT, WatchProcessOutput} from "./watch-process-output";
 import {Process} from "./base";
+import {WATCH_PROCESS_STATUS, WatchProcessStatus} from "./watch-process-status";
 
 export const INITIALIZE_PROCESSING: string = 'initialize processing';
 
@@ -34,6 +35,7 @@ export class InitializeProcessing extends Command {
         this.commandExecutor.register(CREATE_PROCESS, new CommandWithArguments(new CreateProcess(this.createChildProcess, pidToProcess)));
         this.commandExecutor.register(SEND_SIGNAL_TO_PROCESS, new CommandWithArguments(new SendSignalToProcess(pidToProcess)));
         this.commandExecutor.register(WATCH_PROCESS_OUTPUT, new CommandWithArguments(new WatchProcessOutput(pidToProcess, this.eol)));
+        this.commandExecutor.register(WATCH_PROCESS_STATUS, new CommandWithArguments(new WatchProcessStatus(pidToProcess)));
         output.complete();
     }
 }

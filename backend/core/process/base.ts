@@ -2,7 +2,7 @@ import {Command} from "../command/command";
 import {Dictionary} from "typescript-collections";
 import {ChildProcess} from "child_process";
 import {fromEvent, merge, Observable} from "rxjs";
-import {map, take, takeUntil} from "rxjs/operators";
+import {dematerialize, map, materialize, take, takeUntil, takeWhile} from "rxjs/operators";
 
 /**
  * Base class for all processing-related commands.
@@ -81,7 +81,11 @@ export class Process {
      * Convenience getter that returns observable of 'close' and 'error' events, emitted by the child process.
      */
     get closeOrError(): Observable<CloseEvent | Error> {
-        return merge(this.close, this.error);
+        return merge(this.close.pipe(materialize()), this.error.pipe(materialize()))
+            .pipe(
+                takeWhile(n => n.hasValue),
+                dematerialize()
+            );
     }
 }
 

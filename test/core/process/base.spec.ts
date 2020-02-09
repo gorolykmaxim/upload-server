@@ -84,4 +84,14 @@ describe('Process', function () {
         process.stderrData.subscribe(() => {}, () => {}, done);
         childProcess.emit('error', new Error());
     });
+    it('should complete closeOrError after close event', function (done) {
+        // when
+        process.closeOrError.subscribe(() => {}, () => {}, done);
+        childProcess.emit('close', 0);
+    });
+    it('should complete closeOrError after error event', function (done) {
+        // when
+        process.closeOrError.subscribe(() => {}, () => {}, done);
+        childProcess.emit('error', new Error());
+    });
 });
