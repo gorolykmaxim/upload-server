@@ -16,7 +16,7 @@ describe('SendSignalToProcess', function () {
     beforeEach(function () {
         pidToProcess = new Dictionary<number, Process>();
         childProcess = mock<ChildProcess>();
-        pidToProcess.setValue(pid, {childProcess: instance(childProcess)});
+        pidToProcess.setValue(pid, new Process(instance(childProcess)));
         command = new SendSignalToProcess(pidToProcess);
     });
     it('should send the specified signal to the specified process', async function () {

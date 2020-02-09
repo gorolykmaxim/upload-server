@@ -39,7 +39,8 @@ describe('CreateProcess', function () {
         // when
         await executeAndReturnOutput(command, {command: actualCommand}).toPromise();
         // then
-        expect(pidToProcess.getValue(pid)).eql({childProcess: instance(childProcess)});
+        const process: Process = pidToProcess.getValue(pid);
+        expect(process.childProcess).equal(instance(childProcess));
     });
     it('should write input to the STDIN of the created process', async function () {
         // given

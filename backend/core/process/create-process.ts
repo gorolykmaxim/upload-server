@@ -36,7 +36,7 @@ export class CreateProcess extends ProcessCommand implements ArgumentsConsumer {
         if (input) {
             input.subscribe(line => childProcess.stdin.write(line), e => childProcess.stdin.end(), () => childProcess.stdin.end());
         }
-        this.pidToProcess.setValue(childProcess.pid, {childProcess: childProcess});
+        this.pidToProcess.setValue(childProcess.pid, new Process(childProcess));
         output.next(childProcess.pid);
         output.complete();
     }
