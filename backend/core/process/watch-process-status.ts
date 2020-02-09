@@ -20,9 +20,8 @@ export class WatchProcessStatus extends ProcessCommand implements ArgumentsConsu
         const pid: number = args.pid;
         const process: Process = this.pidToProcess.getValue(pid);
         if (!process) {
-            output.error(new Error(`Failed to watch status of a process: ${new ProcessWithPIDIsNotRunning(pid)}`));
-        } else {
-            output.add(process.closeOrError.subscribe(output));
+            throw new Error(`Failed to watch status of a process: ${new ProcessWithPIDIsNotRunning(pid)}`);
         }
+        output.add(process.closeOrError.subscribe(output));
     }
 }

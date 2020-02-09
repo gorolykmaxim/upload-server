@@ -29,19 +29,18 @@ export class WatchProcessOutput extends ProcessCommand implements ArgumentsConsu
         const pid: number = args.pid;
         const process: Process = this.pidToProcess.getValue(pid);
         if (!process) {
-            output.error(new Error(`Failed to watch output of a process: ${new ProcessWithPIDIsNotRunning(pid)}`));
-        } else {
-            const stdoutBuffer: StringBuffer = new StringBuffer(this.eol);
-            const stderrBuffer: StringBuffer = new StringBuffer(this.eol);
-            output.add(() => {
-                stdoutBuffer.clear();
-                stderrBuffer.clear();
-            });
-            output.add(process.error.subscribe(e => output.error(e)));
-            output.add(process.close.subscribe(() => output.complete()));
-            output.add(process.stdoutData.subscribe(data => stdoutBuffer.readLines(data.toString()).forEach(line => output.next(line))));
-            output.add(process.stderrData.subscribe(data => stderrBuffer.readLines(data.toString()).forEach(line => output.next(line))));
+            throw new Error(`Failed to watch output of a process: ${new ProcessWithPIDIsNotRunning(pid)}`);
         }
+        const stdoutBuffer: StringBuffer = new StringBuffer(this.eol);
+        const stderrBuffer: StringBuffer = new StringBuffer(this.eol);
+        output.add(() => {
+            stdoutBuffer.clear();
+            stderrBuffer.clear();
+        });
+        output.add(process.error.subscribe(e => output.error(e)));
+        output.add(process.close.subscribe(() => output.complete()));
+        output.add(process.stdoutData.subscribe(data => stdoutBuffer.readLines(data.toString()).forEach(line => output.next(line))));
+        output.add(process.stderrData.subscribe(data => stderrBuffer.readLines(data.toString()).forEach(line => output.next(line))));
     }
 }
 

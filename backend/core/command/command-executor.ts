@@ -31,15 +31,25 @@ export class CommandExecutor {
         if (!command) {
             return throwError(new Error(`Can't find command with name '${commandName}'`));
         } else {
-            return new Observable<any>(subscriber => {this.executeCommand(command, subscriber, args, input)});
+            return new Observable<any>(subscriber => {this.executeCommand(commandName, command, subscriber, args, input)});
         }
     }
 
-    private async executeCommand(command: Command, output: Subscriber<any>, args?: any, input?: Observable<any>): Promise<void> {
+    private async executeCommand(commandName: string, command: Command, output: Subscriber<any>, args?: any, input?: Observable<any>): Promise<void> {
         try {
             await command.execute(output, args, input);
         } catch (e) {
-            output.error(e);
+            const errorMessage: Array<string> = [
+                `Failed to ${commandName}. Reason: ${e.message}.`,
+                `Implementation - ${command.constructor.name}`
+            ];
+            if (args) {
+                errorMessage.push(`Arguments: ${JSON.stringify(args)}`);
+            }
+            if (input) {
+                errorMessage.push(`Input is supplied`);
+            }
+            output.error(new Error(errorMessage.join('\n')));
         }
     }
 }

@@ -19,10 +19,9 @@ export class SendSignalToProcess extends ProcessCommand implements ArgumentsCons
         const signal: number = args.signal;
         const process: Process = this.pidToProcess.getValue(pid);
         if (!process) {
-            output.error(new Error(`Failed to send signal ${signal}: ${new ProcessWithPIDIsNotRunning(pid).message}`));
-        } else {
-            process.childProcess.kill(signal);
-            output.complete();
+            throw new Error(`Failed to send signal ${signal}: ${new ProcessWithPIDIsNotRunning(pid).message}`);
         }
+        process.childProcess.kill(signal);
+        output.complete();
     }
 }

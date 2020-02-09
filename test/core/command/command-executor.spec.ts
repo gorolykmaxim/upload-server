@@ -1,5 +1,5 @@
 import * as chai from "chai";
-import {Observable, Subscriber} from "rxjs";
+import {from, Observable, Subscriber} from "rxjs";
 import {expect} from "chai";
 import chaiAsPromised = require("chai-as-promised");
 import {Command} from "../../../backend/core/command/command";
@@ -21,7 +21,7 @@ class DummyCommand extends Command {
     async execute(output: Subscriber<any>, args?: any, input?: Observable<any>): Promise<void> {
         this.executionCount++;
         if (this.throwError) {
-            output.error(new Error('error'));
+            throw new Error('error');
         } else if (this.complete) {
             output.complete();
         } else {
@@ -64,10 +64,16 @@ describe('CommandExecutor', function () {
     });
     it('should catch error, happened in the child command and forward it to its output', async function () {
         // given
+        const args: any = {a: 'b', c: 15, d: false};
+        const input: Observable<string> = from(['one', 'two']);
         executor.register(childCommandName, new DummyCommand(true));
-        // when
-        const output: Observable<any> = executor.execute(childCommandName);
-        // then
-        await expect(output.toPromise()).rejectedWith(Error);
+        try {
+            // when
+            await executor.execute(childCommandName, args, input).toPromise();
+            expect.fail('Command should fail with an error');
+        } catch (e) {
+            // then
+            expect(e.message).equal(`Failed to ${childCommandName}. Reason: error.\nImplementation - ${childCommand.constructor.name}\nArguments: ${JSON.stringify(args)}\nInput is supplied`);
+        }
     });
 });
