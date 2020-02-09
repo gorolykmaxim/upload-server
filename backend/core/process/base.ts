@@ -77,7 +77,10 @@ export class Process {
         return fromEvent(this.childProcess.stderr, 'data').pipe(takeUntil<Buffer | string>(this.closeOrError));
     }
 
-    private get closeOrError(): Observable<CloseEvent | Error> {
+    /**
+     * Convenience getter that returns observable of 'close' and 'error' events, emitted by the child process.
+     */
+    get closeOrError(): Observable<CloseEvent | Error> {
         return merge(this.close, this.error);
     }
 }

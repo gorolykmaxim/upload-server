@@ -9,7 +9,11 @@ class DummyReadable extends Readable {
     _read(size: number): void {}
 }
 
-class DummyChildProcess extends EventEmitter implements ChildProcess {
+export class DummyChildProcess extends EventEmitter implements ChildProcess {
+    constructor(pid?: number) {
+        super();
+        this.pid = pid;
+    }
     readonly connected: boolean;
     readonly killed: boolean;
     readonly pid: number;

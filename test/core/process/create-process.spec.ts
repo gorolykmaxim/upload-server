@@ -2,13 +2,14 @@ import {ChildProcess} from "child_process";
 import {Dictionary} from "typescript-collections";
 import {Process} from "../../../backend/core/process/base";
 import {Command} from "../../../backend/core/command/command";
-import {anything, instance, mock, verify, when} from "ts-mockito";
+import {anything, instance, mock, verify} from "ts-mockito";
 import {CreateProcess} from "../../../backend/core/process/create-process";
 import {executeAndReturnOutput} from "../../common";
-import { expect } from "chai";
+import {expect} from "chai";
 import {Writable} from "stream";
 import {EOL} from "os";
 import {from, Observable, throwError} from "rxjs";
+import {DummyChildProcess} from "./base.spec";
 
 describe('CreateProcess', function () {
     const actualCommand: string = 'yes';
@@ -19,13 +20,12 @@ describe('CreateProcess', function () {
     let command: Command;
     beforeEach(function () {
         pidToProcess = new Dictionary<number, Process>();
-        childProcess = mock<ChildProcess>();
         stdin = mock(Writable);
-        when(childProcess.pid).thenReturn(pid);
-        when(childProcess.stdin).thenReturn(instance(stdin));
+        childProcess = new DummyChildProcess(pid);
+        childProcess.stdin = instance(stdin);
         command = new CreateProcess((command1, args, options) => {
             if (command1 === actualCommand) {
-                return instance(childProcess);
+                return childProcess;
             }
         }, pidToProcess);
     });
@@ -40,7 +40,7 @@ describe('CreateProcess', function () {
         await executeAndReturnOutput(command, {command: actualCommand}).toPromise();
         // then
         const process: Process = pidToProcess.getValue(pid);
-        expect(process.childProcess).equal(instance(childProcess));
+        expect(process.childProcess).equal(childProcess);
     });
     it('should write input to the STDIN of the created process', async function () {
         // given
@@ -59,5 +59,19 @@ describe('CreateProcess', function () {
         // then
         verify(stdin.write(anything())).never();
         verify(stdin.end()).once();
+    });
+    it('should remove process from the map on the completion', async function () {
+        // when
+        await executeAndReturnOutput(command, {command: actualCommand}).toPromise();
+        childProcess.emit('close', 0, null);
+        // then
+        expect(pidToProcess.containsKey(pid)).false;
+    });
+    it('should remove process from the map on the error', async function () {
+        // when
+        await executeAndReturnOutput(command, {command: actualCommand}).toPromise();
+        childProcess.emit('error', new Error());
+        // then
+        expect(pidToProcess.containsKey(pid)).false;
     });
 });

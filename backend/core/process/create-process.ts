@@ -36,7 +36,11 @@ export class CreateProcess extends ProcessCommand implements ArgumentsConsumer {
         if (input) {
             input.subscribe(line => childProcess.stdin.write(line), e => childProcess.stdin.end(), () => childProcess.stdin.end());
         }
-        this.pidToProcess.setValue(childProcess.pid, new Process(childProcess));
+        const pid: number = childProcess.pid;
+        const process: Process = new Process(childProcess);
+        this.pidToProcess.setValue(pid, process);
+        // The command should make sure the process will get removed from the map on the completion.
+        process.closeOrError.subscribe(() => this.pidToProcess.remove(pid));
         output.next(childProcess.pid);
         output.complete();
     }
