@@ -1,10 +1,10 @@
 import {Command} from "../../../backend/core/command/command";
 import {CommandExecutor} from "../../../backend/core/command/command-executor";
-import {anything, instance, mock, verify} from "ts-mockito";
+import {anyOfClass, instance, mock, verify} from "ts-mockito";
 import {JsonDB} from "node-json-db";
 import {InitializeConfig} from "../../../backend/core/config/initialize-config";
-import {READ_CONFIG} from "../../../backend/core/config/read-config";
-import {MODIFY_CONFIG} from "../../../backend/core/config/modify-config";
+import {READ_CONFIG, ReadConfig} from "../../../backend/core/config/read-config";
+import {MODIFY_CONFIG, ModifyConfig} from "../../../backend/core/config/modify-config";
 import {executeAndReturnOutput} from "../../common";
 
 describe('InitializeConfig', function () {
@@ -20,7 +20,7 @@ describe('InitializeConfig', function () {
         // when
         await executeAndReturnOutput(command).toPromise();
         // then
-        verify(executor.register(READ_CONFIG, anything())).once();
-        verify(executor.register(MODIFY_CONFIG, anything())).once();
+        verify(executor.register(READ_CONFIG, anyOfClass(ReadConfig))).once();
+        verify(executor.register(MODIFY_CONFIG, anyOfClass(ModifyConfig))).once();
     });
 });
