@@ -1,5 +1,4 @@
 import {FileSystemCommand} from "./base";
-import {ArgumentsConsumer} from "../command/command-with-arguments";
 import {Observable, Subscriber} from "rxjs";
 
 export const CREATE_DIRECTORY: string = 'create directory';
@@ -9,7 +8,7 @@ export const CREATE_DIRECTORY: string = 'create directory';
  * If you have current directory structure /a/b and you want to create a directory 'd' in /a/b/c/d - specify
  * "recursive":true, so the 'c' directory will get created automatically.
  */
-export class CreateDirectory extends FileSystemCommand implements ArgumentsConsumer {
+export class CreateDirectory extends FileSystemCommand {
     readonly mandatoryArgs: Array<string> = ['path'];
 
     /**

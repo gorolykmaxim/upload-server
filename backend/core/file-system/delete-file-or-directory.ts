@@ -1,5 +1,4 @@
 import {FileSystemCommand} from "./base";
-import {ArgumentsConsumer} from "../command/command-with-arguments";
 import {Observable, Subscriber} from "rxjs";
 import {Stats} from "fs";
 
@@ -10,7 +9,7 @@ export const DELETE_FILE_OR_DIRECTORY = 'delete file or directory';
  * If the target path is a directory which has files in them - specify "recursive":true if you want the command
  * to delete the directory with all the files inside of it.
  */
-export class DeleteFileOrDirectory extends FileSystemCommand implements ArgumentsConsumer {
+export class DeleteFileOrDirectory extends FileSystemCommand {
     readonly mandatoryArgs: Array<string> = ['path'];
 
     /**

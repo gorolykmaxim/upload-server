@@ -1,5 +1,4 @@
 import {FileSystemCommand} from "./base";
-import {ArgumentsConsumer} from "../command/command-with-arguments";
 import {Observable, Subscriber} from "rxjs";
 
 export const READ_FILE: string = 'read file';
@@ -7,7 +6,7 @@ export const READ_FILE: string = 'read file';
 /**
  * Read contents of the file, located by the specified path.
  */
-export class ReadFile extends FileSystemCommand implements ArgumentsConsumer {
+export class ReadFile extends FileSystemCommand {
     readonly mandatoryArgs: Array<string> = ['path'];
 
     /**

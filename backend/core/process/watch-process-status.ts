@@ -1,5 +1,4 @@
 import {Process, ProcessCommand, ProcessWithPIDIsNotRunning} from "./base";
-import {ArgumentsConsumer} from "../command/command-with-arguments";
 import {Observable, Subscriber} from "rxjs";
 
 export const WATCH_PROCESS_STATUS: string = 'watch process status';
@@ -10,7 +9,7 @@ export const WATCH_PROCESS_STATUS: string = 'watch process status';
  * The command finishes immediately but its output will complete when the process will get terminated (or when
  * the process will emit an error).
  */
-export class WatchProcessStatus extends ProcessCommand implements ArgumentsConsumer {
+export class WatchProcessStatus extends ProcessCommand {
     readonly mandatoryArgs: Array<string> = ['pid'];
 
     /**

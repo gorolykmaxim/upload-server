@@ -1,5 +1,4 @@
 import {FileSystemCommand} from "./base";
-import {ArgumentsConsumer} from "../command/command-with-arguments";
 import {Observable, Subscriber} from "rxjs";
 
 export const RENAME_FILE: string = 'rename file';
@@ -7,7 +6,7 @@ export const RENAME_FILE: string = 'rename file';
 /**
  * Rename the file, located by the specified oldPath, to the newPath.
  */
-export class RenameFile extends FileSystemCommand implements ArgumentsConsumer {
+export class RenameFile extends FileSystemCommand {
     readonly mandatoryArgs: Array<string> = ['oldPath', 'newPath'];
 
     /**

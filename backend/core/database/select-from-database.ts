@@ -1,5 +1,4 @@
 import {DatabaseCommand, Where} from "./base";
-import {ArgumentsConsumer} from "../command/command-with-arguments";
 import {Observable, Subscriber} from "rxjs";
 
 export const SELECT_FROM_DATABASE: string = 'select from database';
@@ -8,7 +7,7 @@ export const SELECT_FROM_DATABASE: string = 'select from database';
  * Select rows from the database "table", that match specified "query". If "query" is not specified - select all
  * rows from the specified table.
  */
-export class SelectFromDatabase extends DatabaseCommand implements ArgumentsConsumer {
+export class SelectFromDatabase extends DatabaseCommand {
     readonly mandatoryArgs: Array<string> = ['table'];
 
     /**

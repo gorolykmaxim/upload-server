@@ -1,5 +1,4 @@
 import {DatabaseCommand} from "./base";
-import {ArgumentsConsumer} from "../command/command-with-arguments";
 import {Observable, Subscriber} from "rxjs";
 import {toArray} from "rxjs/operators";
 
@@ -8,7 +7,7 @@ export const INSERT_INTO_DATABASE: string = 'insert into database';
 /**
  * Inserts each element from the input to the specified "table" in the database.
  */
-export class InsertIntoDatabase extends DatabaseCommand implements ArgumentsConsumer {
+export class InsertIntoDatabase extends DatabaseCommand {
     readonly mandatoryArgs: Array<string> = ['table'];
 
     /**

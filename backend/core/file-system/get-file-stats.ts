@@ -1,4 +1,3 @@
-import {ArgumentsConsumer} from "../command/command-with-arguments";
 import {Observable, Subscriber} from "rxjs";
 import {FileSystemCommand} from "./base";
 
@@ -7,7 +6,7 @@ export const GET_FILE_STATS: string = 'get file stats';
 /**
  * Get stats information about a file, located by the specified path.
  */
-export class GetFileStats extends FileSystemCommand implements ArgumentsConsumer {
+export class GetFileStats extends FileSystemCommand {
     readonly mandatoryArgs: Array<string> = ['path'];
 
     /**

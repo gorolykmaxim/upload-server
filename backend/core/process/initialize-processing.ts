@@ -3,7 +3,6 @@ import {Observable, Subscriber} from "rxjs";
 import {CREATE_PROCESS, CreateChildProcess, CreateProcess} from "./create-process";
 import {Dictionary} from "typescript-collections";
 import {CommandExecutor} from "../command/command-executor";
-import {CommandWithArguments} from "../command/command-with-arguments";
 import {SEND_SIGNAL_TO_PROCESS, SendSignalToProcess} from "./send-signal-to-process";
 import {WATCH_PROCESS_OUTPUT, WatchProcessOutput} from "./watch-process-output";
 import {Process} from "./base";
@@ -32,10 +31,10 @@ export class InitializeProcessing extends Command {
      */
     async execute(output: Subscriber<any>, args?: any, input?: Observable<any>): Promise<void> {
         const pidToProcess: Dictionary<number, Process> = new Dictionary<number, Process>();
-        this.commandExecutor.register(CREATE_PROCESS, new CommandWithArguments(new CreateProcess(this.createChildProcess, pidToProcess)));
-        this.commandExecutor.register(SEND_SIGNAL_TO_PROCESS, new CommandWithArguments(new SendSignalToProcess(pidToProcess)));
-        this.commandExecutor.register(WATCH_PROCESS_OUTPUT, new CommandWithArguments(new WatchProcessOutput(pidToProcess, this.eol)));
-        this.commandExecutor.register(WATCH_PROCESS_STATUS, new CommandWithArguments(new WatchProcessStatus(pidToProcess)));
+        this.commandExecutor.register(CREATE_PROCESS, new CreateProcess(this.createChildProcess, pidToProcess));
+        this.commandExecutor.register(SEND_SIGNAL_TO_PROCESS, new SendSignalToProcess(pidToProcess));
+        this.commandExecutor.register(WATCH_PROCESS_OUTPUT, new WatchProcessOutput(pidToProcess, this.eol));
+        this.commandExecutor.register(WATCH_PROCESS_STATUS, new WatchProcessStatus(pidToProcess));
         output.complete();
     }
 }

@@ -1,5 +1,4 @@
 import {FileSystemCommand} from "./base";
-import {ArgumentsConsumer} from "../command/command-with-arguments";
 import {Observable, Subscriber} from "rxjs";
 import {WriteStream} from "fs";
 
@@ -10,7 +9,7 @@ export const WRITE_TO_FILE: string = 'write to file';
  * The command finishes immediately but the output of it will get complete only when the input either completes
  * or emits an error.
  */
-export class WriteToFile extends FileSystemCommand implements ArgumentsConsumer {
+export class WriteToFile extends FileSystemCommand {
     readonly mandatoryArgs: Array<string> = ['path'];
 
     /**

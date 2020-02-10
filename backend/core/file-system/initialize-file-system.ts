@@ -3,7 +3,6 @@ import {Observable, Subscriber} from "rxjs";
 import {CommandExecutor} from "../command/command-executor";
 import {FileSystem} from "./file-system";
 import {ACCESS_FILE, AccessFile} from "./access-file";
-import {CommandWithArguments} from "../command/command-with-arguments";
 import {CREATE_DIRECTORY, CreateDirectory} from "./create-directory";
 import {DELETE_FILE_OR_DIRECTORY, DeleteFileOrDirectory} from "./delete-file-or-directory";
 import {GET_FILE_STATS, GetFileStats} from "./get-file-stats";
@@ -31,13 +30,13 @@ export class InitializeFileSystem extends FileSystemCommand {
      * {@inheritDoc}
      */
     async execute(output: Subscriber<any>, args?: any, input?: Observable<any>): Promise<void> {
-        this.commandExecutor.register(ACCESS_FILE, new CommandWithArguments(new AccessFile(this.fileSystem)));
-        this.commandExecutor.register(CREATE_DIRECTORY, new CommandWithArguments(new CreateDirectory(this.fileSystem)));
-        this.commandExecutor.register(DELETE_FILE_OR_DIRECTORY, new CommandWithArguments(new DeleteFileOrDirectory(this.fileSystem)));
-        this.commandExecutor.register(GET_FILE_STATS, new CommandWithArguments(new GetFileStats(this.fileSystem)));
-        this.commandExecutor.register(READ_FILE, new CommandWithArguments(new ReadFile(this.fileSystem)));
-        this.commandExecutor.register(RENAME_FILE, new CommandWithArguments(new RenameFile(this.fileSystem)));
-        this.commandExecutor.register(WRITE_TO_FILE, new CommandWithArguments(new WriteToFile(this.fileSystem)));
+        this.commandExecutor.register(ACCESS_FILE, new AccessFile(this.fileSystem));
+        this.commandExecutor.register(CREATE_DIRECTORY, new CreateDirectory(this.fileSystem));
+        this.commandExecutor.register(DELETE_FILE_OR_DIRECTORY, new DeleteFileOrDirectory(this.fileSystem));
+        this.commandExecutor.register(GET_FILE_STATS, new GetFileStats(this.fileSystem));
+        this.commandExecutor.register(READ_FILE, new ReadFile(this.fileSystem));
+        this.commandExecutor.register(RENAME_FILE, new RenameFile(this.fileSystem));
+        this.commandExecutor.register(WRITE_TO_FILE, new WriteToFile(this.fileSystem));
         output.complete();
     }
 }

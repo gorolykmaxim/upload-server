@@ -1,4 +1,3 @@
-import {ArgumentsConsumer} from "../command/command-with-arguments";
 import {Observable, Subscriber} from "rxjs";
 import {FileSystemCommand} from "./base";
 
@@ -7,7 +6,7 @@ export const ACCESS_FILE: string = 'access file';
 /**
  * Check if the file, located by the specified path, can be accessed by the application.
  */
-export class AccessFile extends FileSystemCommand implements ArgumentsConsumer {
+export class AccessFile extends FileSystemCommand {
     readonly mandatoryArgs: Array<string> = ['path'];
 
     /**

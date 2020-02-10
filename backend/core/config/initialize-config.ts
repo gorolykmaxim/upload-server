@@ -3,7 +3,6 @@ import {Observable, Subscriber} from "rxjs";
 import {JsonDB} from "node-json-db";
 import {CommandExecutor} from "../command/command-executor";
 import {READ_CONFIG, ReadConfig} from "./read-config";
-import {CommandWithArguments} from "../command/command-with-arguments";
 import {MODIFY_CONFIG, ModifyConfig} from "./modify-config";
 
 export const NAME = 'initialize config';
@@ -26,8 +25,8 @@ export class InitializeConfig extends ConfigCommand {
      * {@inheritDoc}
      */
     async execute(output: Subscriber<any>, args?: any, input?: Observable<any>): Promise<void> {
-        this.commandExecutor.register(READ_CONFIG, new CommandWithArguments(new ReadConfig(this.config)));
-        this.commandExecutor.register(MODIFY_CONFIG, new CommandWithArguments(new ModifyConfig(this.config)));
+        this.commandExecutor.register(READ_CONFIG, new ReadConfig(this.config));
+        this.commandExecutor.register(MODIFY_CONFIG, new ModifyConfig(this.config));
         output.complete();
     }
 }

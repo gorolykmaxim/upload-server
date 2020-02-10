@@ -1,5 +1,4 @@
 import {Process, ProcessCommand} from "./base";
-import {ArgumentsConsumer} from "../command/command-with-arguments";
 import {Observable, Subscriber} from "rxjs";
 import {ChildProcess} from "child_process";
 import {Dictionary} from "typescript-collections";
@@ -15,7 +14,7 @@ export type CreateChildProcess = (command: string, args: Array<string>, options?
  * completes or emits an error.
  * The command finishes immediately without waiting for the process to complete or even start.
  */
-export class CreateProcess extends ProcessCommand implements ArgumentsConsumer {
+export class CreateProcess extends ProcessCommand {
     readonly mandatoryArgs: Array<string> = ['command'];
 
     /**

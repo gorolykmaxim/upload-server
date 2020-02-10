@@ -1,4 +1,3 @@
-import {ArgumentsConsumer} from "../command/command-with-arguments";
 import {Process, ProcessCommand, ProcessWithPIDIsNotRunning} from "./base";
 import {Observable, Subscriber} from "rxjs";
 import {Dictionary} from "typescript-collections";
@@ -9,7 +8,7 @@ export const WATCH_PROCESS_OUTPUT: string = 'watch process output';
  * Watch output lines (STDOUT and STDERR combined) of the process with the specified pid.
  * The command finishes immediately but it output will complete when the process will end producing the output.
  */
-export class WatchProcessOutput extends ProcessCommand implements ArgumentsConsumer {
+export class WatchProcessOutput extends ProcessCommand {
     readonly mandatoryArgs: Array<string> = ['pid'];
 
     /**

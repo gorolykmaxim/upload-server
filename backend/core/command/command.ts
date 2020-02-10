@@ -12,6 +12,12 @@ export abstract class Command {
     private executor: CommandExecutor;
 
     /**
+     * Array of mandatory argument names.
+     * Override this attribute if your command has arguments, that should be always supplied to it.
+     */
+    readonly mandatoryArgs: Array<string> = [];
+
+    /**
      * Specify the executor, using which this command can schedule executions of other commands.
      *
      * @param executor command executor

@@ -3,7 +3,6 @@ import {Observable, Subscriber} from "rxjs";
 import {CommandExecutor} from "../command/command-executor";
 import {Database} from "sqlite";
 import {SELECT_FROM_DATABASE, SelectFromDatabase} from "./select-from-database";
-import {CommandWithArguments} from "../command/command-with-arguments";
 import {INSERT_INTO_DATABASE, InsertIntoDatabase} from "./insert-into-database";
 import {DELETE_FROM_DATABASE, DeleteFromDatabase} from "./delete-from-database";
 
@@ -27,9 +26,9 @@ export class InitializeDatabase extends Command {
      * {@inheritDoc}
      */
     async execute(output: Subscriber<any>, args?: any, input?: Observable<any>): Promise<void> {
-        this.commandExecutor.register(SELECT_FROM_DATABASE, new CommandWithArguments(new SelectFromDatabase(this.database)));
-        this.commandExecutor.register(INSERT_INTO_DATABASE, new CommandWithArguments(new InsertIntoDatabase(this.database)));
-        this.commandExecutor.register(DELETE_FROM_DATABASE, new CommandWithArguments(new DeleteFromDatabase(this.database)));
+        this.commandExecutor.register(SELECT_FROM_DATABASE, new SelectFromDatabase(this.database));
+        this.commandExecutor.register(INSERT_INTO_DATABASE, new InsertIntoDatabase(this.database));
+        this.commandExecutor.register(DELETE_FROM_DATABASE, new DeleteFromDatabase(this.database));
         output.complete();
     }
 }
