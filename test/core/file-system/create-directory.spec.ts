@@ -1,6 +1,6 @@
 import {FileSystem} from "../../../backend/core/file-system/file-system";
 import {Command} from "../../../backend/core/command/command";
-import {deepEqual, instance, mock, verify} from "ts-mockito";
+import {instance, mock, verify} from "ts-mockito";
 import {CreateDirectory} from "../../../backend/core/file-system/create-directory";
 import {executeAndReturnOutput} from "../../common";
 
@@ -16,6 +16,6 @@ describe('CreateDirectory', function () {
         // when
         await executeAndReturnOutput(command, {path: path}).toPromise();
         // then
-        verify(fileSystem.mkdir(path, deepEqual({path: path}))).once();
+        verify(fileSystem.mkdir(path, undefined)).once();
     });
 });

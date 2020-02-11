@@ -5,11 +5,11 @@ import {CommandExecutor} from "../command/command-executor";
 import {READ_CONFIG, ReadConfig} from "./read-config";
 import {MODIFY_CONFIG, ModifyConfig} from "./modify-config";
 
-export const NAME = 'initialize config';
-
 /**
  * Initialize the config sub-system.
  */
+export const NAME = 'initialize config';
+
 export class InitializeConfig extends ConfigCommand {
     /**
      * Construct a command.

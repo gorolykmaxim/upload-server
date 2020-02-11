@@ -2,11 +2,14 @@ import {DatabaseCommand} from "./base";
 import {Observable, Subscriber} from "rxjs";
 import {toArray} from "rxjs/operators";
 
+/**
+ * Inserts each element from the input to the specified table in the database.
+ *
+ * Mandatory arguments:
+ * - table - name of the table to insert rows into
+ */
 export const INSERT_INTO_DATABASE: string = 'insert into database';
 
-/**
- * Inserts each element from the input to the specified "table" in the database.
- */
 export class InsertIntoDatabase extends DatabaseCommand {
     readonly mandatoryArgs: Array<string> = ['table'];
 

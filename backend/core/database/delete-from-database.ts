@@ -1,12 +1,17 @@
 import {DatabaseCommand, Where} from "./base";
 import {Observable, Subscriber} from "rxjs";
 
+/**
+ * Delete rows from a table in a database.
+ *
+ * Mandatory arguments:
+ * - table - name of the table to delete rows from
+ * Optional arguments:
+ * - query - query that defines what rows should be removed. Just an object where each field is a column name and value
+ * is a value to compare to in the query. If omitted - the command will remove all rows.
+ */
 export const DELETE_FROM_DATABASE: string = 'delete from database';
 
-/**
- * Delete rows from the database "table", that match specified "query". If "query" is not specified - delete all
- * rows from the specified table.
- */
 export class DeleteFromDatabase extends DatabaseCommand {
     readonly mandatoryArgs: Array<string> = ['table'];
 

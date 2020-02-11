@@ -10,11 +10,11 @@ import {READ_FILE, ReadFile} from "./read-file";
 import {RENAME_FILE, RenameFile} from "./rename-file";
 import {WRITE_TO_FILE, WriteToFile} from "./write-to-file";
 
-export const INITIALIZE_FILE_SYSTEM: string = 'initialize file-system';
-
 /**
  * Initialize the file-system sub-system.
  */
+export const INITIALIZE_FILE_SYSTEM: string = 'initialize file-system';
+
 export class InitializeFileSystem extends FileSystemCommand {
     /**
      * Construct a command.

@@ -1,12 +1,16 @@
 import {Process, ProcessCommand, ProcessWithPIDIsNotRunning} from "./base";
 import {Observable, Subscriber} from "rxjs";
 
-export const SEND_SIGNAL_TO_PROCESS: string = 'send signal to process';
-
 /**
  * Send a signal to the process with the specified pid.
  * The command finishes immediately.
+ *
+ * Mandatory arguments:
+ * - pid - ID of the process to kill
+ * - signal - actual signal to send to the process
  */
+export const SEND_SIGNAL_TO_PROCESS: string = 'send signal to process';
+
 export class SendSignalToProcess extends ProcessCommand {
     readonly mandatoryArgs: Array<string> = ['pid', 'signal'];
 

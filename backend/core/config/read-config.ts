@@ -1,11 +1,14 @@
 import {Observable, Subscriber} from "rxjs";
 import {ConfigCommand} from "./base";
 
-export const READ_CONFIG: string = 'read config';
-
 /**
  * Read data from the config.
+ *
+ * Mandatory arguments:
+ * - path - JSON path (like XPATH) to the place in the config data structure, where data should be read from
  */
+export const READ_CONFIG: string = 'read config';
+
 export class ReadConfig extends ConfigCommand {
     readonly mandatoryArgs: Array<string> = ['path'];
 

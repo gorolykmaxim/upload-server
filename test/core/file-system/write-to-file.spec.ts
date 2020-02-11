@@ -1,11 +1,11 @@
 import {FileSystem} from "../../../backend/core/file-system/file-system";
 import {Command} from "../../../backend/core/command/command";
-import {deepEqual, instance, mock, verify, when} from "ts-mockito";
+import {instance, mock, verify, when} from "ts-mockito";
 import {WriteToFile} from "../../../backend/core/file-system/write-to-file";
 import {WriteStream} from "fs";
 import {from, Observable, throwError} from "rxjs";
 import {executeAndReturnOutput} from "../../common";
-import { expect } from "chai";
+import {expect} from "chai";
 
 describe('WriteToFile', function () {
     const path: string = '/a/b/c';
@@ -15,7 +15,7 @@ describe('WriteToFile', function () {
     beforeEach(function () {
         writeStream = mock(WriteStream);
         fileSystem = mock<FileSystem>();
-        when(fileSystem.createWriteStream(path, deepEqual({path: path}))).thenReturn(instance(writeStream));
+        when(fileSystem.createWriteStream(path, undefined)).thenReturn(instance(writeStream));
         command = new WriteToFile(instance(fileSystem));
     });
     it('should write the input to the file and complete successfully', async function () {

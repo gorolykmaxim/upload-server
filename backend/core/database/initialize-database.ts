@@ -6,11 +6,11 @@ import {SELECT_FROM_DATABASE, SelectFromDatabase} from "./select-from-database";
 import {INSERT_INTO_DATABASE, InsertIntoDatabase} from "./insert-into-database";
 import {DELETE_FROM_DATABASE, DeleteFromDatabase} from "./delete-from-database";
 
-export const INITIALIZE_DATABASE: string = 'initialize database';
-
 /**
  * Initialize database sub-system.
  */
+export const INITIALIZE_DATABASE: string = 'initialize database';
+
 export class InitializeDatabase extends Command {
     /**
      * Construct a command.

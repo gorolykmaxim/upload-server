@@ -17,6 +17,6 @@ describe('ModifyConfig', function () {
         // when
         executeAndReturnOutput(command, {path: path, dataToSave: expectedData}).subscribe();
         // then
-        verify(config.push(path, deepEqual(expectedData))).once();
+        verify(config.push(path, deepEqual(expectedData), undefined)).once();
     });
 });

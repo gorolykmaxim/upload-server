@@ -1,6 +1,6 @@
 import {FileSystem} from "../../../backend/core/file-system/file-system";
 import {Command} from "../../../backend/core/command/command";
-import {deepEqual, instance, mock, verify, when} from "ts-mockito";
+import {instance, mock, verify, when} from "ts-mockito";
 import {Stats} from "fs";
 import {DeleteFileOrDirectory} from "../../../backend/core/file-system/delete-file-or-directory";
 import {betterMock, executeAndReturnOutput} from "../../common";
@@ -29,6 +29,6 @@ describe('DeleteFileOrDirectory', function () {
         // when
         await executeAndReturnOutput(command, {path: path}).toPromise();
         // then
-        verify(fileSystem.rmdir(path, deepEqual({path: path}))).once();
+        verify(fileSystem.rmdir(path, undefined)).once();
     });
 });

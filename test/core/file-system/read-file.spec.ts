@@ -1,9 +1,9 @@
 import {FileSystem} from "../../../backend/core/file-system/file-system";
 import {Command} from "../../../backend/core/command/command";
-import {deepEqual, instance, mock, when} from "ts-mockito";
+import {instance, mock, when} from "ts-mockito";
 import {ReadFile} from "../../../backend/core/file-system/read-file";
 import {executeAndReturnOutput} from "../../common";
-import { expect } from "chai";
+import {expect} from "chai";
 
 describe('ReadFile', function () {
     const data: Buffer = Buffer.from('fbasdblgasdh');
@@ -12,7 +12,7 @@ describe('ReadFile', function () {
     let command: Command;
     beforeEach(function () {
         fileSystem = mock<FileSystem>();
-        when(fileSystem.readFile(path, deepEqual({path: path}))).thenResolve(data);
+        when(fileSystem.readFile(path, undefined)).thenResolve(data);
         command = new ReadFile(instance(fileSystem));
     });
     it('should read data from file, convert it to string and return it', async function () {

@@ -8,11 +8,11 @@ import {WATCH_PROCESS_OUTPUT, WatchProcessOutput} from "./watch-process-output";
 import {Process} from "./base";
 import {WATCH_PROCESS_STATUS, WatchProcessStatus} from "./watch-process-status";
 
-export const INITIALIZE_PROCESSING: string = 'initialize processing';
-
 /**
  * Initialize processing sub-system.
  */
+export const INITIALIZE_PROCESSING: string = 'initialize processing';
+
 export class InitializeProcessing extends Command {
     /**
      * Construct a command.
