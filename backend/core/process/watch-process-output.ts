@@ -51,7 +51,7 @@ export class WatchProcessOutput extends ProcessCommand {
  * The buffer always reads only complete string lines of data, while buffering those lines, that were
  * not completed with an end-of-line separator, for the next read.
  */
-export class StringBuffer {
+class StringBuffer {
     private data: string = null;
 
     /**
