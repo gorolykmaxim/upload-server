@@ -1,4 +1,4 @@
-import {DatabaseCommand, Where} from "./base";
+import {DatabaseCommand, QueryArgs, Where} from "./base";
 import {Observable, Subscriber} from "rxjs";
 
 export const SELECT_FROM_DATABASE: string = 'select from database';
@@ -8,20 +8,18 @@ export const SELECT_FROM_DATABASE: string = 'select from database';
  * rows from the specified table.
  */
 export class SelectFromDatabase extends DatabaseCommand {
-    readonly mandatoryArgs: Array<string> = ['table'];
+    readonly argsType = QueryArgs;
 
     /**
      * {@inheritDoc}
      */
-    async execute(output: Subscriber<any>, args?: any, input?: Observable<any>): Promise<void> {
-        const table: string = args.table;
-        const query: any = args.query;
+    async execute(output: Subscriber<any>, args?: QueryArgs | any, input?: Observable<any>): Promise<void> {
         let rows: Array<any>;
-        if (query) {
-            const where: Where = new Where(query);
-            rows = await this.database.all(`SELECT * FROM ${table} ${where.statement}`, ...where.values);
+        if (args.query) {
+            const where: Where = new Where(args.query);
+            rows = await this.database.all(`SELECT * FROM ${args.table} ${where.statement}`, ...where.values);
         } else {
-            rows = await this.database.all(`SELECT * FROM ${table}`);
+            rows = await this.database.all(`SELECT * FROM ${args.table}`);
         }
         output.next(rows);
         output.complete();

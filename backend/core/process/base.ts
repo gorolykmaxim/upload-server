@@ -98,3 +98,16 @@ export interface CloseEvent {
     code?: number;
     signal?: string;
 }
+
+/**
+ * Arguments, that can be passed to commands, that only require PID of the process to operate on.
+ */
+export class PidArgs {
+    /**
+     * Construct warguments.
+     *
+     * @param pid ID of the process
+     */
+    constructor(readonly pid: number) {
+    }
+}

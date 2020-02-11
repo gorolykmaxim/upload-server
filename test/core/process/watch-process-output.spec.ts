@@ -1,7 +1,7 @@
 import {Command} from "../../../backend/core/command/command";
 import {instance, mock, when} from "ts-mockito";
 import {Dictionary} from "typescript-collections";
-import {Process} from "../../../backend/core/process/base";
+import {PidArgs, Process} from "../../../backend/core/process/base";
 import {WatchProcessOutput} from "../../../backend/core/process/watch-process-output";
 import {EOL} from "os";
 import {expect} from "chai";
@@ -28,14 +28,14 @@ describe('WatchProcessOutput', function () {
     });
     it('should fail to watch output of a process that does not run right now',async function () {
         // then
-        await expect(executeAndReturnOutput(command, {pid: 125432}).toPromise()).rejectedWith(Error);
+        await expect(executeAndReturnOutput(command, new PidArgs(125432)).toPromise()).rejectedWith(Error);
     });
     it('should emit only complete lines from both STDOUT and STDERR', function (done) {
         // given
         const expectedLines: Array<string> = ['first line', 'second line'];
         const lines: Array<string> = [];
         // when
-        executeAndReturnOutput(command, {pid: pid}).subscribe(line => {
+        executeAndReturnOutput(command, new PidArgs(pid)).subscribe(line => {
             lines.push(line);
             if (lines.length === expectedLines.length) {
                 expect(lines).eql(expectedLines);
@@ -47,12 +47,12 @@ describe('WatchProcessOutput', function () {
         // given
         when(process.close).thenReturn(of({}));
         // when
-        await executeAndReturnOutput(command, {pid: pid}).toPromise();
+        await executeAndReturnOutput(command, new PidArgs(pid)).toPromise();
     });
     it('should terminate its output with an error if process terminates with an error', async function () {
         // given
         when(process.error).thenReturn(of(new Error()));
         // then
-        await expect(executeAndReturnOutput(command, {pid: pid}).toPromise()).rejectedWith(Error);
+        await expect(executeAndReturnOutput(command, new PidArgs(pid)).toPromise()).rejectedWith(Error);
     });
 });

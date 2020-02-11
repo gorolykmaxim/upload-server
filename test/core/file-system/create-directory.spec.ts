@@ -1,11 +1,12 @@
 import {FileSystem} from "../../../backend/core/file-system/file-system";
 import {Command} from "../../../backend/core/command/command";
-import {deepEqual, instance, mock, verify} from "ts-mockito";
+import {instance, mock, verify} from "ts-mockito";
 import {CreateDirectory} from "../../../backend/core/file-system/create-directory";
 import {executeAndReturnOutput} from "../../common";
+import {PathWithOptionsArgs} from "../../../backend/core/file-system/base";
 
 describe('CreateDirectory', function () {
-    const path: string = '/a/b/c';
+    const args: PathWithOptionsArgs = new PathWithOptionsArgs('/a/b/c');
     let fileSystem: FileSystem;
     let command: Command;
     beforeEach(function () {
@@ -14,8 +15,8 @@ describe('CreateDirectory', function () {
     });
     it('should create a directory by the specified path', async function () {
         // when
-        await executeAndReturnOutput(command, {path: path}).toPromise();
+        await executeAndReturnOutput(command, args).toPromise();
         // then
-        verify(fileSystem.mkdir(path, deepEqual({path: path}))).once();
+        verify(fileSystem.mkdir(args.path, args.options)).once();
     });
 });

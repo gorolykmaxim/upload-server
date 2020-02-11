@@ -1,4 +1,4 @@
-import {FileSystemCommand} from "./base";
+import {FileSystemCommand, PathWithOptionsArgs} from "./base";
 import {Observable, Subscriber} from "rxjs";
 
 export const CREATE_DIRECTORY: string = 'create directory';
@@ -9,13 +9,13 @@ export const CREATE_DIRECTORY: string = 'create directory';
  * "recursive":true, so the 'c' directory will get created automatically.
  */
 export class CreateDirectory extends FileSystemCommand {
-    readonly mandatoryArgs: Array<string> = ['path'];
+    readonly argsType = PathWithOptionsArgs;
 
     /**
      * {@inheritDoc}
      */
-    async execute(output: Subscriber<any>, args?: any, input?: Observable<any>): Promise<void> {
-        await this.fileSystem.mkdir(args.path, args);
+    async execute(output: Subscriber<any>, args?: PathWithOptionsArgs | any, input?: Observable<any>): Promise<void> {
+        await this.fileSystem.mkdir(args.path, args.options);
         output.complete();
     }
 }

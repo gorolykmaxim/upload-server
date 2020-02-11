@@ -1,17 +1,16 @@
 import * as chai from "chai";
-import {from, Observable, Subscriber} from "rxjs";
 import {expect} from "chai";
-import chaiAsPromised = require("chai-as-promised");
+import {from, Observable, Subscriber} from "rxjs";
 import {Command} from "../../../backend/core/command/command";
 import {CommandExecutor} from "../../../backend/core/command/command-executor";
-import {ArgumentError} from "common-errors";
+import chaiAsPromised = require("chai-as-promised");
 
 chai.use(chaiAsPromised);
 
 class DummyCommand extends Command {
     executionCount: number = 0;
 
-    constructor(private throwError: boolean = false, private complete: boolean = true, readonly mandatoryArgs: Array<string> = []) {
+    constructor(private throwError: boolean = false, private complete: boolean = true) {
         super();
     }
 
@@ -29,6 +28,12 @@ class DummyCommand extends Command {
             output.next({});
         }
     }
+}
+
+class DummyCommandArgs {}
+
+class DummyCommandWithArgs extends DummyCommand {
+    readonly argsType: any = DummyCommandArgs;
 }
 
 describe('CommandExecutor', function () {
@@ -77,28 +82,30 @@ describe('CommandExecutor', function () {
             expect(e.message).equal(`Failed to ${childCommandName}. Reason: error.\nImplementation - ${childCommand.constructor.name}\nArguments: ${JSON.stringify(args)}\nInput is supplied`);
         }
     });
-    it('should execute actual command since all the mandatory arguments are in place', async function () {
+    it('should throw an error while trying to invoke command with arguments of incorrect type', async function () {
         // given
-        const command: DummyCommand = new DummyCommand(false, true, Object.keys(args));
+        const command: Command = new DummyCommandWithArgs();
         executor.register(childCommandName, command);
-        // when
-        await executor.execute(childCommandName, args).toPromise();
-        // then
-        expect(command.isExecuted).true;
-    });
-    it('should throw an error since some of the mandatory arguments are missing', async function () {
-        // given
-        executor.register(childCommandName, new DummyCommand(false, true, Object.keys(args)));
-        // then
+        //then
         await expect(executor.execute(childCommandName, {}).toPromise()).rejectedWith(Error);
     });
-    it('should throw an error if arguments were not specified but there are mandatory arguments', async function () {
+    it('should throw an error while trying to invoke command without arguments', async function () {
         // given
-        executor.register(childCommandName, new DummyCommand(false, true, Object.keys(args)));
+        const command: Command = new DummyCommandWithArgs();
+        executor.register(childCommandName, command);
         // then
         await expect(executor.execute(childCommandName).toPromise()).rejectedWith(Error);
     });
-    it('should not throw an error if arguments were not specified since there are no mandatory arguments anyway', async function () {
+    it('should not throw an error while trying to invoke command with correct arguments', async function () {
+        // given
+        const command: DummyCommand = new DummyCommandWithArgs();
+        executor.register(childCommandName, command);
+        // when
+        await executor.execute(childCommandName, new DummyCommandArgs()).toPromise();
+        // then
+        expect(command.isExecuted).true;
+    });
+    it('should not throw an error while trying to invoke command that does not expect any arguments', async function () {
         // given
         const command: DummyCommand = new DummyCommand();
         executor.register(childCommandName, command);

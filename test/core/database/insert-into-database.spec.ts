@@ -4,6 +4,7 @@ import {instance, mock, verify} from "ts-mockito";
 import {InsertIntoDatabase} from "../../../backend/core/database/insert-into-database";
 import {executeAndReturnOutput} from "../../common";
 import {from} from "rxjs";
+import {TableArgs} from "../../../backend/core/database/base";
 
 describe('InsertIntoDatabase', function () {
     const table: string = 'my_table';
@@ -20,7 +21,7 @@ describe('InsertIntoDatabase', function () {
             {'a': 16, 'b': 'd'}
         ];
         // when
-        await executeAndReturnOutput(command, {table: table}, from(elementsToInsert)).toPromise();
+        await executeAndReturnOutput(command, new TableArgs(table), from(elementsToInsert)).toPromise();
         // then
         verify(database.run(`INSERT INTO ${table}(a, b) VALUES(?, ?)`, 15, 'c')).once();
         verify(database.run(`INSERT INTO ${table}(a, b) VALUES(?, ?)`, 16, 'd')).once();

@@ -4,7 +4,11 @@ import {Mocker} from "ts-mockito/lib/Mock";
 
 export function executeAndReturnOutput(command: Command, args?: any, input?: Observable<any>): Observable<any> {
     return new Observable<any>(subscriber => {
-        command.execute(subscriber, args, input).catch(e => subscriber.error(e));
+        if (command.argsType && !(args instanceof command.argsType)) {
+            subscriber.error(new Error(`${args} is not type of ${command.argsType}`));
+        } else {
+            command.execute(subscriber, args, input).catch(e => subscriber.error(e));
+        }
     });
 }
 

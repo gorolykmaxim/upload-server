@@ -1,4 +1,4 @@
-import {Process, ProcessCommand, ProcessWithPIDIsNotRunning} from "./base";
+import {PidArgs, Process, ProcessCommand, ProcessWithPIDIsNotRunning} from "./base";
 import {Observable, Subscriber} from "rxjs";
 import {Dictionary} from "typescript-collections";
 
@@ -9,7 +9,7 @@ export const WATCH_PROCESS_OUTPUT: string = 'watch process output';
  * The command finishes immediately but it output will complete when the process will end producing the output.
  */
 export class WatchProcessOutput extends ProcessCommand {
-    readonly mandatoryArgs: Array<string> = ['pid'];
+    readonly argsType = PidArgs;
 
     /**
      * Construct a command.
@@ -24,11 +24,10 @@ export class WatchProcessOutput extends ProcessCommand {
     /**
      * {@inheritDoc}
      */
-    async execute(output: Subscriber<any>, args?: any, input?: Observable<any>): Promise<void> {
-        const pid: number = args.pid;
-        const process: Process = this.pidToProcess.getValue(pid);
+    async execute(output: Subscriber<any>, args?: PidArgs | any, input?: Observable<any>): Promise<void> {
+        const process: Process = this.pidToProcess.getValue(args.pid);
         if (!process) {
-            throw new Error(`Failed to watch output of a process: ${new ProcessWithPIDIsNotRunning(pid)}`);
+            throw new Error(`Failed to watch output of a process: ${new ProcessWithPIDIsNotRunning(args.pid)}`);
         }
         const stdoutBuffer: StringBuffer = new StringBuffer(this.eol);
         const stderrBuffer: StringBuffer = new StringBuffer(this.eol);

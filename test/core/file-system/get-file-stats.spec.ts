@@ -5,6 +5,7 @@ import {GetFileStats} from "../../../backend/core/file-system/get-file-stats";
 import {Stats} from "fs";
 import {executeAndReturnOutput} from "../../common";
 import {expect} from "chai";
+import {PathArgs} from "../../../backend/core/file-system/base";
 
 describe('GetFileStats', function () {
     const path: string = '/a/b/c';
@@ -18,7 +19,7 @@ describe('GetFileStats', function () {
     });
     it('should read stats of the file located by the specified path', async function () {
         // when
-        const actualStats: Stats = await executeAndReturnOutput(command, {path: path}).toPromise();
+        const actualStats: Stats = await executeAndReturnOutput(command, new PathArgs(path)).toPromise();
         // then
         expect(actualStats).equal(stats);
     });

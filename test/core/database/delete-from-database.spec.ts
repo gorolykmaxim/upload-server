@@ -3,6 +3,7 @@ import {Database} from "sqlite";
 import {instance, mock, verify} from "ts-mockito";
 import {DeleteFromDatabase} from "../../../backend/core/database/delete-from-database";
 import {executeAndReturnOutput} from "../../common";
+import {QueryArgs} from "../../../backend/core/database/base";
 
 describe('DeleteFromDatabase', function () {
     const table: string = 'my_table';
@@ -14,7 +15,7 @@ describe('DeleteFromDatabase', function () {
     });
     it('should delete all rows from the specified table', async function () {
         // when
-        await executeAndReturnOutput(command, {table: table}).toPromise();
+        await executeAndReturnOutput(command, new QueryArgs(table)).toPromise();
         // then
         verify(database.run(`DELETE FROM ${table}`)).once();
     });
@@ -22,7 +23,7 @@ describe('DeleteFromDatabase', function () {
         // given
         const query: any = {'a': 5};
         // when
-        await executeAndReturnOutput(command, {table: table, query: query}).toPromise();
+        await executeAndReturnOutput(command, new QueryArgs(table, query)).toPromise();
         // then
         verify(database.run(`DELETE FROM ${table} WHERE a = ?`, 5)).once();
     });

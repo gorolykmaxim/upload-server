@@ -1,12 +1,11 @@
 import {JsonDB} from "node-json-db";
 import {deepEqual, instance, mock, verify} from "ts-mockito";
-import {ModifyConfig} from "../../../backend/core/config/modify-config";
+import {ModifyConfig, ModifyConfigArgs} from "../../../backend/core/config/modify-config";
 import {executeAndReturnOutput} from "../../common";
 import {Command} from "../../../backend/core/command/command";
 
 describe('ModifyConfig', function () {
-    const path: string = '/a/b/c';
-    const expectedData: any = {'a': 15, 'b': 'c'};
+    const args: ModifyConfigArgs = new ModifyConfigArgs('/a/b/c', {'a': 15, 'b': 'c'});
     let config: JsonDB;
     let command: Command;
     beforeEach(function () {
@@ -15,8 +14,8 @@ describe('ModifyConfig', function () {
     });
     it('should save specified data structure by the specified path in config', async function () {
         // when
-        executeAndReturnOutput(command, {path: path, dataToSave: expectedData}).subscribe();
+        executeAndReturnOutput(command, args).subscribe();
         // then
-        verify(config.push(path, deepEqual(expectedData))).once();
+        verify(config.push(args.path, deepEqual(args.dataToSave))).once();
     });
 });

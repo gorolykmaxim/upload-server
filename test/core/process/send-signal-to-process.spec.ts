@@ -3,7 +3,7 @@ import {Process} from "../../../backend/core/process/base";
 import {ChildProcess} from "child_process";
 import {Command} from "../../../backend/core/command/command";
 import {instance, mock, verify} from "ts-mockito";
-import {SendSignalToProcess} from "../../../backend/core/process/send-signal-to-process";
+import {SendSignalToProcess, SendSignalToProcessArgs} from "../../../backend/core/process/send-signal-to-process";
 import {executeAndReturnOutput} from "../../common";
 import {constants} from "os";
 import { expect } from "chai";
@@ -21,12 +21,12 @@ describe('SendSignalToProcess', function () {
     });
     it('should send the specified signal to the specified process', async function () {
         // when
-        await executeAndReturnOutput(command, {pid: pid, signal: constants.signals.SIGINT}).toPromise();
+        await executeAndReturnOutput(command, new SendSignalToProcessArgs(pid, constants.signals.SIGINT)).toPromise();
         // then
         verify(childProcess.kill(constants.signals.SIGINT)).once();
     });
     it('should fail since the process with the specified PID does not exist', async function () {
         // then
-        await expect(executeAndReturnOutput(command, {pid: 5426, signal: constants.signals.SIGKILL}).toPromise()).rejectedWith(Error);
+        await expect(executeAndReturnOutput(command, new SendSignalToProcessArgs(5426, constants.signals.SIGKILL)).toPromise()).rejectedWith(Error);
     });
 });
