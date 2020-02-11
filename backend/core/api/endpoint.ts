@@ -6,9 +6,9 @@ import {Argument} from "./argument";
  * Possible sources of arguments in scope of an endpoint.
  */
 export enum ArgumentsSource {
-    QUERY_SOURCE = 'query',
-    BODY_SOURCE = 'body',
-    PARAMS_SOURCE = 'params'
+    QUERY = 'query',
+    BODY = 'body',
+    PARAMS = 'params'
 }
 
 /**
