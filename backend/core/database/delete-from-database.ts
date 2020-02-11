@@ -1,4 +1,4 @@
-import {DatabaseCommand, QueryArgs, Where} from "./base";
+import {DatabaseCommand, Where} from "./base";
 import {Observable, Subscriber} from "rxjs";
 
 export const DELETE_FROM_DATABASE: string = 'delete from database';
@@ -8,17 +8,19 @@ export const DELETE_FROM_DATABASE: string = 'delete from database';
  * rows from the specified table.
  */
 export class DeleteFromDatabase extends DatabaseCommand {
-    readonly argsType = QueryArgs;
+    readonly mandatoryArgs: Array<string> = ['table'];
 
     /**
      * {@inheritDoc}
      */
-    async execute(output: Subscriber<any>, args?: QueryArgs | any, input?: Observable<any>): Promise<void> {
-        if (args.query) {
-            const where: Where = new Where(args.query);
-            await this.database.run(`DELETE FROM ${args.table} ${where.statement}`, ...where.values);
+    async execute(output: Subscriber<any>, args?: any, input?: Observable<any>): Promise<void> {
+        const table: string = args.table;
+        const query: any = args.query;
+        if (query) {
+            const where: Where = new Where(query);
+            await this.database.run(`DELETE FROM ${table} ${where.statement}`, ...where.values);
         } else {
-            await this.database.run(`DELETE FROM ${args.table}`);
+            await this.database.run(`DELETE FROM ${table}`);
         }
         output.complete();
     }

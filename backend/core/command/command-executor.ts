@@ -1,6 +1,7 @@
 import {Dictionary} from "typescript-collections";
 import {Observable, Subscriber, throwError} from "rxjs";
 import {Command} from "./command";
+import {ArgumentError} from "common-errors";
 
 /**
  * Executor of commands. Keeps track of all registered commands and provides the means to execute them.
@@ -37,9 +38,7 @@ export class CommandExecutor {
 
     private async executeCommand(commandName: string, command: Command, output: Subscriber<any>, args?: any, input?: Observable<any>): Promise<void> {
         try {
-            if (command.argsType && !(args instanceof command.argsType)) {
-                throw new ArgumentTypeError(commandName, command);
-            }
+            this.assertAllMandatoryArgsPresent(command.mandatoryArgs, args);
             await command.execute(output, args, input);
         } catch (e) {
             const errorMessage: Array<string> = [
@@ -55,20 +54,21 @@ export class CommandExecutor {
             output.error(new Error(errorMessage.join('\n')));
         }
     }
-}
 
-/**
- * Arguments of an incorrect type where supplied to a command, that expects them in a different type.
- */
-export class ArgumentTypeError extends Error {
-    /**
-     * Construct an error.
-     *
-     * @param commandName name of the command
-     * @param command actual command
-     */
-    constructor(commandName: string, command: Command) {
-        super(`Command "${commandName}" [${command.constructor.name}] expects it's arguments to be of ${command.argsType} type.`);
-        Object.setPrototypeOf(this, ArgumentTypeError.prototype);
+    private assertAllMandatoryArgsPresent(mandatoryArgs: Array<string>, args: any): void {
+        if (mandatoryArgs.length > 0) {
+            if (!args) {
+                throw new ArgumentError('args');
+            }
+            const missingMandatoryArgs: Array<string> = [];
+            for (let mandatoryArg of mandatoryArgs) {
+                if (args[mandatoryArg] === undefined) {
+                    missingMandatoryArgs.push(mandatoryArg);
+                }
+            }
+            if (missingMandatoryArgs.length > 0) {
+                throw new ArgumentError(missingMandatoryArgs.join(', '));
+            }
+        }
     }
 }

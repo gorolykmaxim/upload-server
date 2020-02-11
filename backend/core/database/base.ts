@@ -16,34 +16,6 @@ export abstract class DatabaseCommand extends Command {
 }
 
 /**
- * Arguments, that could be passed to database commands like insert.
- */
-export class TableArgs {
-    /**
-     * Construct arguments.
-     *
-     * @param table name of the table
-     */
-    constructor(readonly table: string) {
-    }
-}
-
-/**
- * Arguments, that could be passed to database commands like select or delete.
- */
-export class QueryArgs extends TableArgs {
-    /**
-     * Construct arguments.
-     *
-     * @param table name of the table
-     * @param query optional query to add to the SQL
-     */
-    constructor(table: string, readonly query?: any) {
-        super(table);
-    }
-}
-
-/**
  * Representation of a "WHERE" sql clause.
  */
 export class Where {

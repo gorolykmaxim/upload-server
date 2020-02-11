@@ -8,21 +8,6 @@ export const CREATE_PROCESS: string = 'create process';
 export type CreateChildProcess = (command: string, args: Array<string>, options?: any) => ChildProcess;
 
 /**
- * Arguments, that can be passed to {@link CreateProcess}.
- */
-export class CreateProcessArgs {
-    /**
-     * Construct a command.
-     *
-     * @param command shell command to execute
-     * @param args optional arguments to pass to the command
-     * @param options optional options to pass to the child process
-     */
-    constructor(readonly command: string, readonly args?: Array<string>, readonly options?: any) {
-    }
-}
-
-/**
  * Create a process that executes the specified shell command. You can pass an array of arguments to the created
  * process via "args".
  * If the input is specified, the command will pipe it to the process' STDIN and close the STDIN when the input
@@ -30,7 +15,7 @@ export class CreateProcessArgs {
  * The command finishes immediately without waiting for the process to complete or even start.
  */
 export class CreateProcess extends ProcessCommand {
-    readonly argsType = CreateProcessArgs;
+    readonly mandatoryArgs: Array<string> = ['command'];
 
     /**
      * Construct a command.
@@ -45,8 +30,8 @@ export class CreateProcess extends ProcessCommand {
     /**
      * {@inheritDoc}
      */
-    async execute(output: Subscriber<any>, args?: CreateProcessArgs | any, input?: Observable<any>): Promise<void> {
-        const childProcess: ChildProcess = this.createChildProcess(args.command, args.args, args.options);
+    async execute(output: Subscriber<any>, args?: any, input?: Observable<any>): Promise<void> {
+        const childProcess: ChildProcess = this.createChildProcess(args.command, args.args, args);
         if (input) {
             input.subscribe(line => childProcess.stdin.write(line), e => childProcess.stdin.end(), () => childProcess.stdin.end());
         }

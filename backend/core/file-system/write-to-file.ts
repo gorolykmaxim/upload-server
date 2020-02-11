@@ -1,4 +1,4 @@
-import {FileSystemCommand, PathWithOptionsArgs} from "./base";
+import {FileSystemCommand} from "./base";
 import {Observable, Subscriber} from "rxjs";
 import {WriteStream} from "fs";
 
@@ -10,13 +10,13 @@ export const WRITE_TO_FILE: string = 'write to file';
  * or emits an error.
  */
 export class WriteToFile extends FileSystemCommand {
-    readonly argsType = PathWithOptionsArgs;
+    readonly mandatoryArgs: Array<string> = ['path'];
 
     /**
      * {@inheritDoc}
      */
-    async execute(output: Subscriber<any>, args?: PathWithOptionsArgs | any, input?: Observable<any>): Promise<void> {
-        const writable: WriteStream = this.fileSystem.createWriteStream(args.path, args.options);
+    async execute(output: Subscriber<any>, args?: any, input?: Observable<any>): Promise<void> {
+        const writable: WriteStream = this.fileSystem.createWriteStream(args.path, args);
         input.subscribe(data => writable.write(data), e => this.handleFinish(output, writable, e), () => this.handleFinish(output, writable));
     }
 

@@ -1,4 +1,4 @@
-import {FileSystemCommand, PathWithOptionsArgs} from "./base";
+import {FileSystemCommand} from "./base";
 import {Observable, Subscriber} from "rxjs";
 import {Stats} from "fs";
 
@@ -10,17 +10,18 @@ export const DELETE_FILE_OR_DIRECTORY = 'delete file or directory';
  * to delete the directory with all the files inside of it.
  */
 export class DeleteFileOrDirectory extends FileSystemCommand {
-    readonly argsType = PathWithOptionsArgs;
+    readonly mandatoryArgs: Array<string> = ['path'];
 
     /**
      * {@inheritDoc}
      */
-    async execute(output: Subscriber<any>, args?: PathWithOptionsArgs | any, input?: Observable<any>): Promise<void> {
-        const stats: Stats = await this.fileSystem.stat(args.path);
+    async execute(output: Subscriber<any>, args?: any, input?: Observable<any>): Promise<void> {
+        const path: string = args.path;
+        const stats: Stats = await this.fileSystem.stat(path);
         if (stats.isDirectory()) {
-            await this.fileSystem.rmdir(args.path, args.options);
+            await this.fileSystem.rmdir(path, args);
         } else {
-            await this.fileSystem.unlink(args.path);
+            await this.fileSystem.unlink(path);
         }
         output.complete();
     }

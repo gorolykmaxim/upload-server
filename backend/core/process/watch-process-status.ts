@@ -1,4 +1,4 @@
-import {PidArgs, Process, ProcessCommand, ProcessWithPIDIsNotRunning} from "./base";
+import {Process, ProcessCommand, ProcessWithPIDIsNotRunning} from "./base";
 import {Observable, Subscriber} from "rxjs";
 
 export const WATCH_PROCESS_STATUS: string = 'watch process status';
@@ -10,15 +10,16 @@ export const WATCH_PROCESS_STATUS: string = 'watch process status';
  * the process will emit an error).
  */
 export class WatchProcessStatus extends ProcessCommand {
-    readonly argsType = PidArgs;
+    readonly mandatoryArgs: Array<string> = ['pid'];
 
     /**
      * {@inheritDoc}
      */
-    async execute(output: Subscriber<any>, args?: PidArgs | any, input?: Observable<any>): Promise<void> {
-        const process: Process = this.pidToProcess.getValue(args.pid);
+    async execute(output: Subscriber<any>, args?: any, input?: Observable<any>): Promise<void> {
+        const pid: number = args.pid;
+        const process: Process = this.pidToProcess.getValue(pid);
         if (!process) {
-            throw new Error(`Failed to watch status of a process: ${new ProcessWithPIDIsNotRunning(args.pid)}`);
+            throw new Error(`Failed to watch status of a process: ${new ProcessWithPIDIsNotRunning(pid)}`);
         }
         output.add(process.closeOrError.subscribe(output));
     }
