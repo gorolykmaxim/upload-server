@@ -3,13 +3,18 @@ import {Dictionary, LinkedList} from "typescript-collections";
 import {Argument} from "./argument";
 
 /**
+ * Possible sources of arguments in scope of an endpoint.
+ */
+export enum ArgumentsSource {
+    QUERY_SOURCE = 'query',
+    BODY_SOURCE = 'body',
+    PARAMS_SOURCE = 'params'
+}
+
+/**
  * An abstract API endpoint, that triggers specified command's execution.
  */
 export class Endpoint {
-    private static readonly QUERY_SOURCE: string = 'query';
-    private static readonly BODY_SOURCE: string = 'body';
-    private static readonly PARAMS_SOURCE: string = 'params';
-
     private instruction: CommandExecutionInstruction;
 
     /**
@@ -35,45 +40,25 @@ export class Endpoint {
     }
 
     /**
-     * Get list of mandatory arguments, that are expected to be present in the 'query' of the request.
+     * Get list of all arguments, that are expected to be located in the specified source.
+     *
+     * @param source name of the source
+     * @param mandatory if set to true - only mandatory arguments will be returned. If set to false - only optional
+     * arguments will be returned
      */
-    get mandatoryQueryArguments(): LinkedList<Argument> {
-        return this.instruction.getMandatoryArguments(Endpoint.QUERY_SOURCE);
+    getArguments(source: ArgumentsSource, mandatory: boolean): LinkedList<Argument> {
+        return this.instruction.getArguments(source, mandatory);
     }
 
     /**
-     * Get list of mandatory arguments, that are expected to be present in the 'body' of the request.
+     * Add argument, that is expected to be located in the specified source.
+     *
+     * @param source name of the source
+     * @param mandatory specifies if the argument is expected to be always present or not
+     * @param argument argument to add
      */
-    get mandatoryBodyArguments(): LinkedList<Argument> {
-        return this.instruction.getMandatoryArguments(Endpoint.BODY_SOURCE);
-    }
-
-    /**
-     * Get list of mandatory arguments, that are expected to be present in the 'params' of the request.
-     */
-    get mandatoryParamsArguments(): LinkedList<Argument> {
-        return this.instruction.getMandatoryArguments(Endpoint.PARAMS_SOURCE);
-    }
-
-    /**
-     * Get list of optional arguments, that might be present in the 'query' of the request.
-     */
-    get optionalQueryArguments(): LinkedList<Argument> {
-        return this.instruction.getOptionalArguments(Endpoint.QUERY_SOURCE);
-    }
-
-    /**
-     * Get list of optional arguments, that might be present in the 'body' of the request.
-     */
-    get optionalBodyArguments(): LinkedList<Argument> {
-        return this.instruction.getOptionalArguments(Endpoint.BODY_SOURCE);
-    }
-
-    /**
-     * Get list of optional arguments, that might be present in the 'params' of the request.
-     */
-    get optionalParamsArguments(): LinkedList<Argument> {
-        return this.instruction.getOptionalArguments(Endpoint.PARAMS_SOURCE);
+    addArgument(source: ArgumentsSource, mandatory: boolean, argument: Argument): void {
+        this.instruction.addArgument(source, mandatory, argument);
     }
 
     /**

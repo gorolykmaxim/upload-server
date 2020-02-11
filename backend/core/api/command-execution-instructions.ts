@@ -29,29 +29,30 @@ export class CommandExecutionInstruction {
     }
 
     /**
-     * Get list of all mandatory arguments, that are expected to be located in the specified source.
+     * Get list of all arguments, that are expected to be located in the specified source.
      *
      * @param source name of the source
+     * @param mandatory if set to true - only mandatory arguments will be returned. If set to false - only optional
+     * arguments will be returned
      */
-    getMandatoryArguments(source: string): LinkedList<Argument> {
-        return this.getArguments(source, this.mandatoryArguments);
-    }
-
-    /**
-     * Get list of all optional arguments, that might be located in the specified source.
-     *
-     * @param source name of the source
-     */
-    getOptionalArguments(source: string): LinkedList<Argument> {
-        return this.getArguments(source, this.optionalArguments);
-    }
-
-    private getArguments(source: string, dictionary: Dictionary<string, LinkedList<Argument>>): LinkedList<Argument> {
+    getArguments(source: string, mandatory: boolean): LinkedList<Argument> {
+        const dictionary: Dictionary<string, LinkedList<Argument>> = mandatory ? this.mandatoryArguments : this.optionalArguments;
         let args: LinkedList<Argument> = dictionary.getValue(source);
         if (!args) {
             args = new LinkedList<Argument>();
             dictionary.setValue(source, args);
         }
         return args;
+    }
+
+    /**
+     * Add argument, that is expected to be located in the specified source.
+     *
+     * @param source name of the source
+     * @param mandatory specifies if the argument is expected to be always present or not
+     * @param argument argument to add
+     */
+    addArgument(source: string, mandatory: boolean, argument: Argument): void {
+        this.getArguments(source, mandatory).add(argument);
     }
 }
