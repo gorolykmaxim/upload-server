@@ -1,6 +1,6 @@
 import {Dictionary} from "typescript-collections";
 import {Observable, Subscriber, throwError} from "rxjs";
-import {Command} from "./command";
+import {Command, CommandError, CommandErrorCode} from "./command";
 import {ArgumentError} from "common-errors";
 
 /**
@@ -41,6 +41,14 @@ export class CommandExecutor {
             this.assertAllMandatoryArgsPresent(command.mandatoryArgs, args);
             await command.execute(output, args, input);
         } catch (e) {
+            let code: number;
+            if (e instanceof ArgumentError) {
+                code = CommandErrorCode.argumentsError;
+            } else if (e instanceof CommandError) {
+                code = e.code;
+            } else {
+                code = CommandErrorCode.unknownError;
+            }
             const errorMessage: Array<string> = [
                 `Failed to ${commandName}. Reason: ${e.message}.`,
                 `Implementation - ${command.constructor.name}`
@@ -51,7 +59,7 @@ export class CommandExecutor {
             if (input) {
                 errorMessage.push(`Input is supplied`);
             }
-            output.error(new Error(errorMessage.join('\n')));
+            output.error(new CommandError(code, errorMessage.join('\n')));
         }
     }
 

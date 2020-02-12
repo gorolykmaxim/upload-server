@@ -67,3 +67,33 @@ export abstract class Command {
      */
     async abstract execute(output: Subscriber<any>, args?: any, input?: Observable<any>): Promise<void>;
 }
+
+/**
+ * An error, that can be thrown by a command.
+ */
+export class CommandError extends Error {
+    /**
+     * Construct an error.
+     *
+     * @param code code that identifies this error
+     * @param message human-readable error message
+     */
+    constructor(readonly code: number, message: string) {
+        super(message);
+        Object.setPrototypeOf(this, CommandError.prototype);
+    }
+}
+
+/**
+ * Base command error codes.
+ */
+export enum CommandErrorCode {
+    /**
+     * Unexpected unknown error has happened.
+     */
+    unknownError = 1,
+    /**
+     * Arguments supplied to a command are incorrect.
+     */
+    argumentsError = 2
+}

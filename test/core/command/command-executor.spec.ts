@@ -1,17 +1,16 @@
 import * as chai from "chai";
-import {from, Observable, Subscriber} from "rxjs";
 import {expect} from "chai";
-import chaiAsPromised = require("chai-as-promised");
-import {Command} from "../../../backend/core/command/command";
+import {from, Observable, Subscriber} from "rxjs";
+import {Command, CommandError, CommandErrorCode} from "../../../backend/core/command/command";
 import {CommandExecutor} from "../../../backend/core/command/command-executor";
-import {ArgumentError} from "common-errors";
+import chaiAsPromised = require("chai-as-promised");
 
 chai.use(chaiAsPromised);
 
 class DummyCommand extends Command {
     executionCount: number = 0;
 
-    constructor(private throwError: boolean = false, private complete: boolean = true, readonly mandatoryArgs: Array<string> = []) {
+    constructor(private error?: Error, private complete: boolean = true, readonly mandatoryArgs: Array<string> = []) {
         super();
     }
 
@@ -21,8 +20,8 @@ class DummyCommand extends Command {
 
     async execute(output: Subscriber<any>, args?: any, input?: Observable<any>): Promise<void> {
         this.executionCount++;
-        if (this.throwError) {
-            throw new Error('error');
+        if (this.error) {
+            throw this.error;
         } else if (this.complete) {
             output.complete();
         } else {
@@ -67,19 +66,20 @@ describe('CommandExecutor', function () {
     it('should catch error, happened in the child command and forward it to its output', async function () {
         // given
         const input: Observable<string> = from(['one', 'two']);
-        executor.register(childCommandName, new DummyCommand(true));
+        executor.register(childCommandName, new DummyCommand(new Error('error')));
         try {
             // when
             await executor.execute(childCommandName, args, input).toPromise();
             expect.fail('Command should fail with an error');
         } catch (e) {
             // then
+            expect(e.code).equal(CommandErrorCode.unknownError);
             expect(e.message).equal(`Failed to ${childCommandName}. Reason: error.\nImplementation - ${childCommand.constructor.name}\nArguments: ${JSON.stringify(args)}\nInput is supplied`);
         }
     });
     it('should execute actual command since all the mandatory arguments are in place', async function () {
         // given
-        const command: DummyCommand = new DummyCommand(false, true, Object.keys(args));
+        const command: DummyCommand = new DummyCommand(null, true, Object.keys(args));
         executor.register(childCommandName, command);
         // when
         await executor.execute(childCommandName, args).toPromise();
@@ -87,16 +87,22 @@ describe('CommandExecutor', function () {
         expect(command.isExecuted).true;
     });
     it('should throw an error since some of the mandatory arguments are missing', async function () {
-        // given
-        executor.register(childCommandName, new DummyCommand(false, true, Object.keys(args)));
-        // then
-        await expect(executor.execute(childCommandName, {}).toPromise()).rejectedWith(Error);
+        try {
+            // given
+            executor.register(childCommandName, new DummyCommand(null, true, Object.keys(args)));
+            await executor.execute(childCommandName,{}).toPromise();
+            expect.fail('Command should fail with an error');
+        } catch (e) {
+            // then
+            expect(e).instanceOf(CommandError);
+            expect(e.code).equal(CommandErrorCode.argumentsError);
+        }
     });
     it('should throw an error if arguments were not specified but there are mandatory arguments', async function () {
         // given
-        executor.register(childCommandName, new DummyCommand(false, true, Object.keys(args)));
+        executor.register(childCommandName, new DummyCommand(null, true, Object.keys(args)));
         // then
-        await expect(executor.execute(childCommandName).toPromise()).rejectedWith(Error);
+        await expect(executor.execute(childCommandName).toPromise()).rejectedWith(CommandError);
     });
     it('should not throw an error if arguments were not specified since there are no mandatory arguments anyway', async function () {
         // given
@@ -106,5 +112,19 @@ describe('CommandExecutor', function () {
         await executor.execute(childCommandName).toPromise();
         // then
         expect(command.isExecuted).true;
+    });
+    it('should catch command error, thrown by the child command and inherit its code', async function () {
+        // given
+        const code: number = 15;
+        executor.register(childCommandName, new DummyCommand(new CommandError(code, 'error')));
+        try {
+            // when
+            await executor.execute(childCommandName).toPromise();
+            expect.fail('Command should fail with an error');
+        } catch (e) {
+            // then
+            expect(e).instanceOf(CommandError);
+            expect(e.code).equal(code);
+        }
     });
 });
