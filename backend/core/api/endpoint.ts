@@ -1,6 +1,8 @@
 import {CommandExecutionInstruction} from "./command-execution-instructions";
-import {Dictionary, LinkedList} from "typescript-collections";
+import {Dictionary} from "typescript-collections";
 import {Argument} from "./argument";
+import {Request} from "express";
+import {ArgumentError} from "common-errors";
 
 /**
  * Possible sources of arguments in scope of an endpoint.
@@ -16,6 +18,7 @@ export enum ArgumentsSource {
  */
 export class Endpoint {
     private instruction: CommandExecutionInstruction;
+    private commandErrorCodeToResponseCode: Dictionary<number, number> = new Dictionary<number, number>();
 
     /**
      * Construct an endpoint.
@@ -40,14 +43,10 @@ export class Endpoint {
     }
 
     /**
-     * Get list of all arguments, that are expected to be located in the specified source.
-     *
-     * @param source name of the source
-     * @param mandatory if set to true - only mandatory arguments will be returned. If set to false - only optional
-     * arguments will be returned
+     * Get name of the command to execute, when a request lands to the endpoint.
      */
-    getArguments(source: ArgumentsSource, mandatory: boolean): LinkedList<Argument> {
-        return this.instruction.getArguments(source, mandatory);
+    get commandName(): string {
+        return this.instruction.commandName;
     }
 
     /**
@@ -62,9 +61,55 @@ export class Endpoint {
     }
 
     /**
-     * Dictionary of all static arguments, that will always be passed to the specified command.
+     * If processing of a request, that lands on this endpoint, finishes with an error - send the specified response
+     * code.
+     *
+     * @param commandErrorCode expected command error code
+     * @param responseErrorCode corresponding response code
      */
-    get staticArguments(): Dictionary<string, any> {
-        return this.instruction.staticArguments;
+    mapCommandToResponse(commandErrorCode: number, responseErrorCode: number): void {
+        this.commandErrorCodeToResponseCode.setValue(commandErrorCode, responseErrorCode);
+    }
+
+    /**
+     * Return the response code to respond to a request, landing on this endpoint, with if the processing of it
+     * finishes with an error with the specified code.
+     *
+     * @param commandErrorCode error code of a failed command
+     */
+    getResponseCodeFor(commandErrorCode: number): number {
+        return this.commandErrorCodeToResponseCode.getValue(commandErrorCode);
+    }
+
+    /**
+     * Extract all arguments from the specified request (both optional and mandatory) according to the endpoint's
+     * configuration, assign endpoint's static arguments to the result and return it as a simple one-level key-value
+     * pair object.
+     *
+     * @param request request to extract arguments from
+     */
+    convertRequestToCommandArguments(request: Request): any {
+        let commandArguments: any = {};
+        for (let source of Object.values(ArgumentsSource)) {
+            for (let mandatoryArgument of this.instruction.getArguments(source, true).toArray()) {
+                let value: any = request[source][mandatoryArgument.name];
+                if (!value) {
+                    throw new ArgumentError(`${mandatoryArgument.name} in ${source}`);
+                }
+                mandatoryArgument.verifyValue(value);
+                commandArguments[mandatoryArgument.name] = value;
+            }
+            for (let optionalArgument of this.instruction.getArguments(source, false).toArray()) {
+                let value: any = request[source][optionalArgument.name];
+                if (value) {
+                    optionalArgument.verifyValue(value);
+                    commandArguments[optionalArgument.name] = value;
+                }
+            }
+        }
+        for (let staticArgument of this.instruction.staticArguments.keys()) {
+            commandArguments[staticArgument] = this.instruction.staticArguments.getValue(staticArgument);
+        }
+        return commandArguments;
     }
 }
