@@ -43,10 +43,16 @@ export class CommandExecutor {
         } catch (e) {
             let code: number;
             if (e instanceof ArgumentError) {
+                // An error is caused by incorrect arguments passed to the command
                 code = CommandErrorCode.argumentsError;
+            } else if (e instanceof CommandExecutorError) {
+                // An error was thrown by the command, invoked by this command
+                code = command.errorCodeMapping[e.code] ?? CommandErrorCode.unknownError;
             } else if (e instanceof CommandError) {
+                // An error was thrown from the inside of the command
                 code = e.code;
             } else {
+                // An error was thrown somewhere inside the command
                 code = CommandErrorCode.unknownError;
             }
             const errorMessage: Array<string> = [
@@ -61,7 +67,7 @@ export class CommandExecutor {
             }
             errorMessage.push('Reason:');
             errorMessage.push(e.message);
-            output.error(new CommandError(code, errorMessage.join('\n')));
+            output.error(new CommandExecutorError(code, errorMessage.join('\n')));
         }
     }
 
@@ -80,5 +86,21 @@ export class CommandExecutor {
                 throw new ArgumentError(missingMandatoryArgs.join(', '));
             }
         }
+    }
+}
+
+/**
+ * An error that can be thrown only by a command executor.
+ */
+export class CommandExecutorError extends CommandError {
+    /**
+     * Construct an error.
+     *
+     * @param code code that identifies this error
+     * @param message human-readable error message
+     */
+    constructor(code: number, message: string) {
+        super(code, message);
+        Object.setPrototypeOf(this, CommandExecutorError.prototype);
     }
 }

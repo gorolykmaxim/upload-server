@@ -18,6 +18,18 @@ export abstract class Command {
     readonly mandatoryArgs: Array<string> = [];
 
     /**
+     * Mapping of error codes: each key is a code of an error, that might've occurred inside the command without
+     * the command event noticing, and each value is the error code to convert it to.
+     * Why:
+     * Lets imagine command A calls command B. Both A and B use an error code '3' but this code means different things
+     * in scope of A and B. To avoid confusion, A can specify in its error mapping '{3: 4}', so that when B will throw
+     * an error with code '3', A will rethrow it as '4'.
+     * Override this attribute if your command invokes another command, that can throw an error, which you are not
+     * catching yourself.
+     */
+    readonly errorCodeMapping: any = {};
+
+    /**
      * Specify the executor, using which this command can schedule executions of other commands.
      *
      * @param executor command executor
