@@ -41,33 +41,7 @@ export class CommandExecutor {
             this.assertAllMandatoryArgsPresent(command.mandatoryArgs, args);
             await command.execute(output, args, input);
         } catch (e) {
-            let code: number;
-            if (e instanceof ArgumentError) {
-                // An error is caused by incorrect arguments passed to the command
-                code = CommandErrorCode.argumentsError;
-            } else if (e instanceof CommandExecutorError) {
-                // An error was thrown by the command, invoked by this command
-                code = command.errorCodeMapping[e.code] ?? CommandErrorCode.unknownError;
-            } else if (e instanceof CommandError) {
-                // An error was thrown from the inside of the command
-                code = e.code;
-            } else {
-                // An error was thrown somewhere inside the command
-                code = CommandErrorCode.unknownError;
-            }
-            const errorMessage: Array<string> = [
-                `Failed to ${commandName}`,
-                `Implementation - ${command.constructor.name}`
-            ];
-            if (args) {
-                errorMessage.push(`Arguments: ${JSON.stringify(args)}`);
-            }
-            if (input) {
-                errorMessage.push(`Input is supplied`);
-            }
-            errorMessage.push('Reason:');
-            errorMessage.push(e.message);
-            output.error(new CommandExecutorError(code, errorMessage.join('\n')));
+            this.handleCommandError(e, commandName, command, output, args, input);
         }
     }
 
@@ -86,6 +60,36 @@ export class CommandExecutor {
                 throw new ArgumentError(missingMandatoryArgs.join(', '));
             }
         }
+    }
+
+    private handleCommandError(e: any, commandName: string, command: Command, output: Subscriber<any>, args?: any, input?: Observable<any>): void {
+        let code: number;
+        if (e instanceof ArgumentError) {
+            // An error is caused by incorrect arguments passed to the command
+            code = CommandErrorCode.argumentsError;
+        } else if (e instanceof CommandExecutorError) {
+            // An error was thrown by the command, invoked by this command
+            code = command.errorCodeMapping[e.code] ?? CommandErrorCode.unknownError;
+        } else if (e instanceof CommandError) {
+            // An error was thrown from the inside of the command
+            code = e.code;
+        } else {
+            // An error was thrown somewhere inside the command
+            code = CommandErrorCode.unknownError;
+        }
+        const errorMessage: Array<string> = [
+            `Failed to ${commandName}`,
+            `Implementation - ${command.constructor.name}`
+        ];
+        if (args) {
+            errorMessage.push(`Arguments: ${JSON.stringify(args)}`);
+        }
+        if (input) {
+            errorMessage.push(`Input is supplied`);
+        }
+        errorMessage.push('Reason:');
+        errorMessage.push(e.message);
+        output.error(new CommandExecutorError(code, errorMessage.join('\n')));
     }
 }
 
