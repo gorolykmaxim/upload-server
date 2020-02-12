@@ -1,5 +1,6 @@
-import {Process, ProcessCommand, ProcessWithPIDIsNotRunning} from "./base";
+import {Process, ProcessCommand, ProcessErrorCode, ProcessWithPIDIsNotRunning} from "./base";
 import {Observable, Subscriber} from "rxjs";
+import {CommandError} from "../command/command";
 
 /**
  * Send a signal to the process with the specified pid.
@@ -22,7 +23,7 @@ export class SendSignalToProcess extends ProcessCommand {
         const signal: number = args.signal;
         const process: Process = this.pidToProcess.getValue(pid);
         if (!process) {
-            throw new Error(`Failed to send signal ${signal}: ${new ProcessWithPIDIsNotRunning(pid).message}`);
+            throw new CommandError(ProcessErrorCode.processDoesNotExist, `Failed to send signal ${signal}: ${new ProcessWithPIDIsNotRunning(pid).message}`);
         }
         process.childProcess.kill(signal);
         output.complete();

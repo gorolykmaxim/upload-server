@@ -34,6 +34,16 @@ export class ProcessWithPIDIsNotRunning extends Error {
 }
 
 /**
+ * Codes of processing module errors.
+ */
+export enum ProcessErrorCode {
+    /**
+     * Process with the specified PID does not exist.
+     */
+    processDoesNotExist = 3
+}
+
+/**
  * Process representation in the processing sub-system.
  */
 export class Process {

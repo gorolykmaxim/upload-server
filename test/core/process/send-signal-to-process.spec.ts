@@ -1,7 +1,7 @@
 import {Dictionary} from "typescript-collections";
-import {Process} from "../../../backend/core/process/base";
+import {Process, ProcessErrorCode} from "../../../backend/core/process/base";
 import {ChildProcess} from "child_process";
-import {Command} from "../../../backend/core/command/command";
+import {Command, CommandError} from "../../../backend/core/command/command";
 import {instance, mock, verify} from "ts-mockito";
 import {SendSignalToProcess} from "../../../backend/core/process/send-signal-to-process";
 import {executeAndReturnOutput} from "../../common";
@@ -26,7 +26,13 @@ describe('SendSignalToProcess', function () {
         verify(childProcess.kill(constants.signals.SIGINT)).once();
     });
     it('should fail since the process with the specified PID does not exist', async function () {
-        // then
-        await expect(executeAndReturnOutput(command, {pid: 5426, signal: constants.signals.SIGKILL}).toPromise()).rejectedWith(Error);
+        try {
+            // when
+            await executeAndReturnOutput(command, {pid: 5426, signal: constants.signals.SIGKILL}).toPromise();
+        } catch (e) {
+            // then
+            expect(e).instanceOf(CommandError);
+            expect(e.code).equal(ProcessErrorCode.processDoesNotExist);
+        }
     });
 });

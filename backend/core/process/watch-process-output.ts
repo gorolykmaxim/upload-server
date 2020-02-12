@@ -1,6 +1,7 @@
-import {Process, ProcessCommand, ProcessWithPIDIsNotRunning} from "./base";
+import {Process, ProcessCommand, ProcessErrorCode, ProcessWithPIDIsNotRunning} from "./base";
 import {Observable, Subscriber} from "rxjs";
 import {Dictionary} from "typescript-collections";
+import {CommandError} from "../command/command";
 
 /**
  * Watch output lines (STDOUT and STDERR combined) of the process with the specified pid.
@@ -31,7 +32,7 @@ export class WatchProcessOutput extends ProcessCommand {
         const pid: number = args.pid;
         const process: Process = this.pidToProcess.getValue(pid);
         if (!process) {
-            throw new Error(`Failed to watch output of a process: ${new ProcessWithPIDIsNotRunning(pid)}`);
+            throw new CommandError(ProcessErrorCode.processDoesNotExist, `Failed to watch output of a process: ${new ProcessWithPIDIsNotRunning(pid)}`);
         }
         const stdoutBuffer: StringBuffer = new StringBuffer(this.eol);
         const stderrBuffer: StringBuffer = new StringBuffer(this.eol);

@@ -1,7 +1,7 @@
-import {Command} from "../../../backend/core/command/command";
+import {Command, CommandError} from "../../../backend/core/command/command";
 import {instance, mock, when} from "ts-mockito";
 import {Dictionary} from "typescript-collections";
-import {Process} from "../../../backend/core/process/base";
+import {Process, ProcessErrorCode} from "../../../backend/core/process/base";
 import {WatchProcessOutput} from "../../../backend/core/process/watch-process-output";
 import {EOL} from "os";
 import {expect} from "chai";
@@ -27,8 +27,14 @@ describe('WatchProcessOutput', function () {
         command = new WatchProcessOutput(pidToProcess, EOL);
     });
     it('should fail to watch output of a process that does not run right now',async function () {
-        // then
-        await expect(executeAndReturnOutput(command, {pid: 125432}).toPromise()).rejectedWith(Error);
+        try {
+            // when
+            await executeAndReturnOutput(command, {pid: 125432}).toPromise();
+        } catch (e) {
+            // then
+            expect(e).instanceOf(CommandError);
+            expect(e.code).equal(ProcessErrorCode.processDoesNotExist);
+        }
     });
     it('should emit only complete lines from both STDOUT and STDERR', function (done) {
         // given

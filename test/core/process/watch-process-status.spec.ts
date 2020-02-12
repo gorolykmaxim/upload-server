@@ -1,5 +1,5 @@
-import {CloseEvent, Process} from "../../../backend/core/process/base";
-import {Command} from "../../../backend/core/command/command";
+import {CloseEvent, Process, ProcessErrorCode} from "../../../backend/core/process/base";
+import {Command, CommandError} from "../../../backend/core/command/command";
 import {instance, mock, when} from "ts-mockito";
 import {WatchProcessStatus} from "../../../backend/core/process/watch-process-status";
 import {Dictionary} from "typescript-collections";
@@ -19,8 +19,14 @@ describe('WatchProcessStatus', function () {
         command = new WatchProcessStatus(pidToProcess);
     });
     it('should fail to watch status of the process that does not run right now', async function () {
-        // then
-        await expect(executeAndReturnOutput(command, {pid: 5342}).toPromise()).rejectedWith(Error);
+        try {
+            // when
+            await executeAndReturnOutput(command, {pid: 5342}).toPromise();
+        } catch (e) {
+            // then
+            expect(e).instanceOf(CommandError);
+            expect(e.code).equal(ProcessErrorCode.processDoesNotExist);
+        }
     });
     it('should complete output with a close event', async function () {
         // given

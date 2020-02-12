@@ -1,5 +1,6 @@
-import {Process, ProcessCommand, ProcessWithPIDIsNotRunning} from "./base";
+import {Process, ProcessCommand, ProcessErrorCode, ProcessWithPIDIsNotRunning} from "./base";
 import {Observable, Subscriber} from "rxjs";
+import {CommandError} from "../command/command";
 
 /**
  * Watch changes in the status of the specified process. The output may emit either a {@link CloseEvent} on
@@ -22,7 +23,7 @@ export class WatchProcessStatus extends ProcessCommand {
         const pid: number = args.pid;
         const process: Process = this.pidToProcess.getValue(pid);
         if (!process) {
-            throw new Error(`Failed to watch status of a process: ${new ProcessWithPIDIsNotRunning(pid)}`);
+            throw new CommandError(ProcessErrorCode.processDoesNotExist, `Failed to watch status of a process: ${new ProcessWithPIDIsNotRunning(pid)}`);
         }
         output.add(process.closeOrError.subscribe(output));
     }
