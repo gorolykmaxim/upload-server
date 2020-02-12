@@ -8,7 +8,7 @@ import {MODIFY_CONFIG, ModifyConfig} from "./modify-config";
 /**
  * Initialize the config sub-system.
  */
-export const NAME = 'initialize config';
+export const INITIALIZE_CONFIG = 'initialize config';
 
 export class InitializeConfig extends ConfigCommand {
     /**
