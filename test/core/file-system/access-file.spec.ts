@@ -16,12 +16,16 @@ describe('AccessFile', function () {
     });
     it('should successfully access specified file', async function () {
         // when
-        await executeAndReturnOutput(command, {path: path}).toPromise();
+        const isFileAccessible: boolean = await executeAndReturnOutput(command, {path: path}).toPromise();
+        // then
+        expect(isFileAccessible).true;
     });
     it('should fail to access the specified file and throw an error', async function () {
         // given
         when(fileSystem.access(path, undefined)).thenReject(new Error());
+        // when
+        const isFileAccessible: boolean = await executeAndReturnOutput(command, {path: path}).toPromise();
         // then
-        await expect(executeAndReturnOutput(command, {path: path}).toPromise()).rejectedWith(Error);
+        expect(isFileAccessible).false;
     });
 });

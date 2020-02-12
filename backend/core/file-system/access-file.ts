@@ -2,7 +2,8 @@ import {Observable, Subscriber} from "rxjs";
 import {FileSystemCommand} from "./base";
 
 /**
- * Check if the file, located by the specified path, can be accessed by the application.
+ * Write "true" to the output if the file, located by the specified path, can be accessed by the application. Otherwise,
+ * write "false".
  *
  * Mandatory arguments:
  * - path - path to the file or directory to check
@@ -18,7 +19,12 @@ export class AccessFile extends FileSystemCommand {
      * {@inheritDoc}
      */
     async execute(output: Subscriber<any>, args?: any, input?: Observable<any>): Promise<void> {
-        await this.fileSystem.access(args.path, args.mode);
+        try {
+            await this.fileSystem.access(args.path, args.mode);
+            output.next(true);
+        } catch (e) {
+            output.next(false);
+        }
         output.complete();
     }
 }
