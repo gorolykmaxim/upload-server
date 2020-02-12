@@ -74,7 +74,7 @@ describe('CommandExecutor', function () {
         } catch (e) {
             // then
             expect(e.code).equal(CommandErrorCode.unknownError);
-            expect(e.message).equal(`Failed to ${childCommandName}. Reason: error.\nImplementation - ${childCommand.constructor.name}\nArguments: ${JSON.stringify(args)}\nInput is supplied`);
+            expect(e.message).equal(`Failed to ${childCommandName}\nImplementation - ${childCommand.constructor.name}\nArguments: ${JSON.stringify(args)}\nInput is supplied\nReason:\nerror`);
         }
     });
     it('should execute actual command since all the mandatory arguments are in place', async function () {

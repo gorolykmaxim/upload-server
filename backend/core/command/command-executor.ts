@@ -50,7 +50,7 @@ export class CommandExecutor {
                 code = CommandErrorCode.unknownError;
             }
             const errorMessage: Array<string> = [
-                `Failed to ${commandName}. Reason: ${e.message}.`,
+                `Failed to ${commandName}`,
                 `Implementation - ${command.constructor.name}`
             ];
             if (args) {
@@ -59,6 +59,8 @@ export class CommandExecutor {
             if (input) {
                 errorMessage.push(`Input is supplied`);
             }
+            errorMessage.push('Reason:');
+            errorMessage.push(e.message);
             output.error(new CommandError(code, errorMessage.join('\n')));
         }
     }
