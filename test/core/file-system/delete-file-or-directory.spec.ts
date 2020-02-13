@@ -3,7 +3,8 @@ import {Command} from "../../../backend/core/command/command";
 import {instance, mock, verify, when} from "ts-mockito";
 import {Stats} from "fs";
 import {DeleteFileOrDirectory} from "../../../backend/core/file-system/delete-file-or-directory";
-import {betterMock, executeAndReturnOutput} from "../../common";
+import {executeAndReturnOutput} from "../../common";
+import {betterMock} from "../../mock";
 
 describe('DeleteFileOrDirectory', function () {
     const path: string = '/a/b/c';

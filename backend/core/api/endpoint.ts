@@ -1,4 +1,4 @@
-import {CommandExecutionInstruction} from "./command-execution-instructions";
+import {CommandExecutionInstruction} from "./command-execution-instruction";
 import {Dictionary} from "typescript-collections";
 import {Argument} from "./argument";
 import {Request} from "express";
