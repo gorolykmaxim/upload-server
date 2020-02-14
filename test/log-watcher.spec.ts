@@ -182,7 +182,7 @@ describe('log-watcher', function () {
             .query({absolutePath: allowedLogs[0], noSplit: true})
             .expect(200, {content: content.toString()});
     });
-    it('should fail to get size of the log file due to an unknown error', async function () {
+    it('should fail to get content of the log file due to an unknown error', async function () {
         // given
         when(fileSystem.readFile(allowedLogs[0])).thenReject(new Error());
         // when

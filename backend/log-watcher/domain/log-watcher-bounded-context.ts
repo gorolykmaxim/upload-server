@@ -62,7 +62,7 @@ export class LogWatcherBoundedContext {
      *
      * @param absoluteLogFilePath absolute path to the log file
      * @throws LogFileAccessError if the specified log file is not allowed to be watched
-     * @throws LogFileOperationError if the size fo the specified log file can't be read for some unforeseen reason
+     * @throws LogFileOperationError if the size of the specified log file can't be read for some unforeseen reason
      */
     async getLogFileSize(absoluteLogFilePath: string): Promise<LogFileSize> {
         if (!this.allowedLogFilesRepository.contains(absoluteLogFilePath)) {
@@ -83,7 +83,7 @@ export class LogWatcherBoundedContext {
      * @param dontSplit if set to true - the content will be returned as a single string. Otherwise - the content
      * will be split in lines.
      * @throws LogFileAccessError if the specified log file is not allowed to be watched
-     * @throws LogFileOperationError if the content fo the specified log file can't be read for some unforeseen reason
+     * @throws LogFileOperationError if the content of the specified log file can't be read for some unforeseen reason
      */
     async getLogFileContent(absoluteLogFilePath: string, dontSplit: boolean): Promise<LogFileContent> {
         if (!this.allowedLogFilesRepository.contains(absoluteLogFilePath)) {
