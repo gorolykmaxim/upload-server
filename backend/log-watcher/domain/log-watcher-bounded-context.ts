@@ -7,6 +7,10 @@ import {LogFileOperationError} from "./log-file-operation-error";
 import {LogFileContent} from "./log-file-content";
 import {EOL} from "os";
 import {LogFileSize} from "./log-file-size";
+import {Observable, throwError} from "rxjs";
+import {LogFileChanges} from "./log-file-changes";
+import {FileWatcher} from "./file-watcher";
+import {catchError, map} from "rxjs/operators";
 
 /**
  * Bounded context of a log-watcher, module, that allows reading information about log files, and watching changes
@@ -18,8 +22,10 @@ export class LogWatcherBoundedContext {
      *
      * @param allowedLogFilesRepository repository, that stores paths to log files, that are allowed to be watched
      * @param fileSystem the file system, on which the log files are located
+     * @param fileWatcher a file watcher, that will be used to watch changes in the log files
      */
-    constructor(private allowedLogFilesRepository: AllowedLogFilesRepository, private fileSystem: FileSystem) {
+    constructor(private allowedLogFilesRepository: AllowedLogFilesRepository, private fileSystem: FileSystem,
+                private fileWatcher: FileWatcher) {
     }
 
     /**
@@ -95,5 +101,37 @@ export class LogWatcherBoundedContext {
         } catch (e) {
             throw new LogFileOperationError('read content of', absoluteLogFilePath, e);
         }
+    }
+
+    /**
+     * Watch content changes in the log file, located by the specified path.
+     *
+     * @param absoluteLogFilePath absolute path to the log file
+     * @param includeFileName include name of the file {@link LogFileChanges}, coming from the returned observable.
+     * @param fromTheBeginning if set to true - this call will first read all the existing contents of the specified
+     * log, emit them to the returned observable and only after that will start to listen to new content changes,
+     * happening in the specified log
+     */
+    watchLogFileContent(absoluteLogFilePath: string, includeFileName: boolean = false, fromTheBeginning: boolean = false): Observable<LogFileChanges> {
+        if (!this.allowedLogFilesRepository.contains(absoluteLogFilePath)) {
+            throw new LogFileAccessError(absoluteLogFilePath);
+        }
+        return new Observable<LogFileChanges>(subscriber => {
+            let whenReady: Promise<void>;
+            if (fromTheBeginning) {
+                whenReady = this.getLogFileContent(absoluteLogFilePath, false)
+                    .then(content => subscriber.next(includeFileName ? {changes: content.content as Array<string>, file: absoluteLogFilePath} : {changes: content.content as Array<string>}));
+            } else {
+                whenReady = Promise.resolve();
+            }
+            whenReady.then(() => {
+                this.fileWatcher.watch(absoluteLogFilePath)
+                    .pipe(
+                        map<string, LogFileChanges>(line => includeFileName ? {changes: [line], file: absoluteLogFilePath} : {changes: [line]}),
+                        catchError(error => throwError(new LogFileOperationError('watch content changes in', absoluteLogFilePath, error)))
+                    )
+                    .subscribe(subscriber);
+            }).catch(e => subscriber.error(e));
+        });
     }
 }
