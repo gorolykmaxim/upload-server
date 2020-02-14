@@ -51,6 +51,13 @@ export class Application {
                 res.status(e instanceof LogFileAccessError ? 403 : 500).end(e.message);
             }
         });
+        this.app.get(`${baseUrl}/log/content`, query('absolutePath').isString().notEmpty(), this.handleValidationErrors(), async (req: Request, res: Response) => {
+            try {
+                res.json(await this.logWatcherBoundedContext.getLogFileContent(req.query.absolutePath, req.query.noSplit == 'true')).end();
+            } catch (e) {
+                res.status(e instanceof LogFileAccessError ? 403 : 500).end(e.message);
+            }
+        });
     }
 
     private handleValidationErrors(): (req: Request, res: Response, next: Function) => void {

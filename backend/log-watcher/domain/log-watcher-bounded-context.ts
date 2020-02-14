@@ -4,6 +4,8 @@ import {LogFileAllowanceResult} from "./log-file-allowance-result";
 import {LogFileAccessError} from "./log-file-access-error";
 import {Stats} from "fs";
 import {LogFileOperationError} from "./log-file-operation-error";
+import {LogFileContent} from "./log-file-content";
+import {EOL} from "os";
 
 /**
  * Bounded context of a log-watcher, module, that allows reading information about log files, and watching changes
@@ -70,6 +72,27 @@ export class LogWatcherBoundedContext {
             return logFileStats.size;
         } catch (e) {
             throw new LogFileOperationError('get size of', absoluteLogFilePath, e);
+        }
+    }
+
+    /**
+     * Read content of the log file, located by the specified path.
+     *
+     * @param absoluteLogFilePath absolute path to the log file
+     * @param dontSplit if set to true - the content will be returned as a single string. Otherwise - the content
+     * will be split in lines.
+     * @throws LogFileAccessError if the specified log file is not allowed to be watched
+     * @throws LogFileOperationError if the content fo the specified log file can't be read for some unforeseen reason
+     */
+    async getLogFileContent(absoluteLogFilePath: string, dontSplit: boolean): Promise<LogFileContent> {
+        if (!this.allowedLogFilesRepository.contains(absoluteLogFilePath)) {
+            throw new LogFileAccessError(absoluteLogFilePath);
+        }
+        try {
+            const logFileContent: string = (await this.fileSystem.readFile(absoluteLogFilePath)).toString();
+            return {content: dontSplit ? logFileContent : logFileContent.split(EOL)};
+        } catch (e) {
+            throw new LogFileOperationError('read content of', absoluteLogFilePath, e);
         }
     }
 }

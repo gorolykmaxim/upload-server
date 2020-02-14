@@ -4,6 +4,7 @@ import {anything, deepEqual, instance, mock, resetCalls, verify, when} from "ts-
 import * as request from "supertest";
 import {FileSystem} from "../backend/log-watcher/domain/file-system";
 import {Stats} from "fs";
+import {EOL} from "os";
 
 describe('log-watcher', function () {
     const baseUrl: string = '/api/log-watcher';
@@ -12,6 +13,7 @@ describe('log-watcher', function () {
         '/var/log/apache2/access.log'
     ];
     const configPath: string = '/logs-view/logs';
+    const content: Buffer = Buffer.from(`line 1${EOL}line 2`);
     let jsonDB: JsonDB;
     let fileSystem: FileSystem;
     let application: Application;
@@ -21,6 +23,7 @@ describe('log-watcher', function () {
         when(jsonDB.getData(configPath))
             .thenThrow(new Error())
             .thenReturn([].concat(allowedLogs));
+        when(fileSystem.readFile(allowedLogs[0])).thenResolve(content);
         application = new Application(instance(jsonDB), instance(fileSystem));
         await application.main();
     });
@@ -142,6 +145,49 @@ describe('log-watcher', function () {
         // when
         await request(application.app)
             .get(`${baseUrl}/log/size`)
+            .query({absolutePath: allowedLogs[0]})
+            .expect(500);
+    });
+    it('should fail to get content of the log file since absolute path to the file was not specified', async function () {
+        // when
+        await request(application.app)
+            .get(`${baseUrl}/log/content`)
+            .expect(400);
+    });
+    it('should fail to get content of the log file, that is not allowed to be watched', async function () {
+        // when
+        await request(application.app)
+            .get(`${baseUrl}/log/content`)
+            .query({absolutePath: '/a/b/c.log'})
+            .expect(403);
+    });
+    it('should get content of the specified log file as an array of its lines by default', async function () {
+        // when
+        await request(application.app)
+            .get(`${baseUrl}/log/content`)
+            .query({absolutePath: allowedLogs[0]})
+            .expect(200, {content: content.toString().split(EOL)});
+    });
+    it('should get content of the specified log file as an array of its lines', async function () {
+        // when
+        await request(application.app)
+            .get(`${baseUrl}/log/content`)
+            .query({absolutePath: allowedLogs[0], noSplit: false})
+            .expect(200, {content: content.toString().split(EOL)});
+    });
+    it('should get content of the specified log file as a single string', async function () {
+        // when
+        await request(application.app)
+            .get(`${baseUrl}/log/content`)
+            .query({absolutePath: allowedLogs[0], noSplit: true})
+            .expect(200, {content: content.toString()});
+    });
+    it('should fail to get size of the log file due to an unknown error', async function () {
+        // given
+        when(fileSystem.readFile(allowedLogs[0])).thenReject(new Error());
+        // when
+        await request(application.app)
+            .get(`${baseUrl}/log/content`)
             .query({absolutePath: allowedLogs[0]})
             .expect(500);
     });
