@@ -42,7 +42,8 @@
     "body-parser": "^1.19.0",
     "sqlite": "^3.0.3",
     "rxjs": "^6.5.4",
-    "node-json-db": "^1.0.3"
+    "node-json-db": "^1.0.3",
+    "express-validator": "^6.4.0"
   },
   "devDependencies": {
     "@types/chai": "^4.2.7",
