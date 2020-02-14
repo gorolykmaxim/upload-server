@@ -19,7 +19,7 @@ describe('log-watcher', function () {
         fileSystem = mock<FileSystem>();
         when(jsonDB.getData(configPath))
             .thenThrow(new Error())
-            .thenReturn(allowedLogs);
+            .thenReturn([].concat(allowedLogs));
         application = new Application(instance(jsonDB), instance(fileSystem));
         await application.main();
     });
@@ -82,5 +82,33 @@ describe('log-watcher', function () {
             .post(`${baseUrl}/log`)
             .send({absolutePath: allowedLogs[0]})
             .expect(201, {notice: `Notice: the specified log file: '${allowedLogs[0]}' currently does not exist.`});
+    });
+    it('should fail to disallow log file watching since the absolute path to the file was not specified', async function () {
+        // when
+        await request(application.app)
+            .delete(`${baseUrl}/log`)
+            .expect(400);
+    });
+    it('should update configuration while trying to disallow watching a log file, that is allowed to be watched', async function () {
+        // given
+        resetCalls(jsonDB);
+        // when
+        await request(application.app)
+            .delete(`${baseUrl}/log`)
+            .query({absolutePath: allowedLogs[0]})
+            .expect(200);
+        // then
+        verify(jsonDB.push(configPath, deepEqual(allowedLogs.filter(l => l !== allowedLogs[0])))).once();
+    });
+    it('should not update configuration while trying to disallow watching a log file, that is not allowed to be watched in the first place', async function () {
+        // given
+        resetCalls(jsonDB);
+        // when
+        await request(application.app)
+            .delete(`${baseUrl}/log`)
+            .query({absolutePath: '/a/b/c.log'})
+            .expect(200);
+        // then
+        verify(jsonDB.push(configPath, anything())).never();
     });
 });

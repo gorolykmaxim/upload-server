@@ -26,6 +26,16 @@ export class ConfigAllowedLogFilesRepository implements AllowedLogFilesRepositor
     }
 
     contains(absoluteLogFilePath: string): boolean {
-        return this.findAll().indexOf(absoluteLogFilePath) >= 0;
+        return this.findIndexOf(absoluteLogFilePath) >= 0;
+    }
+
+    remove(absolutePathToLogFile: string): void {
+        const existingLogs: Array<string> = this.findAll();
+        existingLogs.splice(this.findIndexOf(absolutePathToLogFile), 1);
+        this.jsonDB.push(ConfigAllowedLogFilesRepository.LOGS_PATH, existingLogs);
+    }
+
+    private findIndexOf(absolutePathToLogFile: string): number {
+        return this.findAll().indexOf(absolutePathToLogFile);
     }
 }

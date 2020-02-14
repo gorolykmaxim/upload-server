@@ -39,4 +39,15 @@ export class LogWatcherBoundedContext {
             return {notice: `Notice: the specified log file: '${absoluteLogFilePath}' currently does not exist.`};
         }
     }
+
+    /**
+     * Disallow log file, located by the specified path, to be watched.
+     *
+     * @param absoluteLogFilePath absolute path to the log file
+     */
+    disallowLogFileToBeWatched(absoluteLogFilePath: string): void {
+        if (this.allowedLogFilesRepository.contains(absoluteLogFilePath)) {
+            this.allowedLogFilesRepository.remove(absoluteLogFilePath);
+        }
+    }
 }

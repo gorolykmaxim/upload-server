@@ -4,7 +4,7 @@ import {ConfigAllowedLogFilesRepository} from "./log-watcher/infrastructure/conf
 import {JsonDB} from "node-json-db";
 import {LogWatcherBoundedContext} from "./log-watcher/domain/log-watcher-bounded-context";
 import {Server} from "http";
-import {body, Result, ValidationError, validationResult} from "express-validator";
+import {body, query, Result, ValidationError, validationResult} from "express-validator";
 import * as fs from "fs";
 import {FileSystem} from "./log-watcher/domain/file-system";
 import bodyParser = require("body-parser");
@@ -39,6 +39,10 @@ export class Application {
         this.app.post(`${baseUrl}/log`, body('absolutePath').isString().notEmpty(), this.handleValidationErrors(), async (req: Request, res: Response) => {
             res.status(201).json(await this.logWatcherBoundedContext.allowLogFileToBeWatched(req.body.absolutePath)).end();
         });
+        this.app.delete(`${baseUrl}/log`, query('absolutePath').isString().notEmpty(), this.handleValidationErrors(), (req: Request, res: Response) => {
+            this.logWatcherBoundedContext.disallowLogFileToBeWatched(req.query.absolutePath);
+            res.end();
+        })
     }
 
     private handleValidationErrors(): (req: Request, res: Response, next: Function) => void {
