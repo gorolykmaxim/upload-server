@@ -3,6 +3,7 @@ import {JsonDB} from "node-json-db";
 import {anything, deepEqual, instance, mock, resetCalls, verify, when} from "ts-mockito";
 import * as request from "supertest";
 import {FileSystem} from "../backend/log-watcher/domain/file-system";
+import {Stats} from "fs";
 
 describe('log-watcher', function () {
     const baseUrl: string = '/api/log-watcher';
@@ -110,5 +111,38 @@ describe('log-watcher', function () {
             .expect(200);
         // then
         verify(jsonDB.push(configPath, anything())).never();
+    });
+    it('should fail to get size of the log file since absolute path to the file was not specified', async function () {
+        // when
+        await request(application.app)
+            .get(`${baseUrl}/log/size`)
+            .expect(400);
+    });
+    it('should fail to get size of the log file, that is not allowed to be watched', async function () {
+        // when
+        await request(application.app)
+            .get(`${baseUrl}/log/size`)
+            .query({absolutePath: '/a/b/c.log'})
+            .expect(403);
+    });
+    it('should get size of the log file', async function () {
+        // given
+        const stats: Stats = new Stats();
+        stats.size = 12345;
+        when(fileSystem.stat(allowedLogs[0])).thenResolve(stats);
+        // when
+        await request(application.app)
+            .get(`${baseUrl}/log/size`)
+            .query({absolutePath: allowedLogs[0]})
+            .expect(200, {sizeInBytes: stats.size});
+    });
+    it('should fail to get size of the log file due to an unknown error', async function () {
+        // given
+        when(fileSystem.stat(allowedLogs[0])).thenReject(new Error());
+        // when
+        await request(application.app)
+            .get(`${baseUrl}/log/size`)
+            .query({absolutePath: allowedLogs[0]})
+            .expect(500);
     });
 });

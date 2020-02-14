@@ -1,6 +1,9 @@
 import {AllowedLogFilesRepository} from "./allowed-log-files-repository";
 import {FileSystem} from "./file-system";
 import {LogFileAllowanceResult} from "./log-file-allowance-result";
+import {LogFileAccessError} from "./log-file-access-error";
+import {Stats} from "fs";
+import {LogFileOperationError} from "./log-file-operation-error";
 
 /**
  * Bounded context of a log-watcher, module, that allows reading information about log files, and watching changes
@@ -48,6 +51,25 @@ export class LogWatcherBoundedContext {
     disallowLogFileToBeWatched(absoluteLogFilePath: string): void {
         if (this.allowedLogFilesRepository.contains(absoluteLogFilePath)) {
             this.allowedLogFilesRepository.remove(absoluteLogFilePath);
+        }
+    }
+
+    /**
+     * Read size of the log file, located by the specified path.
+     *
+     * @param absoluteLogFilePath absolute path to the log file
+     * @throws LogFileAccessError if the specified log file is not allowed to be watched
+     * @throws LogFileOperationError if the size fo the specified log file can't be read for some unforeseen reason
+     */
+    async getLogFileSize(absoluteLogFilePath: string): Promise<number> {
+        if (!this.allowedLogFilesRepository.contains(absoluteLogFilePath)) {
+            throw new LogFileAccessError(absoluteLogFilePath);
+        }
+        try {
+            const logFileStats: Stats = await this.fileSystem.stat(absoluteLogFilePath);
+            return logFileStats.size;
+        } catch (e) {
+            throw new LogFileOperationError('get size of', absoluteLogFilePath, e);
         }
     }
 }

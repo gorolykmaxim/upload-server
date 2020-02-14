@@ -7,6 +7,7 @@ import {Server} from "http";
 import {body, query, Result, ValidationError, validationResult} from "express-validator";
 import * as fs from "fs";
 import {FileSystem} from "./log-watcher/domain/file-system";
+import {LogFileAccessError} from "./log-watcher/domain/log-file-access-error";
 import bodyParser = require("body-parser");
 
 export class Application {
@@ -42,7 +43,14 @@ export class Application {
         this.app.delete(`${baseUrl}/log`, query('absolutePath').isString().notEmpty(), this.handleValidationErrors(), (req: Request, res: Response) => {
             this.logWatcherBoundedContext.disallowLogFileToBeWatched(req.query.absolutePath);
             res.end();
-        })
+        });
+        this.app.get(`${baseUrl}/log/size`, query('absolutePath').isString().notEmpty(), this.handleValidationErrors(), async (req: Request, res: Response) => {
+            try {
+                res.json({sizeInBytes: await this.logWatcherBoundedContext.getLogFileSize(req.query.absolutePath)}).end();
+            } catch (e) {
+                res.status(e instanceof LogFileAccessError ? 403 : 500).end(e.message);
+            }
+        });
     }
 
     private handleValidationErrors(): (req: Request, res: Response, next: Function) => void {
