@@ -46,7 +46,7 @@ export class Application {
         });
         this.app.get(`${baseUrl}/log/size`, query('absolutePath').isString().notEmpty(), this.handleValidationErrors(), async (req: Request, res: Response) => {
             try {
-                res.json({sizeInBytes: await this.logWatcherBoundedContext.getLogFileSize(req.query.absolutePath)}).end();
+                res.json(await this.logWatcherBoundedContext.getLogFileSize(req.query.absolutePath)).end();
             } catch (e) {
                 res.status(e instanceof LogFileAccessError ? 403 : 500).end(e.message);
             }

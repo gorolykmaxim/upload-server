@@ -6,6 +6,7 @@ import {Stats} from "fs";
 import {LogFileOperationError} from "./log-file-operation-error";
 import {LogFileContent} from "./log-file-content";
 import {EOL} from "os";
+import {LogFileSize} from "./log-file-size";
 
 /**
  * Bounded context of a log-watcher, module, that allows reading information about log files, and watching changes
@@ -63,13 +64,13 @@ export class LogWatcherBoundedContext {
      * @throws LogFileAccessError if the specified log file is not allowed to be watched
      * @throws LogFileOperationError if the size fo the specified log file can't be read for some unforeseen reason
      */
-    async getLogFileSize(absoluteLogFilePath: string): Promise<number> {
+    async getLogFileSize(absoluteLogFilePath: string): Promise<LogFileSize> {
         if (!this.allowedLogFilesRepository.contains(absoluteLogFilePath)) {
             throw new LogFileAccessError(absoluteLogFilePath);
         }
         try {
             const logFileStats: Stats = await this.fileSystem.stat(absoluteLogFilePath);
-            return logFileStats.size;
+            return {sizeInBytes: logFileStats.size};
         } catch (e) {
             throw new LogFileOperationError('get size of', absoluteLogFilePath, e);
         }
