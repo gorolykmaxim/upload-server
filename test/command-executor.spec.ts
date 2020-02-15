@@ -2,6 +2,7 @@ import {JsonDB} from "node-json-db";
 import {Application} from "../backend/application";
 import {deepEqual, instance, mock, verify, when} from "ts-mockito";
 import * as request from "supertest";
+import {Command} from "../backend/command-executor/domain/command";
 
 describe('command-executor', function () {
     const baseUrl: string = '/api/command-executor';
@@ -32,9 +33,39 @@ describe('command-executor', function () {
         verify(jsonDB.push(configPath, deepEqual({}))).once();
     });
     it('should return list of all executable commands', async function () {
+        // given
+        const expectedCommands: Array<any> = [
+            new Command('list files', 'ls -lh'),
+            new Command('kill pc', 'sudo rm -rf /')
+        ].map(c => {return {id: c.id, name: c.name, command: c.command}});
         // when
         await request(application.app)
             .get(`${baseUrl}/command`)
-            .expect(200, [{name: 'list files', command: 'ls -lh'}, {name: 'kill pc', command: 'sudo rm -rf /'}]);
+            .expect(200, expectedCommands);
+    });
+    it('should fail to create a new command since commands name is missing', async function () {
+        // when
+        await request(application.app)
+            .post(`${baseUrl}/command`)
+            .send({})
+            .expect(400);
+    });
+    it('should fail to create a new command since commands "command" is missing', async function () {
+        // when
+        await request(application.app)
+            .post(`${baseUrl}/command`)
+            .send({name: 'monitor processes'})
+            .expect(400);
+    });
+    it('should create a new command', async function () {
+        // given
+        const command: Command = new Command('monitor process', 'top -C');
+        // when
+        await request(application.app)
+            .post(`${baseUrl}/command`)
+            .send({name: command.name, command: command.command})
+            .expect(201, {id: command.id, name: command.name, command: command.command});
+        // then
+        verify(jsonDB.push(`${configPath}/${command.name}`, deepEqual({command: command.command}))).once();
     });
 });

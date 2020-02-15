@@ -20,8 +20,12 @@ export class ConfigCommandRepository implements CommandRepository {
         const commands: Array<Command> = [];
         const configCommands: any = this.jsonDb.getData(ConfigCommandRepository.COMMANDS_PATH);
         for (let name in configCommands) {
-            commands.push({name: name, command: configCommands[name].command});
+            commands.push(new Command(name, configCommands[name].command));
         }
         return commands;
+    }
+
+    add(command: Command): void {
+        this.jsonDb.push(`${ConfigCommandRepository.COMMANDS_PATH}/${command.name}`, {command: command.command});
     }
 }

@@ -20,4 +20,16 @@ export class CommandExecutorBoundedContext {
     getAllExecutableCommands(): Array<Command> {
         return this.commandRepository.findAll();
     }
+
+    /**
+     * Create a command, that can be executed later.
+     *
+     * @param name unique name of the command
+     * @param command actual shell command to be executed
+     */
+    createCommand(name: string, command: string): Command {
+        const executableCommand: Command = new Command(name, command);
+        this.commandRepository.add(executableCommand);
+        return executableCommand;
+    }
 }
