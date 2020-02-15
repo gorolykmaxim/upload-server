@@ -1,6 +1,10 @@
 import {Api} from "../../api";
 import {Express, Request, Response} from "express";
-import {CommandDoesNotExist, CommandExecutorBoundedContext} from "../domain/command-executor-bounded-context";
+import {
+    CommandDoesNotExist,
+    CommandExecutorBoundedContext,
+    ExecutionDoesNotExist
+} from "../domain/command-executor-bounded-context";
 import {body} from "express-validator";
 
 export class RestApi extends Api {
@@ -35,6 +39,13 @@ export class RestApi extends Api {
                 res.json(await this.commandExecutorBoundedContext.getExecutionsOfCommand(req.params.id));
             } catch (e) {
                 res.status(e instanceof CommandDoesNotExist ? 404 : 500).send(e.message);
+            }
+        });
+        this.app.get(`${baseUrl}/command/:commandId/execution/:startTime`, async (req: Request, res: Response) => {
+            try {
+                res.json(await this.commandExecutorBoundedContext.getExecutionOfCommand(req.params.commandId, parseInt(req.params.startTime), req.query.noSplit == 'true'));
+            } catch (e) {
+                res.status(e instanceof CommandDoesNotExist || e instanceof ExecutionDoesNotExist ? 404: 500).send(e.message);
             }
         });
     }

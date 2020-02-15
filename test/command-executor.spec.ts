@@ -7,7 +7,11 @@ import {Clock, constantClock} from "clock";
 import {Database} from "sqlite";
 import {Process, ProcessFactory, ProcessStatus} from "../backend/command-executor/domain/process";
 import {EMPTY, from, NEVER, Observable, Subject} from "rxjs";
-import {INSERT, SELECT_BY_COMMAND_NAME} from "../backend/command-executor/infrastructure/database-execution-repository";
+import {
+    INSERT,
+    SELECT_BY_COMMAND_NAME,
+    SELECT_BY_COMMAND_NAME_AND_START_TIME
+} from "../backend/command-executor/infrastructure/database-execution-repository";
 import {EOL} from "os";
 import { expect } from "chai";
 import {Execution} from "../backend/command-executor/domain/execution";
@@ -210,5 +214,117 @@ describe('command-executor', function () {
                     errorMessage: e.errorMessage
                 };
             }));
+    });
+    it('should fail to find execution of a command that does not exist', async function () {
+        // when
+        await request(application.app)
+            .get(`${baseUrl}/command/79435626/execution/12345`)
+            .expect(404);
+    });
+    it('should fail to find command execution that does not exist', async function () {
+        // when
+        await request(application.app)
+            .get(`${baseUrl}/command/${command.id}/execution/1`)
+            .expect(404);
+    });
+    it('should fail to find command execution due to a database error', async function () {
+        // given
+        when(database.get(SELECT_BY_COMMAND_NAME_AND_START_TIME, command.name, 1)).thenReject(new Error('error'));
+        // when
+        await request(application.app)
+            .get(`${baseUrl}/command/${command.id}/execution/1`)
+            .expect(500);
+    });
+    it('should find an active command execution', async function () {
+        // given
+        when(process.status).thenReturn(NEVER);
+        await request(application.app)
+            .post(`${baseUrl}/command/${command.id}/execution`)
+            .expect(201);
+        // when
+        await request(application.app)
+            .get(`${baseUrl}/command/${command.id}/execution/${clock.now()}`)
+            .expect(200, {
+                startTime: clock.now(),
+                commandName: command.name,
+                commandScript: command.command,
+                exitCode: null,
+                exitSignal: null,
+                errorMessage: null,
+                output: output
+            });
+    });
+    it('should find an active command execution without splitting its output', async function () {
+        // given
+        when(process.status).thenReturn(NEVER);
+        await request(application.app)
+            .post(`${baseUrl}/command/${command.id}/execution`)
+            .expect(201);
+        // when
+        await request(application.app)
+            .get(`${baseUrl}/command/${command.id}/execution/${clock.now()}`)
+            .query({noSplit: true})
+            .expect(200, {
+                startTime: clock.now(),
+                commandName: command.name,
+                commandScript: command.command,
+                exitCode: null,
+                exitSignal: null,
+                errorMessage: null,
+                output: output.join(EOL)
+            });
+    });
+    it('should find a complete command execution', async function () {
+        // given
+        const startTime: number = 1;
+        const exitCode: number = 0;
+        when(database.get(SELECT_BY_COMMAND_NAME_AND_START_TIME, command.name, startTime)).thenResolve({
+            'START_TIME': startTime,
+            'COMMAND_NAME': command.name,
+            'COMMAND_SCRIPT': command.command,
+            'EXIT_CODE': exitCode,
+            'EXIT_SIGNAL': null,
+            'ERROR': null,
+            'OUTPUT': output.join(EOL)
+        });
+        // when
+        await request(application.app)
+            .get(`${baseUrl}/command/${command.id}/execution/${startTime}`)
+            .expect(200, {
+                startTime: startTime,
+                commandName: command.name,
+                commandScript: command.command,
+                exitCode: exitCode,
+                exitSignal: null,
+                errorMessage: null,
+                output: output
+            });
+    });
+    it('should find a complete command execution without splitting its output', async function () {
+        // given
+        const startTime: number = 1;
+        const exitCode: number = 0;
+        when(database.get(SELECT_BY_COMMAND_NAME_AND_START_TIME, command.name, startTime)).thenResolve({
+            'START_TIME': startTime,
+            'COMMAND_NAME': command.name,
+            'COMMAND_SCRIPT': command.command,
+            'EXIT_CODE': exitCode,
+            'EXIT_SIGNAL': null,
+            'ERROR': null,
+            'OUTPUT': output.join(EOL)
+        });
+        // when
+        await request(application.app)
+            .get(`${baseUrl}/command/${command.id}/execution/${startTime}`)
+            .query({noSplit: true})
+            .expect(200, {
+                startTime: startTime,
+                commandName: command.name,
+                commandScript: command.command,
+                exitCode: exitCode,
+                exitSignal: null,
+                errorMessage: null,
+                output: output.join(EOL)
+            });
     });
 });

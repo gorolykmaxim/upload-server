@@ -109,6 +109,42 @@ export class CommandExecutorBoundedContext {
             });
     }
 
+    /**
+     * Get detailed information about the execution of the command with the specified ID, that was started at the
+     * specified time.
+     *
+     * @param commandId ID of the command
+     * @param executionStartTime start time of the execution in milliseconds
+     * @param dontSplit if set to true, the output of the execution will be presented as a single string. Otherwise
+     * the output will be an array of output lines
+     * @throws CommandDoesNotExist if the command with the specified ID does not exist
+     * @throws ExecutionsLookupError in case of a failed attempt to lookup executions in one of the repositories
+     * @throws ExecutionDoesNotExist if there were no executions of the specified command, started at the specified time
+     */
+    async getExecutionOfCommand(commandId: string, executionStartTime: number, dontSplit: boolean): Promise<ExecutionDetails> {
+        const command: Command = this.commandRepository.findById(commandId);
+        if (!command) {
+            throw new CommandDoesNotExist(commandId);
+        }
+        let execution: Execution;
+        execution = await this.activeExecutionsRepository.findByCommandNameAndStartTime(command.name, executionStartTime);
+        if (!execution) {
+            execution = await this.completeExecutionsRepository.findByCommandNameAndStartTime(command.name, executionStartTime);
+        }
+        if (!execution) {
+            throw new ExecutionDoesNotExist(commandId, executionStartTime);
+        }
+        return {
+            startTime: execution.startTime,
+            commandName: execution.commandName,
+            commandScript: execution.commandScript,
+            exitCode: execution.exitCode,
+            exitSignal: execution.exitSignal,
+            errorMessage: execution.errorMessage,
+            output: dontSplit ? execution.outputAsString : execution.output
+        };
+    }
+
     private async finalizeExecution(execution: Execution, result: ProcessStatus | Error): Promise<void> {
         try {
             if (result instanceof Error) {
@@ -161,6 +197,16 @@ export interface ExecutionSummary extends StartedExecution {
     errorMessage?: string
 }
 
+/**
+ * Detailed information about the execution.
+ */
+export interface ExecutionDetails extends ExecutionSummary {
+    /**
+     * Both STDOUT and STDERR of the execution combined. Can be either a single string or an array of output lines.
+     */
+    output: Array<string> | string;
+}
+
 export class CommandAlreadyExistsError extends Error {
     constructor(commandName: string) {
         super(`Command with name '${commandName}' already exists`);
@@ -172,5 +218,12 @@ export class CommandDoesNotExist extends Error {
     constructor(id: string) {
         super(`Command with ID '${id}' does not exist`);
         Object.setPrototypeOf(this, CommandDoesNotExist.prototype);
+    }
+}
+
+export class ExecutionDoesNotExist extends Error {
+    constructor(commandId: string, executionStartTime: number) {
+        super(`No executions of command with ID ${commandId} were started at ${executionStartTime}`);
+        Object.setPrototypeOf(this, ExecutionDoesNotExist.prototype);
     }
 }
