@@ -1,9 +1,6 @@
-import {Command} from "./command";
-import {CommandRepository} from "./command-repository";
-import {CommandAlreadyExistsError} from "./command-already-exists-error";
+import {Command, CommandRepository} from "./command";
 import {Execution, ExecutionRepository} from "./execution";
 import {ProcessFactory, ProcessStatus} from "./process";
-import {CommandDoesNotExist} from "./command-does-not-exist";
 import {Clock} from "clock";
 
 /**
@@ -101,4 +98,18 @@ export interface StartedExecution {
     startTime: number,
     commandName: string,
     commandScript: string
+}
+
+export class CommandAlreadyExistsError extends Error {
+    constructor(commandName: string) {
+        super(`Command with name '${commandName}' already exists`);
+        Object.setPrototypeOf(this, CommandAlreadyExistsError.prototype);
+    }
+}
+
+export class CommandDoesNotExist extends Error {
+    constructor(id: string) {
+        super(`Command with ID '${id}' does not exist`);
+        Object.setPrototypeOf(this, CommandDoesNotExist.prototype);
+    }
 }

@@ -1,8 +1,7 @@
 import {Api} from "../../api";
 import {Express, Request, Response} from "express";
 import {body, query} from "express-validator";
-import {LogFileAccessError} from "../domain/log-file-access-error";
-import {LogWatcherBoundedContext} from "../domain/log-watcher-bounded-context";
+import {LogFileAccessError, LogWatcherBoundedContext} from "../domain/log-watcher-bounded-context";
 
 export class RestApi extends Api {
     constructor(private app: Express, private logWatcherBoundedContext: LogWatcherBoundedContext) {

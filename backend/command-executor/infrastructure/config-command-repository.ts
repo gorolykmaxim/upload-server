@@ -1,5 +1,4 @@
-import {CommandRepository} from "../domain/command-repository";
-import {Command} from "../domain/command";
+import {Command, CommandRepository} from "../domain/command";
 import {JsonDB} from "node-json-db";
 
 export class ConfigCommandRepository implements CommandRepository {

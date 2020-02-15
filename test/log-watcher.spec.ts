@@ -9,11 +9,11 @@ import {DummyWebSocket, DummyWebSocketServer, mockWebSocketExpress} from "./web-
 import {expect} from "chai";
 import * as chai from "chai";
 import {FileWatcher} from "../backend/log-watcher/domain/file-watcher";
-import {LogFileAccessError} from "../backend/log-watcher/domain/log-file-access-error";
 import {from, ReplaySubject, Subject, throwError, TimeoutError} from "rxjs";
 import {map, mergeMap, take, timeout, toArray} from "rxjs/operators";
 import {Database} from "sqlite";
 import chaiAsPromised = require("chai-as-promised");
+import {LogFileAccessError} from "../backend/log-watcher/domain/log-watcher-bounded-context";
 
 chai.use(chaiAsPromised);
 

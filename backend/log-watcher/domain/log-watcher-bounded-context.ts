@@ -1,14 +1,8 @@
 import {AllowedLogFilesRepository} from "./allowed-log-files-repository";
 import {FileSystem} from "./file-system";
-import {LogFileAllowanceResult} from "./log-file-allowance-result";
-import {LogFileAccessError} from "./log-file-access-error";
 import {Stats} from "fs";
-import {LogFileOperationError} from "./log-file-operation-error";
-import {LogFileContent} from "./log-file-content";
 import {EOL} from "os";
-import {LogFileSize} from "./log-file-size";
 import {Observable, throwError} from "rxjs";
-import {LogFileChanges} from "./log-file-changes";
 import {FileWatcher} from "./file-watcher";
 import {catchError, map} from "rxjs/operators";
 
@@ -133,5 +127,36 @@ export class LogWatcherBoundedContext {
                     .subscribe(subscriber);
             }).catch(e => subscriber.error(e));
         });
+    }
+}
+
+export interface LogFileAllowanceResult {
+    notice?: string;
+}
+
+export interface LogFileChanges {
+    changes: Array<string>,
+    file?: string
+}
+
+export interface LogFileContent {
+    content: Array<string> | string;
+}
+
+export interface LogFileSize {
+    sizeInBytes: number;
+}
+
+export class LogFileAccessError extends Error {
+    constructor(absolutePathToLogFile: string) {
+        super(`Access to ${absolutePathToLogFile} is forbidden`);
+        Object.setPrototypeOf(this, LogFileAccessError.prototype);
+    }
+}
+
+export class LogFileOperationError extends Error {
+    constructor(operation: string, absolutePathToLogFile: string, cause: Error) {
+        super(`Failed to ${operation} log file ${absolutePathToLogFile}. Reason: ${cause.message}`);
+        Object.setPrototypeOf(this, LogFileOperationError.prototype);
     }
 }

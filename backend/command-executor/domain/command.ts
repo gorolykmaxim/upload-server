@@ -20,3 +20,10 @@ export class Command {
         return execution;
     }
 }
+
+export interface CommandRepository {
+    findAll(): Array<Command>;
+    findById(id: string): Command;
+    add(command: Command): void;
+    remove(command: Command): void;
+}
