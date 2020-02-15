@@ -23,5 +23,12 @@ export class RestApi extends Api {
             this.commandExecutorBoundedContext.removeCommand(req.params.id);
             res.end();
         });
+        this.app.post(`${baseUrl}/command/:id/execution`, async (req: Request, res: Response) => {
+            try {
+                res.status(201).json(await this.commandExecutorBoundedContext.executeCommand(req.params.id));
+            } catch (e) {
+                res.status(404).send(e.message);
+            }
+        });
     }
 }

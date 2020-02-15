@@ -3,6 +3,13 @@ import {Application} from "../backend/application";
 import {anything, deepEqual, instance, mock, resetCalls, verify, when} from "ts-mockito";
 import * as request from "supertest";
 import {Command} from "../backend/command-executor/domain/command";
+import {Clock, constantClock} from "clock";
+import {Database} from "sqlite";
+import {Process, ProcessFactory, ProcessStatus} from "../backend/command-executor/domain/process";
+import {EMPTY, from, Observable, Subject} from "rxjs";
+import {INSERT} from "../backend/command-executor/infrastructure/database-execution-repository";
+import {EOL} from "os";
+import { expect } from "chai";
 
 describe('command-executor', function () {
     const baseUrl: string = '/api/command-executor';
@@ -16,14 +23,29 @@ describe('command-executor', function () {
     };
     const command: Command = new Command('list files', 'ls -lh');
     const configPath: string = '/command-executor';
+    const clock: Clock = constantClock(1324567);
+    const output: Array<string> = ['file 1', 'file 2'];
+    const outputObservable: Observable<string> = from(output);
+    let statusSubject: Subject<ProcessStatus>;
     let jsonDB: JsonDB;
+    let processFactory: ProcessFactory;
+    let process: Process;
+    let database: Database;
     let application: Application;
     beforeEach(async function () {
+        statusSubject = new Subject<ProcessStatus>();
         jsonDB = mock(JsonDB);
+        processFactory = mock<ProcessFactory>();
+        process = mock<Process>();
+        database = mock<Database>();
+        when(processFactory.create('ls', deepEqual(['-lh']))).thenReturn(instance(process));
+        when(process.outputs).thenReturn(outputObservable);
+        when(process.status).thenReturn(statusSubject);
         when(jsonDB.getData(configPath))
             .thenThrow(new Error())
-            .thenReturn(executableCommands);
-        application = new Application(null, instance(jsonDB));
+            .thenReturn(Object.assign({}, executableCommands));
+        application = new Application(null, instance(jsonDB), null, null, clock,
+            instance(processFactory), instance(database));
         await application.main();
     });
     afterEach(function () {
@@ -93,5 +115,46 @@ describe('command-executor', function () {
             .expect(200);
         // then
         verify(jsonDB.push(anything(), anything())).never();
+    });
+    it('should fail to execute a command since command with the specified ID does not exist', async function () {
+        // when
+        await request(application.app)
+            .post(`${baseUrl}/command/53246374/execution`)
+            .expect(404);
+    });
+    it('should execute the specified command and return information about its execution', async function () {
+        // when
+        await request(application.app)
+            .post(`${baseUrl}/command/${command.id}/execution`)
+            .expect(201, {startTime: clock.now(), commandName:  command.name, commandScript: command.command});
+    });
+    it('should save successfully finished command execution to the database', async function () {
+        // given
+        const exitCode: number = 0;
+        const exitSignal: string = 'SIGINT';
+        // when
+        await request(application.app)
+            .post(`${baseUrl}/command/${command.id}/execution`)
+            .expect(201);
+        const statusPromise: Promise<ProcessStatus> = statusSubject.toPromise();
+        statusSubject.next({exitCode: exitCode, exitSignal: exitSignal});
+        statusSubject.complete();
+        await statusPromise;
+        // then
+        verify(database.run(INSERT, clock.now(), command.name, command.command, null, exitCode, exitSignal, output.join(EOL))).once();
+    });
+    it('should save failed command execution to the database', async function () {
+        // given
+        const error: Error = new Error('error');
+        when(process.outputs).thenReturn(EMPTY);
+        // when
+        await request(application.app)
+            .post(`${baseUrl}/command/${command.id}/execution`)
+            .expect(201);
+        const statusPromise: Promise<ProcessStatus> = statusSubject.toPromise();
+        statusSubject.error(error);
+        await expect(statusPromise).rejectedWith(Error);
+        // then
+        verify(database.run(INSERT, clock.now(), command.name, command.command, error.message, null, null, ''));
     });
 });

@@ -14,11 +14,19 @@ import {RestApi as LogWatcherRestApi} from "./log-watcher/infrastructure/rest-ap
 import {WebSocketApi as LogWatcherWebSocketApi} from "./log-watcher/infrastructure/web-socket-api";
 import {LegacyWebSocketApi as LogWatcherLegacyWebSocketApi} from "./log-watcher/infrastructure/legacy-web-socket-api";
 import {Api} from "./api";
-import bodyParser = require("body-parser");
-import expressWs = require("express-ws");
 import {ConfigCommandRepository} from "./command-executor/infrastructure/config-command-repository";
 import {CommandExecutorBoundedContext} from "./command-executor/domain/command-executor-bounded-context";
 import {RestApi as CommandExecutorRestApi} from "./command-executor/infrastructure/rest-api";
+import {ProcessFactory} from "./command-executor/domain/process";
+import systemClock, {Clock} from "clock";
+import {OsProcessFactory} from "./command-executor/infrastructure/os-process";
+import {Database, open} from "sqlite";
+import {ExecutionRepository} from "./command-executor/domain/execution";
+import {InMemoryExecutionRepository} from "./command-executor/infrastructure/in-memory-execution-repository";
+import {DatabaseExecutionRepository} from "./command-executor/infrastructure/database-execution-repository";
+import {join} from "path";
+import bodyParser = require("body-parser");
+import expressWs = require("express-ws");
 
 export class Application {
     readonly app: any;
@@ -26,14 +34,11 @@ export class Application {
     private jsonDB: JsonDB;
     private fileSystem: FileSystem;
     private fileWatcher: FileWatcher;
-    private allowedLogFilesRepository: ConfigAllowedLogFilesRepository;
-    private logWatcherBoundedContext: LogWatcherBoundedContext;
-    private logWatcherApis: Array<Api>;
-    private commandRepository: ConfigCommandRepository;
-    private commandExecutorBoundedContext: CommandExecutorBoundedContext;
-    private commandExecutorApis: Array<Api>;
+    private clock: Clock;
+    private processFactory: ProcessFactory;
+    private database: Database;
 
-    constructor(app?: Express, jsonDB?: JsonDB, fileSystem?: FileSystem, fileWatcher?: FileWatcher) {
+    constructor(app?: Express, jsonDB?: JsonDB, fileSystem?: FileSystem, fileWatcher?: FileWatcher, clock?: Clock, processFactory?: ProcessFactory, database?: Database) {
         if (app) {
             this.app = app;
         } else {
@@ -43,26 +48,40 @@ export class Application {
         this.jsonDB = jsonDB ?? new JsonDB('./upload-server-db', true, true);
         this.fileSystem = fileSystem ?? fs.promises;
         this.fileWatcher = fileWatcher ?? (platform() === 'win32' ? new WindowsFileWatcher('tail.exe') : new UnixFileWatcher());
-        this.allowedLogFilesRepository = new ConfigAllowedLogFilesRepository(this.jsonDB);
-        this.logWatcherBoundedContext = new LogWatcherBoundedContext(this.allowedLogFilesRepository, this.fileSystem, this.fileWatcher);
-        this.logWatcherApis = [
-            new LogWatcherRestApi(this.app, this.logWatcherBoundedContext),
-            new LogWatcherWebSocketApi(this.app, this.logWatcherBoundedContext),
-            new LogWatcherLegacyWebSocketApi(this.app, this.logWatcherBoundedContext)
-        ];
-        this.commandRepository = new ConfigCommandRepository(this.jsonDB);
-        this.commandExecutorBoundedContext = new CommandExecutorBoundedContext(this.commandRepository);
-        this.commandExecutorApis = [
-            new CommandExecutorRestApi(this.app, this.commandExecutorBoundedContext)
-        ];
+        this.clock = clock ?? systemClock;
+        this.processFactory = processFactory ?? new OsProcessFactory();
+        this.database = database;
     }
 
     async main(): Promise<void> {
         this.app.use(bodyParser());
-        this.allowedLogFilesRepository.initialize();
-        this.logWatcherApis.forEach(api => api.initialize('/api/log-watcher'));
-        this.commandRepository.initialize();
-        this.commandExecutorApis.forEach(api => api.initialize('/api/command-executor'));
+        // log-watcher
+        const allowedLogFilesRepository: ConfigAllowedLogFilesRepository = new ConfigAllowedLogFilesRepository(this.jsonDB);
+        const logWatcherBoundedContext: LogWatcherBoundedContext = new LogWatcherBoundedContext(allowedLogFilesRepository, this.fileSystem, this.fileWatcher);
+        const logWatcherApis: Array<Api> = [
+            new LogWatcherRestApi(this.app, logWatcherBoundedContext),
+            new LogWatcherWebSocketApi(this.app, logWatcherBoundedContext),
+            new LogWatcherLegacyWebSocketApi(this.app, logWatcherBoundedContext)
+        ];
+        allowedLogFilesRepository.initialize();
+        logWatcherApis.forEach(api => api.initialize('/api/log-watcher'));
+        // command-executor
+        if (!this.database) {
+            const rootDirectory: string = join(__dirname, '../..');
+            this.database = await open(join(rootDirectory, 'upload-server.db'));
+            // TODO: remove force last
+            await this.database.migrate({force: 'last', migrationsPath: join(rootDirectory, 'migrations')});
+        }
+        const commandRepository: ConfigCommandRepository = new ConfigCommandRepository(this.jsonDB);
+        const activeExecutionRepository: ExecutionRepository = new InMemoryExecutionRepository();
+        const completeExecutionRepository: ExecutionRepository = new DatabaseExecutionRepository(this.database);
+        const commandExecutorBoundedContext: CommandExecutorBoundedContext = new CommandExecutorBoundedContext(
+            commandRepository, this.clock, this.processFactory, activeExecutionRepository, completeExecutionRepository);
+        const commandExecutorApis: Array<Api> = [
+            new CommandExecutorRestApi(this.app, commandExecutorBoundedContext)
+        ];
+        commandRepository.initialize();
+        commandExecutorApis.forEach(api => api.initialize('/api/command-executor'));
         this.server = this.app.listen(8080, () => console.log('Listening on port 8080...'));
     }
 }

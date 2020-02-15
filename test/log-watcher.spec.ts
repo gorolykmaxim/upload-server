@@ -12,6 +12,7 @@ import {FileWatcher} from "../backend/log-watcher/domain/file-watcher";
 import {LogFileAccessError} from "../backend/log-watcher/domain/log-file-access-error";
 import {from, ReplaySubject, Subject, throwError, TimeoutError} from "rxjs";
 import {map, mergeMap, take, timeout, toArray} from "rxjs/operators";
+import {Database} from "sqlite";
 import chaiAsPromised = require("chai-as-promised");
 
 chai.use(chaiAsPromised);
@@ -25,6 +26,7 @@ describe('log-watcher', function () {
     const configPath: string = '/logs-view/logs';
     const content: Buffer = Buffer.from(`line 1${EOL}line 2`);
     const changes: Array<string> = ['line 3', 'line 4', 'line 5'];
+    const database: Database = mock<Database>();
     let jsonDB: JsonDB;
     let fileSystem: FileSystem;
     let fileWatcher: FileWatcher;
@@ -42,7 +44,7 @@ describe('log-watcher', function () {
             .thenReturn([].concat(allowedLogs));
         when(fileSystem.readFile(allowedLogs[0])).thenResolve(content);
         when(fileWatcher.watch(allowedLogs[0])).thenReturn(from(changes));
-        application = new Application(express, instance(jsonDB), instance(fileSystem), instance(fileWatcher));
+        application = new Application(express, instance(jsonDB), instance(fileSystem), instance(fileWatcher), null, null, instance(database));
         await application.main();
     });
     afterEach(function () {

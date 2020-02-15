@@ -44,7 +44,8 @@
     "rxjs": "^6.5.4",
     "node-json-db": "^1.0.3",
     "express-validator": "^6.4.0",
-    "validate": "^4.5.1"
+    "validate": "^4.5.1",
+    "clock": "^1.0.2"
   },
   "devDependencies": {
     "@types/chai": "^4.2.7",
