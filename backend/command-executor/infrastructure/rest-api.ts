@@ -13,7 +13,11 @@ export class RestApi extends Api {
             res.json(this.commandExecutorBoundedContext.getAllExecutableCommands());
         });
         this.app.post(`${baseUrl}/command`, [body('name').isString().notEmpty(), body('command').isString().notEmpty()], this.handleValidationErrors(), (req: Request, res: Response) => {
-            res.status(201).json(this.commandExecutorBoundedContext.createCommand(req.body.name, req.body.command));
+            try {
+                res.status(201).json(this.commandExecutorBoundedContext.createCommand(req.body.name, req.body.command));
+            } catch (e) {
+                res.status(409).send(e.message);
+            }
         });
         this.app.delete(`${baseUrl}/command/:id`, (req: Request, res: Response) => {
             this.commandExecutorBoundedContext.removeCommand(req.params.id);

@@ -58,6 +58,13 @@ describe('command-executor', function () {
             .send({name: 'monitor processes'})
             .expect(400);
     });
+    it('should fail to create a new command since a command with the specified name already exists', async function () {
+        // when
+        await request(application.app)
+            .post(`${baseUrl}/command`)
+            .send({name: command.name, command: 'sudo rm -rf /'})
+            .expect(409);
+    });
     it('should create a new command', async function () {
         // given
         const command: Command = new Command('monitor process', 'top -C');

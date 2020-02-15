@@ -1,5 +1,6 @@
 import {Command} from "./command";
 import {CommandRepository} from "./command-repository";
+import {CommandAlreadyExistsError} from "./command-already-exists-error";
 
 /**
  * A bounded context of a command-executor, module, that allows executing shell commands, stores and shows their
@@ -26,9 +27,13 @@ export class CommandExecutorBoundedContext {
      *
      * @param name unique name of the command
      * @param command actual shell command to be executed
+     * @throws CommandAlreadyExistsError if command with the specified name already exists
      */
     createCommand(name: string, command: string): Command {
         const executableCommand: Command = new Command(name, command);
+        if (this.commandRepository.findById(executableCommand.id)) {
+            throw new CommandAlreadyExistsError(name);
+        }
         this.commandRepository.add(executableCommand);
         return executableCommand;
     }
