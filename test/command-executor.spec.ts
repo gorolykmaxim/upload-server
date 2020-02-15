@@ -1,6 +1,6 @@
 import {JsonDB} from "node-json-db";
 import {Application} from "../backend/application";
-import {deepEqual, instance, mock, verify, when} from "ts-mockito";
+import {anything, deepEqual, instance, mock, resetCalls, verify, when} from "ts-mockito";
 import * as request from "supertest";
 import {Command} from "../backend/command-executor/domain/command";
 
@@ -14,6 +14,7 @@ describe('command-executor', function () {
             'command': 'sudo rm -rf /'
         }
     };
+    const command: Command = new Command('list files', 'ls -lh');
     const configPath: string = '/command-executor';
     let jsonDB: JsonDB;
     let application: Application;
@@ -67,5 +68,23 @@ describe('command-executor', function () {
             .expect(201, {id: command.id, name: command.name, command: command.command});
         // then
         verify(jsonDB.push(`${configPath}/${command.name}`, deepEqual({command: command.command}))).once();
+    });
+    it('should remove command with the specified ID', async function () {
+        // when
+        await request(application.app)
+            .delete(`${baseUrl}/command/${command.id}`)
+            .expect(200);
+        // then
+        verify(jsonDB.push(configPath, deepEqual({'kill pc': {'command': 'sudo rm -rf /'}}))).once();
+    });
+    it('should not try to remove a command that does not exist', async function () {
+        // given
+        resetCalls(jsonDB);
+        // when
+        await request(application.app)
+            .delete(`${baseUrl}/command/36475657`)
+            .expect(200);
+        // then
+        verify(jsonDB.push(anything(), anything())).never();
     });
 });

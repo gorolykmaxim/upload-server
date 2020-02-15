@@ -32,4 +32,17 @@ export class CommandExecutorBoundedContext {
         this.commandRepository.add(executableCommand);
         return executableCommand;
     }
+
+    /**
+     * Remove command with the specified ID. This will not remove execution history of the specified command, since
+     * it might still be of use.
+     *
+     * @param id ID of the command to remove
+     */
+    removeCommand(id: string): void {
+        const command: Command = this.commandRepository.findById(id);
+        if (command) {
+            this.commandRepository.remove(command);
+        }
+    }
 }

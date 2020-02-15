@@ -28,4 +28,14 @@ export class ConfigCommandRepository implements CommandRepository {
     add(command: Command): void {
         this.jsonDb.push(`${ConfigCommandRepository.COMMANDS_PATH}/${command.name}`, {command: command.command});
     }
+
+    findById(id: string): Command {
+        return this.findAll().filter(c => c.id === id)[0];
+    }
+
+    remove(command: Command): void {
+        const configCommands: any = this.jsonDb.getData(ConfigCommandRepository.COMMANDS_PATH);
+        delete configCommands[command.name];
+        this.jsonDb.push(ConfigCommandRepository.COMMANDS_PATH, configCommands);
+    }
 }
