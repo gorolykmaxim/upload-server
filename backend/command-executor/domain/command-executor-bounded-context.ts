@@ -62,12 +62,12 @@ export class CommandExecutorBoundedContext {
      * Execute the command with the specified ID and return the created execution.
      *
      * @param id ID of the command to execute
-     * @throws CommandDoesNotExist if command with the specified ID does not exist
+     * @throws CommandDoesNotExistError if command with the specified ID does not exist
      */
     async executeCommand(id: string): Promise<StartedExecution> {
         const command: Command = this.commandRepository.findById(id);
         if (!command) {
-            throw new CommandDoesNotExist(id);
+            throw new CommandDoesNotExistError(id);
         }
         const execution: Execution = command.execute(this.clock, this.processFactory);
         await this.activeExecutionsRepository.add(execution);
@@ -83,13 +83,13 @@ export class CommandExecutorBoundedContext {
      * recent executions go first.
      *
      * @param id ID of the command
-     * @throws CommandDoesNotExist if command with the specified ID does not exist
+     * @throws CommandDoesNotExistError if command with the specified ID does not exist
      * @throws ExecutionsLookupError in case of a failed attempt to lookup executions in one of the repositories
      */
     async getExecutionsOfCommand(id: string): Promise<Array<ExecutionSummary>> {
         const command: Command = await this.commandRepository.findById(id);
         if (!command) {
-            throw new CommandDoesNotExist(id);
+            throw new CommandDoesNotExistError(id);
         }
         let executions: Array<Execution> = [];
         executions.push(...await this.activeExecutionsRepository.findByCommandName(command.name));
@@ -117,14 +117,14 @@ export class CommandExecutorBoundedContext {
      * @param executionStartTime start time of the execution in milliseconds
      * @param dontSplit if set to true, the output of the execution will be presented as a single string. Otherwise
      * the output will be an array of output lines
-     * @throws CommandDoesNotExist if the command with the specified ID does not exist
+     * @throws CommandDoesNotExistError if the command with the specified ID does not exist
      * @throws ExecutionsLookupError in case of a failed attempt to lookup executions in one of the repositories
-     * @throws ExecutionDoesNotExist if there were no executions of the specified command, started at the specified time
+     * @throws ExecutionDoesNotExistError if there were no executions of the specified command, started at the specified time
      */
     async getExecutionOfCommand(commandId: string, executionStartTime: number, dontSplit: boolean): Promise<ExecutionDetails> {
         const command: Command = this.commandRepository.findById(commandId);
         if (!command) {
-            throw new CommandDoesNotExist(commandId);
+            throw new CommandDoesNotExistError(commandId);
         }
         let execution: Execution;
         execution = await this.activeExecutionsRepository.findByCommandNameAndStartTime(command.name, executionStartTime);
@@ -132,7 +132,7 @@ export class CommandExecutorBoundedContext {
             execution = await this.completeExecutionsRepository.findByCommandNameAndStartTime(command.name, executionStartTime);
         }
         if (!execution) {
-            throw new ExecutionDoesNotExist(commandId, executionStartTime);
+            throw new ExecutionDoesNotExistError(commandId, executionStartTime);
         }
         return {
             startTime: execution.startTime,
@@ -214,16 +214,16 @@ export class CommandAlreadyExistsError extends Error {
     }
 }
 
-export class CommandDoesNotExist extends Error {
+export class CommandDoesNotExistError extends Error {
     constructor(id: string) {
         super(`Command with ID '${id}' does not exist`);
-        Object.setPrototypeOf(this, CommandDoesNotExist.prototype);
+        Object.setPrototypeOf(this, CommandDoesNotExistError.prototype);
     }
 }
 
-export class ExecutionDoesNotExist extends Error {
+export class ExecutionDoesNotExistError extends Error {
     constructor(commandId: string, executionStartTime: number) {
         super(`No executions of command with ID ${commandId} were started at ${executionStartTime}`);
-        Object.setPrototypeOf(this, ExecutionDoesNotExist.prototype);
+        Object.setPrototypeOf(this, ExecutionDoesNotExistError.prototype);
     }
 }
