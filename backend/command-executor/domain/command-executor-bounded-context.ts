@@ -141,7 +141,7 @@ export class CommandExecutorBoundedContext {
             exitCode: execution.exitCode,
             exitSignal: execution.exitSignal,
             errorMessage: execution.errorMessage,
-            output: dontSplit ? execution.outputAsString : execution.output
+            output: dontSplit ? execution.outputAsString : execution.outputLines
         };
     }
 

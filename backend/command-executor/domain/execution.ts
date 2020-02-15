@@ -7,7 +7,10 @@ export class Execution {
     private process: Process;
 
     constructor(readonly startTime: number, private command: Command, private status?: ProcessStatus,
-                private error?: Error, readonly output: Array<string> = []) {
+                private error?: Error, private output?: Output) {
+        if (!this.output) {
+            this.output = new Output();
+        }
     }
 
     attachTo(process: Process): void {
@@ -22,6 +25,10 @@ export class Execution {
     complete(status: ProcessStatus): void {
         this.status = status;
         this.process = null;
+    }
+
+    appendToOutput(line: string): void {
+        this.output.append(line);
     }
 
     get statusChanges(): Observable<ProcessStatus> {
@@ -49,6 +56,36 @@ export class Execution {
     }
 
     get outputAsString(): string {
+        return this.output.asString;
+    }
+
+    get outputLines(): Array<string> {
+        return this.output.lines;
+    }
+}
+
+export class Output {
+    private output: Array<string>;
+
+    constructor(output?: Array<string> | string) {
+        if (typeof output === 'string') {
+            this.output = output.split(EOL);
+        } else if (output instanceof Array) {
+            this.output = output;
+        } else {
+            this.output = [];
+        }
+    }
+
+    append(line: string): void {
+        this.output.push(line);
+    }
+
+    get lines(): Array<string> {
+        return this.output;
+    }
+
+    get asString(): string {
         return this.output.join(EOL);
     }
 }

@@ -1,7 +1,12 @@
-import {Execution, ExecutionOperationError, ExecutionRepository, ExecutionsLookupError} from "../domain/execution";
+import {
+    Execution,
+    ExecutionOperationError,
+    ExecutionRepository,
+    ExecutionsLookupError,
+    Output
+} from "../domain/execution";
 import {Database} from "sqlite";
 import {Command} from "../domain/command";
-import {EOL} from "os";
 
 export const SELECT_BY_COMMAND_NAME: string = 'SELECT START_TIME, COMMAND_NAME, COMMAND_SCRIPT, ERROR, EXIT_CODE, EXIT_SIGNAL FROM COMMAND_EXECUTION WHERE COMMAND_NAME = ?';
 export const SELECT_BY_COMMAND_NAME_AND_START_TIME: string = 'SELECT * FROM COMMAND_EXECUTION WHERE COMMAND_NAME = ? AND START_TIME = ?';
@@ -47,16 +52,12 @@ export class DatabaseExecutionRepository implements ExecutionRepository {
     }
 
     private deserializeExecution(row: any, includeOutput: boolean = false): Execution {
-        let output: Array<string> = null;
-        if (includeOutput) {
-            output = row['OUTPUT'].split(EOL);
-        }
         return new Execution(
             row['START_TIME'],
             new Command(row['COMMAND_NAME'], row['COMMAND_SCRIPT']),
             {exitCode: row['EXIT_CODE'], exitSignal: row['EXIT_SIGNAL']},
             row['ERROR'],
-            output
+            new Output(includeOutput ? row['OUTPUT'] : [])
         );
     }
 }

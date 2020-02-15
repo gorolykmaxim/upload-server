@@ -16,7 +16,7 @@ export class Command {
         const process: Process = processFactory.create(executable, args);
         const execution: Execution = new Execution(clock.now(), this);
         execution.attachTo(process);
-        process.outputs.subscribe(line => execution.output.push(line));
+        process.outputs.subscribe(line => execution.appendToOutput(line));
         return execution;
     }
 }
