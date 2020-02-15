@@ -15,10 +15,10 @@ class OsProcess implements Process {
     }
 
     get status(): Observable<ProcessStatus> {
-        const close: Observable<ProcessStatus> = fromEvent(this.childProcess, 'close');
+        const close: Observable<any> = fromEvent(this.childProcess, 'close');
         const error: Observable<Error> = fromEvent(this.childProcess, 'error');
         return new Observable<ProcessStatus>(subscriber => {
-            close.subscribe(subscriber);
+            subscriber.add(close.subscribe(s => subscriber.next({exitCode: s[0], exitSignal: s[1]})));
             subscriber.add(error.subscribe(e => subscriber.error(e)));
         }).pipe(take(1));
     }
