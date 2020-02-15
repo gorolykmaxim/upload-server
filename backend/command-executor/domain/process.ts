@@ -8,6 +8,7 @@ export interface ProcessStatus {
 export interface Process {
     readonly status: Observable<ProcessStatus>;
     readonly outputs: Observable<string>;
+    sendSignal(signal: number): void;
 }
 
 export interface ProcessFactory {

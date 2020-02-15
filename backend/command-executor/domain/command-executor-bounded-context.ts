@@ -145,6 +145,28 @@ export class CommandExecutorBoundedContext {
         };
     }
 
+    /**
+     * Send an OS signal to the execution of the specified command. The execution must be active to receive a signal.
+     *
+     * @param commandId ID of the command
+     * @param executionStartTime start time of the execution
+     * @param signal signal to send
+     * @throws CommandDoesNotExistError if the command with the specified ID does not exist
+     * @throws NoActiveExecutionFound if there is no execution of the specified command, started at the specified time,
+     * that is currently running
+     */
+    async sendSignalToTheExecution(commandId: string, executionStartTime: number, signal: number): Promise<void> {
+        const command: Command = this.commandRepository.findById(commandId);
+        if (!command) {
+            throw new CommandDoesNotExistError(commandId);
+        }
+        const execution: Execution = await this.activeExecutionsRepository.findByCommandNameAndStartTime(command.name, executionStartTime);
+        if (!execution) {
+            throw new NoActiveExecutionFound(commandId, executionStartTime);
+        }
+        execution.sendSignal(signal);
+    }
+
     private async finalizeExecution(execution: Execution, result: ProcessStatus | Error): Promise<void> {
         try {
             if (result instanceof Error) {
@@ -225,5 +247,12 @@ export class ExecutionDoesNotExistError extends Error {
     constructor(commandId: string, executionStartTime: number) {
         super(`No executions of command with ID ${commandId} were started at ${executionStartTime}`);
         Object.setPrototypeOf(this, ExecutionDoesNotExistError.prototype);
+    }
+}
+
+export class NoActiveExecutionFound extends Error {
+    constructor(commandId: string, executionStartTime: number) {
+        super(`There is no execution of the command with ID ${commandId}, that was started at ${executionStartTime}, that is currently running`);
+        Object.setPrototypeOf(this, NoActiveExecutionFound.prototype);
     }
 }

@@ -12,7 +12,7 @@ import {
     SELECT_BY_COMMAND_NAME,
     SELECT_BY_COMMAND_NAME_AND_START_TIME
 } from "../backend/command-executor/infrastructure/database-execution-repository";
-import {EOL} from "os";
+import {constants, EOL} from "os";
 import { expect } from "chai";
 import {Execution} from "../backend/command-executor/domain/execution";
 
@@ -326,5 +326,53 @@ describe('command-executor', function () {
                 errorMessage: null,
                 output: output.join(EOL)
             });
+    });
+    it('should fail to terminate an execution of a command that does not exist', async function () {
+        // when
+        await request(application.app)
+            .post(`${baseUrl}/command/1239236/execution/${clock.now()}/terminate`)
+            .expect(404);
+    });
+    it('should fail to terminate an execution that is not active right now', async function () {
+        // when
+        await request(application.app)
+            .post(`${baseUrl}/command/${command.id}/execution/${clock.now()}/terminate`)
+            .expect(404);
+    });
+    it('should terminate the execution', async function () {
+        // given
+        await request(application.app)
+            .post(`${baseUrl}/command/${command.id}/execution`)
+            .expect(201);
+        // when
+        await request(application.app)
+            .post(`${baseUrl}/command/${command.id}/execution/${clock.now()}/terminate`)
+            .expect(200);
+        // then
+        verify(process.sendSignal(constants.signals.SIGINT)).once();
+    });
+    it('should fail to halt an execution of a command that does not exist', async function () {
+        // when
+        await request(application.app)
+            .post(`${baseUrl}/command/1239236/execution/${clock.now()}/halt`)
+            .expect(404);
+    });
+    it('should fail to halt an execution that is not active right now', async function () {
+        // when
+        await request(application.app)
+            .post(`${baseUrl}/command/${command.id}/execution/${clock.now()}/halt`)
+            .expect(404);
+    });
+    it('should halt the execution', async function () {
+        // given
+        await request(application.app)
+            .post(`${baseUrl}/command/${command.id}/execution`)
+            .expect(201);
+        // when
+        await request(application.app)
+            .post(`${baseUrl}/command/${command.id}/execution/${clock.now()}/halt`)
+            .expect(200);
+        // then
+        verify(process.sendSignal(constants.signals.SIGKILL)).once();
     });
 });

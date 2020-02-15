@@ -22,6 +22,10 @@ class OsProcess implements Process {
             subscriber.add(error.subscribe(e => subscriber.error(e)));
         }).pipe(take(1));
     }
+
+    sendSignal(signal: number): void {
+        this.childProcess.kill(signal);
+    }
 }
 
 export class OsProcessFactory implements ProcessFactory {

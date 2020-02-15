@@ -6,6 +6,7 @@ import {
     ExecutionDoesNotExistError
 } from "../domain/command-executor-bounded-context";
 import {body} from "express-validator";
+import {constants} from "os";
 
 export class RestApi extends Api {
     constructor(private app: Express, private commandExecutorBoundedContext: CommandExecutorBoundedContext) {
@@ -46,6 +47,22 @@ export class RestApi extends Api {
                 res.json(await this.commandExecutorBoundedContext.getExecutionOfCommand(req.params.commandId, parseInt(req.params.startTime), req.query.noSplit == 'true'));
             } catch (e) {
                 res.status(e instanceof CommandDoesNotExistError || e instanceof ExecutionDoesNotExistError ? 404: 500).send(e.message);
+            }
+        });
+        this.app.post(`${baseUrl}/command/:commandId/execution/:startTime/terminate`, async (req: Request, res: Response) => {
+            try {
+                await this.commandExecutorBoundedContext.sendSignalToTheExecution(req.params.commandId, parseInt(req.params.startTime), constants.signals.SIGINT);
+                res.end();
+            } catch (e) {
+                res.status(404).send(e.message);
+            }
+        });
+        this.app.post(`${baseUrl}/command/:commandId/execution/:startTime/halt`, async (req: Request, res: Response) => {
+            try {
+                await this.commandExecutorBoundedContext.sendSignalToTheExecution(req.params.commandId, parseInt(req.params.startTime), constants.signals.SIGKILL);
+                res.end();
+            } catch (e) {
+                res.status(404).send(e.message);
             }
         });
     }

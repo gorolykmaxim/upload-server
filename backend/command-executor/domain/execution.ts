@@ -31,6 +31,10 @@ export class Execution {
         this.output.append(line);
     }
 
+    sendSignal(signal: number): void {
+        this.process.sendSignal(signal);
+    }
+
     get statusChanges(): Observable<ProcessStatus> {
         return this.process.status;
     }
