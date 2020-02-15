@@ -16,6 +16,9 @@ import {LegacyWebSocketApi as LogWatcherLegacyWebSocketApi} from "./log-watcher/
 import {Api} from "./api";
 import bodyParser = require("body-parser");
 import expressWs = require("express-ws");
+import {ConfigCommandRepository} from "./command-executor/infrastructure/config-command-repository";
+import {CommandExecutorBoundedContext} from "./command-executor/domain/command-executor-bounded-context";
+import {RestApi as CommandExecutorRestApi} from "./command-executor/infrastructure/rest-api";
 
 export class Application {
     readonly app: any;
@@ -26,6 +29,9 @@ export class Application {
     private allowedLogFilesRepository: ConfigAllowedLogFilesRepository;
     private logWatcherBoundedContext: LogWatcherBoundedContext;
     private logWatcherApis: Array<Api>;
+    private commandRepository: ConfigCommandRepository;
+    private commandExecutorBoundedContext: CommandExecutorBoundedContext;
+    private commandExecutorApis: Array<Api>;
 
     constructor(app?: Express, jsonDB?: JsonDB, fileSystem?: FileSystem, fileWatcher?: FileWatcher) {
         if (app) {
@@ -44,16 +50,19 @@ export class Application {
             new LogWatcherWebSocketApi(this.app, this.logWatcherBoundedContext),
             new LogWatcherLegacyWebSocketApi(this.app, this.logWatcherBoundedContext)
         ];
+        this.commandRepository = new ConfigCommandRepository(this.jsonDB);
+        this.commandExecutorBoundedContext = new CommandExecutorBoundedContext(this.commandRepository);
+        this.commandExecutorApis = [
+            new CommandExecutorRestApi(this.app, this.commandExecutorBoundedContext)
+        ];
     }
 
     async main(): Promise<void> {
         this.app.use(bodyParser());
-        await this.initializeLogWatcher('/api/log-watcher');
-        this.server = this.app.listen(8080, () => console.log('Listening on port 8080...'));
-    }
-
-    private async initializeLogWatcher(baseUrl: string): Promise<void> {
         this.allowedLogFilesRepository.initialize();
-        this.logWatcherApis.forEach(api => api.initialize(baseUrl));
+        this.logWatcherApis.forEach(api => api.initialize('/api/log-watcher'));
+        this.commandRepository.initialize();
+        this.commandExecutorApis.forEach(api => api.initialize('/api/command-executor'));
+        this.server = this.app.listen(8080, () => console.log('Listening on port 8080...'));
     }
 }
