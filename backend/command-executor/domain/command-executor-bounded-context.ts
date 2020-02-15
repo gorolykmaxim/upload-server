@@ -22,7 +22,7 @@ export class CommandExecutorBoundedContext {
     }
 
     /**
-     * Create a command, that can be executed later.
+     * Create a command, that can be executed later. Return created command.
      *
      * @param name unique name of the command
      * @param command actual shell command to be executed
