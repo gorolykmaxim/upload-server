@@ -130,20 +130,47 @@ export class LogWatcherBoundedContext {
     }
 }
 
+/**
+ * Result of allowing a log file to be watched.
+ */
 export interface LogFileAllowanceResult {
+    /**
+     * Additional information about the log file, that has been allowed to be watched.
+     */
     notice?: string;
 }
 
+/**
+ * An event, which signalises that the content of the log file has been changed.
+ */
 export interface LogFileChanges {
+    /**
+     * Array of lines of content, that were added to the existing content.
+     */
     changes: Array<string>,
+    /**
+     * Path to the log file.
+     */
     file?: string
 }
 
+/**
+ * Content of the log file.
+ */
 export interface LogFileContent {
+    /**
+     * Log file content which can be either a singular string or an array of lines of content.
+     */
     content: Array<string> | string;
 }
 
+/**
+ * Information about the size of the log file.
+ */
 export interface LogFileSize {
+    /**
+     * Size of the log file in bytes.
+     */
     sizeInBytes: number;
 }
 

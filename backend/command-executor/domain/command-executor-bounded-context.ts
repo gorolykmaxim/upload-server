@@ -94,9 +94,21 @@ export class CommandExecutorBoundedContext {
     }
 }
 
+/**
+ * Information about a command execution, that has been just started.
+ */
 export interface StartedExecution {
+    /**
+     * The time in milliseconds, when the execution has started.
+     */
     startTime: number,
+    /**
+     * Name of the command, to which this execution belongs to.
+     */
     commandName: string,
+    /**
+     * Actual shell command, that is being executed.
+     */
     commandScript: string
 }
 
