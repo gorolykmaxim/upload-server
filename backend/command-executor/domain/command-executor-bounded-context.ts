@@ -78,6 +78,37 @@ export class CommandExecutorBoundedContext {
         return {startTime: execution.startTime, commandName: execution.commandName, commandScript: execution.commandScript};
     }
 
+    /**
+     * Get all executions of the command with the specified ID in their chronological descending order, where the most
+     * recent executions go first.
+     *
+     * @param id ID of the command
+     * @throws CommandDoesNotExist if command with the specified ID does not exist
+     * @throws ExecutionsLookupError in case of a failed attempt to lookup executions in one of the repositories
+     */
+    async getExecutionsOfCommand(id: string): Promise<Array<ExecutionSummary>> {
+        const command: Command = await this.commandRepository.findById(id);
+        if (!command) {
+            throw new CommandDoesNotExist(id);
+        }
+        let executions: Array<Execution> = [];
+        executions.push(...await this.activeExecutionsRepository.findByCommandName(command.name));
+        executions.push(...await this.completeExecutionsRepository.findByCommandName(command.name));
+        return executions
+            .sort((a, b) => a.startTime - b.startTime)
+            .reverse()
+            .map<ExecutionSummary>(e => {
+                return {
+                    startTime: e.startTime,
+                    commandName: e.commandName,
+                    commandScript: e.commandScript,
+                    exitCode: e.exitCode,
+                    exitSignal: e.exitSignal,
+                    errorMessage: e.errorMessage
+                }
+            });
+    }
+
     private async finalizeExecution(execution: Execution, result: ProcessStatus | Error): Promise<void> {
         try {
             if (result instanceof Error) {
@@ -110,6 +141,24 @@ export interface StartedExecution {
      * Actual shell command, that is being executed.
      */
     commandScript: string
+}
+
+/**
+ * Information about a command execution, that does not contain the output.
+ */
+export interface ExecutionSummary extends StartedExecution {
+    /**
+     * Exit code, with which the execution has completed.
+     */
+    exitCode?: number,
+    /**
+     * The signal, that has terminated the execution.
+     */
+    exitSignal?: string,
+    /**
+     * Message of the error, that has happenned to the execution.
+     */
+    errorMessage?: string
 }
 
 export class CommandAlreadyExistsError extends Error {

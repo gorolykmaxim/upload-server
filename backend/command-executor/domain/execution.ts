@@ -4,12 +4,10 @@ import {EOL} from "os";
 import {Observable} from "rxjs";
 
 export class Execution {
-    private status: ProcessStatus;
-    private error: Error;
     private process: Process;
-    readonly output: Array<string> = [];
 
-    constructor(readonly startTime: number, private command: Command) {
+    constructor(readonly startTime: number, private command: Command, private status?: ProcessStatus,
+                private error?: Error, readonly output: Array<string> = []) {
     }
 
     attachTo(process: Process): void {
@@ -57,6 +55,7 @@ export class Execution {
 
 export interface ExecutionRepository {
     add(execution: Execution): Promise<void>;
+    findByCommandName(commandName: string): Promise<Array<Execution>>;
     remove(execution: Execution): Promise<void>;
 }
 
@@ -64,5 +63,12 @@ export class ExecutionOperationError extends Error {
     constructor(operation: string, execution: Execution, cause: Error) {
         super(`Failed to ${operation} execution '${JSON.stringify(execution)}'. Reason: ${cause.message}`);
         Object.setPrototypeOf(this, ExecutionOperationError.prototype);
+    }
+}
+
+export class ExecutionsLookupError extends Error {
+    constructor(query: string, cause: Error) {
+        super(`Failed to find executions that ${query}. Reason: ${cause.message}`);
+        Object.setPrototypeOf(this, ExecutionsLookupError.prototype);
     }
 }

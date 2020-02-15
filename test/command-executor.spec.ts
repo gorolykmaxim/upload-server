@@ -6,10 +6,11 @@ import {Command} from "../backend/command-executor/domain/command";
 import {Clock, constantClock} from "clock";
 import {Database} from "sqlite";
 import {Process, ProcessFactory, ProcessStatus} from "../backend/command-executor/domain/process";
-import {EMPTY, from, Observable, Subject} from "rxjs";
-import {INSERT} from "../backend/command-executor/infrastructure/database-execution-repository";
+import {EMPTY, from, NEVER, Observable, Subject} from "rxjs";
+import {INSERT, SELECT_BY_COMMAND_NAME} from "../backend/command-executor/infrastructure/database-execution-repository";
 import {EOL} from "os";
 import { expect } from "chai";
+import {Execution} from "../backend/command-executor/domain/execution";
 
 describe('command-executor', function () {
     const baseUrl: string = '/api/command-executor';
@@ -156,5 +157,58 @@ describe('command-executor', function () {
         await expect(statusPromise).rejectedWith(Error);
         // then
         verify(database.run(INSERT, clock.now(), command.name, command.command, error.message, null, null, ''));
+    });
+    it('should fail to find all executions of a command that does not exist', async function () {
+        // when
+        await request(application.app)
+            .get(`${baseUrl}/command/56234956/execution`)
+            .expect(404);
+    });
+    it('should fail to find all executions of the specified command due to a database error', async function () {
+        // given
+        when(database.all(SELECT_BY_COMMAND_NAME, command.name)).thenReject(new Error('error'));
+        // when
+        await request(application.app)
+            .get(`${baseUrl}/command/${command.id}/execution`)
+            .expect(500);
+    });
+    it('should find all executions of the specified command and return them in their descending order', async function () {
+        // given
+        when(process.status).thenReturn(NEVER);
+        when(process.outputs).thenReturn(NEVER);
+        const executions: Array<Execution> = [];
+        for (let i = 1; i < 4; i++) {
+            executions.push(new Execution(i, command, {exitCode: 0, exitSignal: "SIGINT"}, null));
+        }
+        when(database.all(SELECT_BY_COMMAND_NAME, command.name)).thenResolve(
+            executions.map(e => {
+                    return {
+                        'START_TIME': e.startTime,
+                        'COMMAND_NAME': e.commandName,
+                        'COMMAND_SCRIPT': e.commandScript,
+                        'ERROR': e.errorMessage,
+                        'EXIT_CODE': e.exitCode,
+                        'EXIT_SIGNAL': e.exitSignal
+                    };
+            })
+        );
+        await request(application.app)
+            .post(`${baseUrl}/command/${command.id}/execution`)
+            .expect(201);
+        executions.push(new Execution(clock.now(), command));
+        executions.sort((a, b) => a.startTime - b.startTime).reverse();
+        // when
+        await request(application.app)
+            .get(`${baseUrl}/command/${command.id}/execution`)
+            .expect(200, executions.map(e => {
+                return {
+                    startTime: e.startTime,
+                    commandName: e.commandName,
+                    commandScript: e.commandScript,
+                    exitCode: e.exitCode,
+                    exitSignal: e.exitSignal,
+                    errorMessage: e.errorMessage
+                };
+            }));
     });
 });

@@ -1,6 +1,8 @@
-import {Execution, ExecutionOperationError, ExecutionRepository} from "../domain/execution";
+import {Execution, ExecutionOperationError, ExecutionRepository, ExecutionsLookupError} from "../domain/execution";
 import {Database} from "sqlite";
+import {Command} from "../domain/command";
 
+export const SELECT_BY_COMMAND_NAME: string = 'SELECT START_TIME, COMMAND_NAME, COMMAND_SCRIPT, ERROR, EXIT_CODE, EXIT_SIGNAL FROM COMMAND_EXECUTION WHERE COMMAND_NAME = ?';
 export const INSERT: string = 'INSERT INTO COMMAND_EXECUTION(START_TIME, COMMAND_NAME, COMMAND_SCRIPT, ERROR, EXIT_CODE, EXIT_SIGNAL, OUTPUT) VALUES (?, ?, ?, ?, ?, ?, ?)';
 export const DELETE: string = 'DELETE FROM COMMAND_EXECUTION WHERE START_TIME = ? AND COMMAND_NAME = ?';
 
@@ -24,4 +26,17 @@ export class DatabaseExecutionRepository implements ExecutionRepository {
         }
     }
 
+    async findByCommandName(commandName:string): Promise<Array<Execution>> {
+        try {
+            const rows: Array<any> = await this.database.all(SELECT_BY_COMMAND_NAME, commandName);
+            return rows.map(row => new Execution(
+                row['START_TIME'],
+                new Command(row['COMMAND_NAME'], row['COMMAND_SCRIPT']),
+                {exitCode: row['EXIT_CODE'], exitSignal: row['EXIT_SIGNAL']},
+                row['ERROR']
+            ));
+        } catch (e) {
+            throw new ExecutionsLookupError(`belong to the command with ID ${commandName}`, e);
+        }
+    }
 }
