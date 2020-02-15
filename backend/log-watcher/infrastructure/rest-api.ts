@@ -14,7 +14,7 @@ export class RestApi extends Api {
             res.json(this.logWatcherBoundedContext.getLogFilesAllowedToBeWatched());
         });
         this.app.post(`${baseUrl}/log`, body('absolutePath').isString().notEmpty(), this.handleValidationErrors(), async (req: Request, res: Response) => {
-            res.status(201).json(await this.logWatcherBoundedContext.allowLogFileToBeWatched(req.body.absolutePath)).end();
+            res.status(201).json(await this.logWatcherBoundedContext.allowLogFileToBeWatched(req.body.absolutePath));
         });
         this.app.delete(`${baseUrl}/log`, query('absolutePath').isString().notEmpty(), this.handleValidationErrors(), (req: Request, res: Response) => {
             this.logWatcherBoundedContext.disallowLogFileToBeWatched(req.query.absolutePath);
@@ -22,16 +22,16 @@ export class RestApi extends Api {
         });
         this.app.get(`${baseUrl}/log/size`, query('absolutePath').isString().notEmpty(), this.handleValidationErrors(), async (req: Request, res: Response) => {
             try {
-                res.json(await this.logWatcherBoundedContext.getLogFileSize(req.query.absolutePath)).end();
+                res.json(await this.logWatcherBoundedContext.getLogFileSize(req.query.absolutePath));
             } catch (e) {
-                res.status(e instanceof LogFileAccessError ? 403 : 500).end(e.message);
+                res.status(e instanceof LogFileAccessError ? 403 : 500).send(e.message);
             }
         });
         this.app.get(`${baseUrl}/log/content`, query('absolutePath').isString().notEmpty(), this.handleValidationErrors(), async (req: Request, res: Response) => {
             try {
-                res.json(await this.logWatcherBoundedContext.getLogFileContent(req.query.absolutePath, req.query.noSplit == 'true')).end();
+                res.json(await this.logWatcherBoundedContext.getLogFileContent(req.query.absolutePath, req.query.noSplit == 'true'));
             } catch (e) {
-                res.status(e instanceof LogFileAccessError ? 403 : 500).end(e.message);
+                res.status(e instanceof LogFileAccessError ? 403 : 500).send(e.message);
             }
         });
     }
