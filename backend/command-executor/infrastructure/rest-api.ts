@@ -46,7 +46,15 @@ export class RestApi extends Api {
             try {
                 res.json(await this.commandExecutorBoundedContext.getExecutionOfCommand(req.params.commandId, parseInt(req.params.startTime), req.query.noSplit == 'true'));
             } catch (e) {
-                res.status(e instanceof CommandDoesNotExistError || e instanceof ExecutionDoesNotExistError ? 404: 500).send(e.message);
+                res.status(e instanceof CommandDoesNotExistError || e instanceof ExecutionDoesNotExistError ? 404 : 500).send(e.message);
+            }
+        });
+        this.app.delete(`${baseUrl}/command/:commandId/execution/:startTime`, async (req: Request, res: Response) => {
+            try {
+                await this.commandExecutorBoundedContext.removeExecution(req.params.commandId, parseInt(req.params.startTime));
+                res.end();
+            } catch (e) {
+                res.status(e instanceof CommandDoesNotExistError || e instanceof ExecutionDoesNotExistError ? 404 : 500).send(e.message);
             }
         });
         this.app.post(`${baseUrl}/command/:commandId/execution/:startTime/terminate`, async (req: Request, res: Response) => {

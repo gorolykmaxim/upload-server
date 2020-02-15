@@ -4,6 +4,7 @@ import {EOL} from "os";
 import {Observable} from "rxjs";
 
 export class Execution {
+    isMarkedForRemoval: boolean = false;
     private process: Process;
 
     constructor(readonly startTime: number, private command: Command, private status?: ProcessStatus,

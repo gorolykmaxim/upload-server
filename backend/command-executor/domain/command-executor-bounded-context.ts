@@ -2,6 +2,7 @@ import {Command, CommandRepository} from "./command";
 import {Execution, ExecutionRepository} from "./execution";
 import {ProcessFactory, ProcessStatus} from "./process";
 import {Clock} from "clock";
+import {constants} from "os";
 
 /**
  * A bounded context of a command-executor, module, that allows executing shell commands, stores and shows their
@@ -167,6 +168,35 @@ export class CommandExecutorBoundedContext {
         execution.sendSignal(signal);
     }
 
+    /**
+     * Remove the specified command execution. Both active and complete executions can be removed, though the active
+     * ones will be removed with a slight delay.
+     *
+     * @param commandId ID of the command
+     * @param executionStartTime start time of the execution
+     * @throws CommandDoesNotExistError if the command with the specified ID does not exist
+     * @throws ExecutionsLookupError in case of a failed attempt to lookup the execution in one of the repositories
+     * @throws ExecutionDoesNotExistError if there were no executions of the specified command, started at the specified time
+     */
+    async removeExecution(commandId: string, executionStartTime: number): Promise<void> {
+        const command: Command = this.commandRepository.findById(commandId);
+        if (!command) {
+            throw new CommandDoesNotExistError(commandId);
+        }
+        let execution: Execution = await this.activeExecutionsRepository.findByCommandNameAndStartTime(command.name, executionStartTime);
+        if (execution) {
+            execution.isMarkedForRemoval = true;
+            execution.sendSignal(constants.signals.SIGKILL);
+            return;
+        }
+        execution = await this.completeExecutionsRepository.findByCommandNameAndStartTime(command.name, executionStartTime);
+        if (execution) {
+            await this.completeExecutionsRepository.remove(execution);
+            return;
+        }
+        throw new ExecutionDoesNotExistError(commandId, executionStartTime);
+    }
+
     private async finalizeExecution(execution: Execution, result: ProcessStatus | Error): Promise<void> {
         try {
             if (result instanceof Error) {
@@ -175,7 +205,9 @@ export class CommandExecutorBoundedContext {
                 execution.complete(result);
             }
             await this.activeExecutionsRepository.remove(execution);
-            await this.completeExecutionsRepository.add(execution);
+            if (!execution.isMarkedForRemoval) {
+                await this.completeExecutionsRepository.add(execution);
+            }
         } catch (e) {
             // TODO: maybe raise an event instead of just logging this
             console.error(`Failed to save execution '${JSON.stringify(execution)}' on it's completion. Reason: ${e.message}`);

@@ -8,6 +8,7 @@ import {Database} from "sqlite";
 import {Process, ProcessFactory, ProcessStatus} from "../backend/command-executor/domain/process";
 import {EMPTY, from, NEVER, Observable, Subject} from "rxjs";
 import {
+    DELETE,
     INSERT,
     SELECT_BY_COMMAND_NAME,
     SELECT_BY_COMMAND_NAME_AND_START_TIME
@@ -374,5 +375,49 @@ describe('command-executor', function () {
             .expect(200);
         // then
         verify(process.sendSignal(constants.signals.SIGKILL)).once();
+    });
+    it('should fail to remove execution of a command that does not exist', async function () {
+        // when
+        await request(application.app)
+            .delete(`${baseUrl}/command/3295236/execution/${clock.now()}`)
+            .expect(404);
+    });
+    it('should fail to remove an execution that does not exist', async function () {
+        // when
+        await request(application.app)
+            .delete(`${baseUrl}/command/${command.id}/execution/${clock.now()}`)
+            .expect(404);
+    });
+    it('should remove active execution', async function () {
+        // given
+        await request(application.app)
+            .post(`${baseUrl}/command/${command.id}/execution`)
+            .expect(201);
+        // when
+        await request(application.app)
+            .delete(`${baseUrl}/command/${command.id}/execution/${clock.now()}`)
+            .expect(200);
+        // then
+        verify(process.sendSignal(constants.signals.SIGKILL)).once();
+        verify(database.run(DELETE, clock.now(), command.name)).never();
+    });
+    it('should remove complete execution', async function () {
+        // given
+        when(database.get(SELECT_BY_COMMAND_NAME_AND_START_TIME, command.name, clock.now())).thenResolve({
+            'START_TIME': clock.now(),
+            'COMMAND_NAME': command.name,
+            'COMMAND_SCRIPT': command.command,
+            'EXIT_CODE': 1,
+            'EXIT_SIGNAL': null,
+            'ERROR': null,
+            'OUTPUT': output.join(EOL)
+        });
+        when(database.run(anything(), anything(), anything())).thenResolve(null);
+        // when
+        await request(application.app)
+            .delete(`${baseUrl}/command/${command.id}/execution/${clock.now()}`)
+            .expect(200);
+        // then
+        verify(database.run(DELETE, clock.now(), command.name)).once();
     });
 });
