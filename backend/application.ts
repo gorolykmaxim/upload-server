@@ -5,7 +5,7 @@ import {JsonDB} from "node-json-db";
 import {LogWatcherBoundedContext} from "./log-watcher/domain/log-watcher-bounded-context";
 import {Server} from "http";
 import * as fs from "fs";
-import {FileSystem} from "./log-watcher/domain/file-system";
+import {FileSystem as LogWatcherFileSystem} from "./log-watcher/domain/file-system";
 import {FileWatcher} from "./log-watcher/domain/file-watcher";
 import {platform} from "os";
 import {WindowsFileWatcher} from "./log-watcher/infrastructure/windows-file-watcher";
@@ -26,6 +26,9 @@ import {ExecutionRepository} from "./command-executor/domain/execution";
 import {InMemoryExecutionRepository} from "./command-executor/infrastructure/in-memory-execution-repository";
 import {DatabaseExecutionRepository} from "./command-executor/infrastructure/database-execution-repository";
 import {join} from "path";
+import {FileSystem as UploaderFileSystem} from "./uploader/domain/file-system";
+import {UploaderBoundedContext} from "./uploader/domain/uploader-bounded-context";
+import {RestApi as UploaderRestApi} from "./uploader/infrastructure/rest-api";
 import bodyParser = require("body-parser");
 import expressWs = require("express-ws");
 
@@ -33,13 +36,16 @@ export class Application {
     readonly app: any;
     server: Server;
     private jsonDB: JsonDB;
-    private fileSystem: FileSystem;
+    private logWatcherFileSystem: LogWatcherFileSystem;
+    private uploaderFileSystem: UploaderFileSystem;
     private fileWatcher: FileWatcher;
     private clock: Clock;
     private processFactory: ProcessFactory;
     private database: Database;
 
-    constructor(app?: Express, jsonDB?: JsonDB, fileSystem?: FileSystem, fileWatcher?: FileWatcher, clock?: Clock, processFactory?: ProcessFactory, database?: Database) {
+    constructor(app?: Express, jsonDB?: JsonDB, logWatcherFileSystem?: LogWatcherFileSystem, fileWatcher?: FileWatcher,
+                clock?: Clock, processFactory?: ProcessFactory, database?: Database,
+                uploaderFileSystem?: UploaderFileSystem) {
         if (app) {
             this.app = app;
         } else {
@@ -47,7 +53,8 @@ export class Application {
             expressWs(this.app);
         }
         this.jsonDB = jsonDB ?? new JsonDB('./upload-server-db', true, true);
-        this.fileSystem = fileSystem ?? fs.promises;
+        this.logWatcherFileSystem = logWatcherFileSystem ?? fs.promises;
+        this.uploaderFileSystem = uploaderFileSystem ?? fs.promises;
         this.fileWatcher = fileWatcher ?? (platform() === 'win32' ? new WindowsFileWatcher('tail.exe') : new UnixFileWatcher());
         this.clock = clock ?? systemClock;
         this.processFactory = processFactory ?? new OsProcessFactory();
@@ -58,7 +65,7 @@ export class Application {
         this.app.use(bodyParser());
         // log-watcher
         const allowedLogFilesRepository: ConfigAllowedLogFilesRepository = new ConfigAllowedLogFilesRepository(this.jsonDB);
-        const logWatcherBoundedContext: LogWatcherBoundedContext = new LogWatcherBoundedContext(allowedLogFilesRepository, this.fileSystem, this.fileWatcher);
+        const logWatcherBoundedContext: LogWatcherBoundedContext = new LogWatcherBoundedContext(allowedLogFilesRepository, this.logWatcherFileSystem, this.fileWatcher);
         const logWatcherApis: Array<Api> = [
             new LogWatcherRestApi(this.app, logWatcherBoundedContext),
             new LogWatcherWebSocketApi(this.app, logWatcherBoundedContext),
@@ -84,6 +91,11 @@ export class Application {
         ];
         commandRepository.initialize();
         commandExecutorApis.forEach(api => api.initialize('/api/command-executor'));
+        // uploader
+        const uploadDirectory: string = join(__dirname, '../../files');
+        const uploaderBoundedContext: UploaderBoundedContext = new UploaderBoundedContext(uploadDirectory, this.uploaderFileSystem);
+        const uploaderApi = new UploaderRestApi(uploadDirectory, this.app, uploaderBoundedContext);
+        uploaderApi.initialize('/api/uploader');
         this.server = this.app.listen(8080, () => console.log('Listening on port 8080...'));
     }
 }
