@@ -72,7 +72,7 @@ describe('command-executor', function () {
         const expectedCommands: Array<any> = [
             new Command('list files', 'ls -lh'),
             new Command('kill pc', 'sudo rm -rf /')
-        ].map(c => {return {id: c.id, name: c.name, command: c.command}});
+        ].map(c => {return {id: c.id, name: c.name, script: c.script}});
         // when
         await request(application.app)
             .get(`${baseUrl}/command`)
@@ -96,7 +96,7 @@ describe('command-executor', function () {
         // when
         await request(application.app)
             .post(`${baseUrl}/command`)
-            .send({name: command.name, command: 'sudo rm -rf /'})
+            .send({name: command.name, script: 'sudo rm -rf /'})
             .expect(409);
     });
     it('should create a new command', async function () {
@@ -105,10 +105,10 @@ describe('command-executor', function () {
         // when
         await request(application.app)
             .post(`${baseUrl}/command`)
-            .send({name: command.name, command: command.command})
-            .expect(201, {id: command.id, name: command.name, command: command.command});
+            .send({name: command.name, script: command.script})
+            .expect(201, {id: command.id, name: command.name, script: command.script});
         // then
-        verify(jsonDB.push(`${configPath}/${command.name}`, deepEqual({command: command.command}))).once();
+        verify(jsonDB.push(`${configPath}/${command.name}`, deepEqual({command: command.script}))).once();
     });
     it('should remove command with the specified ID', async function () {
         // when
@@ -138,14 +138,14 @@ describe('command-executor', function () {
         // when
         await request(application.app)
             .post(`${baseUrl}/command/${command.id}/execution`)
-            .expect(201, {startTime: clock.now(), commandName:  command.name, commandScript: command.command});
+            .expect(201, {startTime: clock.now(), commandName:  command.name, commandScript: command.script});
     });
     it('should save successfully finished command execution to the database', async function () {
         // given
         const exitCode: number = 0;
         const exitSignal: string = 'SIGINT';
         const databaseSavePromise: Promise<void> = new Promise((resolve, reject) => {
-            when(database.run(INSERT, clock.now(), command.name, command.command, null, exitCode, exitSignal, output.join(EOL)))
+            when(database.run(INSERT, clock.now(), command.name, command.script, null, exitCode, exitSignal, output.join(EOL)))
                 .thenCall(() => resolve());
         });
         // when
@@ -168,7 +168,7 @@ describe('command-executor', function () {
         statusSubject.error(error);
         await expect(statusPromise).rejectedWith(Error);
         // then
-        verify(database.run(INSERT, clock.now(), command.name, command.command, error.message, null, null, ''));
+        verify(database.run(INSERT, clock.now(), command.name, command.script, error.message, null, null, ''));
     });
     it('should fail to find all executions of a command that does not exist', async function () {
         // when
@@ -255,7 +255,7 @@ describe('command-executor', function () {
             .expect(200, {
                 startTime: clock.now(),
                 commandName: command.name,
-                commandScript: command.command,
+                commandScript: command.script,
                 exitCode: null,
                 exitSignal: null,
                 errorMessage: null,
@@ -275,7 +275,7 @@ describe('command-executor', function () {
             .expect(200, {
                 startTime: clock.now(),
                 commandName: command.name,
-                commandScript: command.command,
+                commandScript: command.script,
                 exitCode: null,
                 exitSignal: null,
                 errorMessage: null,
@@ -289,7 +289,7 @@ describe('command-executor', function () {
         when(database.get(SELECT_BY_COMMAND_NAME_AND_START_TIME, command.name, startTime)).thenResolve({
             'START_TIME': startTime,
             'COMMAND_NAME': command.name,
-            'COMMAND_SCRIPT': command.command,
+            'COMMAND_SCRIPT': command.script,
             'EXIT_CODE': exitCode,
             'EXIT_SIGNAL': null,
             'ERROR': null,
@@ -301,7 +301,7 @@ describe('command-executor', function () {
             .expect(200, {
                 startTime: startTime,
                 commandName: command.name,
-                commandScript: command.command,
+                commandScript: command.script,
                 exitCode: exitCode,
                 exitSignal: null,
                 errorMessage: null,
@@ -315,7 +315,7 @@ describe('command-executor', function () {
         when(database.get(SELECT_BY_COMMAND_NAME_AND_START_TIME, command.name, startTime)).thenResolve({
             'START_TIME': startTime,
             'COMMAND_NAME': command.name,
-            'COMMAND_SCRIPT': command.command,
+            'COMMAND_SCRIPT': command.script,
             'EXIT_CODE': exitCode,
             'EXIT_SIGNAL': null,
             'ERROR': null,
@@ -328,7 +328,7 @@ describe('command-executor', function () {
             .expect(200, {
                 startTime: startTime,
                 commandName: command.name,
-                commandScript: command.command,
+                commandScript: command.script,
                 exitCode: exitCode,
                 exitSignal: null,
                 errorMessage: null,
@@ -413,7 +413,7 @@ describe('command-executor', function () {
         when(database.get(SELECT_BY_COMMAND_NAME_AND_START_TIME, command.name, clock.now())).thenResolve({
             'START_TIME': clock.now(),
             'COMMAND_NAME': command.name,
-            'COMMAND_SCRIPT': command.command,
+            'COMMAND_SCRIPT': command.script,
             'EXIT_CODE': 1,
             'EXIT_SIGNAL': null,
             'ERROR': null,

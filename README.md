@@ -107,7 +107,7 @@ This endpoint is only available while running the server in `-insecure` mode.
 ```
 POST /api/command-executor/command
 
-{"name": "<name of the command>", "command": "<actual shell script command>"}
+{"name": "<name of the command>", "script": "<actual shell script command>"}
 ```
 
 Delete a command. History of all of this command's executions will be deleted as well.

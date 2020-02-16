@@ -17,9 +17,9 @@ export class RestApi extends Api {
         this.app.get(`${baseUrl}/command`, (req: Request, res: Response) => {
             res.json(this.commandExecutorBoundedContext.getAllExecutableCommands());
         });
-        this.app.post(`${baseUrl}/command`, [body('name').isString().notEmpty(), body('command').isString().notEmpty()], this.handleValidationErrors(), (req: Request, res: Response) => {
+        this.app.post(`${baseUrl}/command`, [body('name').isString().notEmpty(), body('script').isString().notEmpty()], this.handleValidationErrors(), (req: Request, res: Response) => {
             try {
-                res.status(201).json(this.commandExecutorBoundedContext.createCommand(req.body.name, req.body.command));
+                res.status(201).json(this.commandExecutorBoundedContext.createCommand(req.body.name, req.body.script));
             } catch (e) {
                 res.status(409).send(e.message);
             }

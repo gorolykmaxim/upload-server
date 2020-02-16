@@ -8,13 +8,13 @@ import {OutputChangeEvent, StatusChangeEvent} from "./events";
 export class Command {
     readonly id: string;
 
-    constructor(readonly name: string, readonly command: string) {
+    constructor(readonly name: string, readonly script: string) {
         this.id = getUuidByString(name);
     }
 
     execute(clock: Clock, processFactory: ProcessFactory, outputChanges: Subject<OutputChangeEvent>,
             statusChanges: Subject<StatusChangeEvent>): Execution {
-        const args: Array<string> = this.command.split(' ');
+        const args: Array<string> = this.script.split(' ');
         const executable: string = args.splice(0, 1)[0];
         const process: Process = processFactory.create(executable, args);
         const execution: Execution = new Execution(clock.now(), this);

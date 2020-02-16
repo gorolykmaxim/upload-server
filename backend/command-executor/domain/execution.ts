@@ -39,7 +39,7 @@ export class Execution {
     }
 
     get commandScript(): string {
-        return this.command.command;
+        return this.command.script;
     }
 
     get exitCode(): number {

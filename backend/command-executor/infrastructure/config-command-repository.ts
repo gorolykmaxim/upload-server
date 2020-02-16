@@ -25,7 +25,7 @@ export class ConfigCommandRepository implements CommandRepository {
     }
 
     add(command: Command): void {
-        this.jsonDb.push(`${ConfigCommandRepository.COMMANDS_PATH}/${command.name}`, {command: command.command});
+        this.jsonDb.push(`${ConfigCommandRepository.COMMANDS_PATH}/${command.name}`, {command: command.script});
     }
 
     findById(id: string): Command {
