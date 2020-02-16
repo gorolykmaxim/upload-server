@@ -194,8 +194,8 @@ to read existing output of the command before receiving updates about changes in
 
 #### HTTP
 
-Upload a file with 'multipart/form-data' content-type. A body have two attributes:
-- file - a path, where the file should be save
+Upload a file with 'multipart/form-data' content-type. A body should have two attributes:
+- file - a path, where the file should be saved
 - data - actual body of the file
 
 ```
