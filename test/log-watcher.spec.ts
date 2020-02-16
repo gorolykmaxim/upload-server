@@ -47,6 +47,7 @@ describe('log-watcher', function () {
         when(fileSystem.readFile(allowedLogs[0])).thenResolve(content);
         when(fileWatcher.watch(allowedLogs[0])).thenReturn(from(changes));
         application = new Application(express, instance(jsonDB), instance(fileSystem), instance(fileWatcher), null, null, instance(database));
+        application.debug = true;
         await application.main();
     });
     afterEach(function () {

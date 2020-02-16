@@ -17,6 +17,7 @@ describe('authentication', async function () {
             .thenReturn({login: '1', password: '2'});
         application = new Application(null, instance(jsonDB), null, null, null,
             null, instance(database), null, null);
+        application.debug = true;
         await application.main();
     });
     afterEach(function () {

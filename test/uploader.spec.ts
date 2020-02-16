@@ -30,6 +30,7 @@ describe('uploader', function () {
             .thenReturn({login: user, password: password});
         application = new Application(null, instance(jsonDB), null, null, null,
             null, instance(database), instance(fileSystem), uploadDirectory);
+        application.debug = true;
         await application.main();
     });
     afterEach(function () {

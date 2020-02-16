@@ -9,7 +9,8 @@ import {body} from "express-validator";
 import {constants} from "os";
 
 export class RestApi extends Api {
-    constructor(private app: Express, private commandExecutorBoundedContext: CommandExecutorBoundedContext) {
+    constructor(private app: Express, private commandExecutorBoundedContext: CommandExecutorBoundedContext,
+                private isReadonly: boolean) {
         super();
     }
 
@@ -17,17 +18,19 @@ export class RestApi extends Api {
         this.app.get(`${baseUrl}/command`, (req: Request, res: Response) => {
             res.json(this.commandExecutorBoundedContext.getAllExecutableCommands());
         });
-        this.app.post(`${baseUrl}/command`, [body('name').isString().notEmpty(), body('script').isString().notEmpty()], this.handleValidationErrors(), (req: Request, res: Response) => {
-            try {
-                res.status(201).json(this.commandExecutorBoundedContext.createCommand(req.body.name, req.body.script));
-            } catch (e) {
-                res.status(409).send(e.message);
-            }
-        });
-        this.app.delete(`${baseUrl}/command/:id`, (req: Request, res: Response) => {
-            this.commandExecutorBoundedContext.removeCommand(req.params.id);
-            res.end();
-        });
+        if (!this.isReadonly) {
+            this.app.post(`${baseUrl}/command`, [body('name').isString().notEmpty(), body('script').isString().notEmpty()], this.handleValidationErrors(), (req: Request, res: Response) => {
+                try {
+                    res.status(201).json(this.commandExecutorBoundedContext.createCommand(req.body.name, req.body.script));
+                } catch (e) {
+                    res.status(409).send(e.message);
+                }
+            });
+            this.app.delete(`${baseUrl}/command/:id`, (req: Request, res: Response) => {
+                this.commandExecutorBoundedContext.removeCommand(req.params.id);
+                res.end();
+            });
+        }
         this.app.post(`${baseUrl}/command/:id/execution`, async (req: Request, res: Response) => {
             try {
                 res.status(201).json(await this.commandExecutorBoundedContext.executeCommand(req.params.id));

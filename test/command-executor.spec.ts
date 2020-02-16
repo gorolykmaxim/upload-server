@@ -60,6 +60,7 @@ describe('command-executor', function () {
             .thenReturn({login: '1', password: '2'});
         application = new Application(app, instance(jsonDB), null, null, clock,
             instance(processFactory), instance(database));
+        application.debug = true;
         await application.main();
     });
     afterEach(function () {

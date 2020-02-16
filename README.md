@@ -11,7 +11,7 @@ GET /api/log-watcher/log
 ```
 
 Allow watching the log file with the specified "absolutePath".
-This endpoint is only available while running the server in `-insecure` mode.
+This endpoint is only available while running the server in `-admin` mode.
 
 ```
 POST /api/log-watcher/log
@@ -20,7 +20,7 @@ POST /api/log-watcher/log
 ```
 
 Disallow watching the log file with the specified "absolutePath".
-This endpoint is only available while running the server in `-insecure` mode.
+This endpoint is only available while running the server in `-admin` mode.
 
 ```
 DELETE /api/log-watcher/log?absolutePath=<path to log>
@@ -102,7 +102,7 @@ GET /api/command-executor/command
 ```
 
 Create a new command.
-This endpoint is only available while running the server in `-insecure` mode.
+This endpoint is only available while running the server in `-admin` mode.
 
 ```
 POST /api/command-executor/command
@@ -111,7 +111,7 @@ POST /api/command-executor/command
 ```
 
 Delete a command. History of all of this command's executions will be deleted as well.
-This endpoint is only available while running the server in `-insecure` mode.
+This endpoint is only available while running the server in `-admin` mode.
 
 ```
 DELETE /api/command-executor/command/<command ID>

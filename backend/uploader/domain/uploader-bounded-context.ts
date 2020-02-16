@@ -18,6 +18,13 @@ export class UploaderBoundedContext {
     }
 
     /**
+     * Initialize the uploader bounded context by ensuring that the specified upload directory does exist.
+     */
+    async initialize(): Promise<void> {
+        await this.fileSystem.ensureDirectoryExists(this.uploadDirectory);
+    }
+
+    /**
      * Return a version of the specified absolute upload path, that is relative to the upload directory.
      * E.g. if the specified upload path is: "/tmp/a/b/file", then the returned version will be "a/b/file".
      *

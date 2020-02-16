@@ -3,8 +3,9 @@ import {Express} from "express";
 import {ConfigAllowedLogFilesRepository} from "./log-watcher/infrastructure/config-allowed-log-files-repository";
 import {JsonDB} from "node-json-db";
 import {LogWatcherBoundedContext} from "./log-watcher/domain/log-watcher-bounded-context";
-import {Server} from "http";
+import {createServer as createHttpServer, Server} from "http";
 import * as fs from "fs";
+import {readFileSync} from "fs";
 import {FileSystem as LogWatcherFileSystem} from "./log-watcher/domain/file-system";
 import {FileWatcher} from "./log-watcher/domain/file-watcher";
 import {platform} from "os";
@@ -25,6 +26,7 @@ import {Database, open} from "sqlite";
 import {ExecutionRepository} from "./command-executor/domain/execution";
 import {InMemoryExecutionRepository} from "./command-executor/infrastructure/in-memory-execution-repository";
 import {DatabaseExecutionRepository} from "./command-executor/infrastructure/database-execution-repository";
+import * as path from "path";
 import {join} from "path";
 import {FileSystem as UploaderFileSystem} from "./uploader/domain/file-system";
 import {UploaderBoundedContext} from "./uploader/domain/uploader-bounded-context";
@@ -33,12 +35,27 @@ import {OsFileSystem} from "./uploader/infrastructure/os-file-system";
 import {ConfigCredentialsRepository} from "./authentication/infrastructure/config-credentials-repository";
 import {AuthenticationBoundedContext} from "./authentication/domain/authentication-bounded-context";
 import * as expressBasicAuth from "express-basic-auth";
+import * as minimist from "minimist";
+import {createLogger, format, Logger, transports} from "winston";
+import {createServer as createHttpsServer} from "https";
 import bodyParser = require("body-parser");
 import expressWs = require("express-ws");
 
+/**
+ * Root class of the upload-server that is responsible for bootstrapping the thing.
+ */
 export class Application {
     readonly app: any;
     server: Server;
+    /**
+     * This is set to "true" in every test, so that some aspects of functionality do not interfere with tests.
+     */
+    debug: boolean;
+    /**
+     * A package.json information that will be taken from the actual file. In debug mode it will remain like this.
+     */
+    private pkg: any = {version: 8};
+    private args: CommandLineArguments;
     private jsonDB: JsonDB;
     private logWatcherFileSystem: LogWatcherFileSystem;
     private uploaderFileSystem: UploaderFileSystem;
@@ -48,51 +65,130 @@ export class Application {
     private database: Database;
     private uploadDirectory: string;
 
+    /**
+     * Construct an application. All arguments of this constructor are only intended to be used in tests to inject
+     * mocks of dependencies. Those dependencies that are either not injected or injected with "null" will get
+     * initialized like in a normal (not a test) run.
+     */
     constructor(app?: Express, jsonDB?: JsonDB, logWatcherFileSystem?: LogWatcherFileSystem, fileWatcher?: FileWatcher,
                 clock?: Clock, processFactory?: ProcessFactory, database?: Database,
                 uploaderFileSystem?: UploaderFileSystem, uploadDirectory?: string) {
+        this.args = new CommandLineArguments(minimist(process.argv.slice(2)));
         if (app) {
             this.app = app;
         } else {
             this.app = express();
             expressWs(this.app);
         }
-        this.jsonDB = jsonDB ?? new JsonDB('./upload-server-db', true, true);
+        this.jsonDB = jsonDB ?? new JsonDB(this.args.configFile, true, true);
         this.logWatcherFileSystem = logWatcherFileSystem ?? fs.promises;
         this.uploaderFileSystem = uploaderFileSystem ?? new OsFileSystem();
-        this.fileWatcher = fileWatcher ?? (platform() === 'win32' ? new WindowsFileWatcher('tail.exe') : new UnixFileWatcher());
+        this.fileWatcher = fileWatcher ?? (platform() === 'win32' ? new WindowsFileWatcher(path.join('..', '..', 'tail.exe')) : new UnixFileWatcher());
         this.clock = clock ?? systemClock;
         this.processFactory = processFactory ?? new OsProcessFactory();
         this.database = database;
-        this.uploadDirectory = uploadDirectory;
+        this.uploadDirectory = uploadDirectory ?? this.args.folder;
     }
 
     async main(): Promise<void> {
-        this.app.use(bodyParser());
-        // authentication
-        const credentialsRepository: ConfigCredentialsRepository = new ConfigCredentialsRepository(this.jsonDB);
-        credentialsRepository.initialize();
-        const authenticationBoundedContext: AuthenticationBoundedContext = new AuthenticationBoundedContext(credentialsRepository);
-        authenticationBoundedContext.displayCredentialsInLog();
-        for (let url of ['/files/*', '/api/uploader/*']) {
-            this.app.use(url, expressBasicAuth({authorizer: (username: string, password: string) => authenticationBoundedContext.areCredentialsValid(username, password)}));
+        // First, handle cases when we need to exist right away.
+        this.loadPackageInformationIfNecessary();
+        if (this.args.version) {
+            console.info(this.pkg.version);
+            return;
         }
+        if (this.args.help) {
+            this.displayHelp();
+            return;
+        }
+        // Second, initialize all the core modules.
+        this.initializeLogger();
+        this.app.use(bodyParser.json());
+        this.initializeAuthenticationIfNecessary();
+        await this.initializeLogWatcher();
+        await this.initializeCommandExecutor();
+        await this.initializeUploader();
+        // Finally finish the initialization.
+        this.placeUncaughtErrorTrapIfNecessary();
+        this.initializeServer();
+    }
+
+    private loadPackageInformationIfNecessary(): void {
+        if (!this.debug) {
+            this.pkg = require('../../package.json');
+        }
+    }
+
+    private displayHelp(): void {
+        console.info([
+            '', `File upload server v${this.pkg.version}`,
+            '', 'usage: upload-server [options]',
+            '',
+            'options:',
+            '  -p --port      Port number (default: 8090)',
+            '  -f --folder    Folder to upload files (default: files)',
+            '  -l --log       Path to the file, were logs should be written',
+            '  -d --database  Path to the file, were the database should be stored',
+            '  -S --tls       Enable TLS / HTTPS',
+            '  -C --cert      Server certificate file',
+            '  -K --key       Private key file',
+            '  -h --help      Print this list and exit',
+            '  -a --admin     Enable configuration via web UI',
+            '  --insecure     Disable authorization of /files/ and /api/uploader endpoints',
+            '  -v --version   Print the current version',
+            ''
+        ].join('\n'));
+    }
+
+    private initializeLogger() {
+        const transportList: Array<any> = [new transports.Console()];
+        if (!this.debug) {
+            transportList.push(new transports.File({filename: this.args.logFile, maxsize: 5000000, maxFiles: 1}));
+        }
+        const logger: Logger = createLogger({
+            format: format.simple(),
+            transports: transportList
+        });
+        console.log = (message: string) => logger.info(message);
+        console.error = (message: string) => logger.error(message);
+        console.info = (message: string) => logger.info(message);
+    }
+
+    private initializeAuthenticationIfNecessary(): void {
+        if (this.args.isAuthorizationEnabled) {
+            const credentialsRepository: ConfigCredentialsRepository = new ConfigCredentialsRepository(this.jsonDB);
+            credentialsRepository.initialize();
+            const authenticationBoundedContext: AuthenticationBoundedContext = new AuthenticationBoundedContext(credentialsRepository);
+            authenticationBoundedContext.displayCredentialsInLog();
+            for (let url of ['/files/*', '/api/uploader/*']) {
+                this.app.use(url, expressBasicAuth({authorizer: (username: string, password: string) => authenticationBoundedContext.areCredentialsValid(username, password)}));
+            }
+        }
+    }
+
+    private async initializeLogWatcher(): Promise<void> {
         // log-watcher
         const allowedLogFilesRepository: ConfigAllowedLogFilesRepository = new ConfigAllowedLogFilesRepository(this.jsonDB);
         const logWatcherBoundedContext: LogWatcherBoundedContext = new LogWatcherBoundedContext(allowedLogFilesRepository, this.logWatcherFileSystem, this.fileWatcher);
         const logWatcherApis: Array<Api> = [
-            new LogWatcherRestApi(this.app, logWatcherBoundedContext),
+            new LogWatcherRestApi(this.app, logWatcherBoundedContext, !this.args.isInAdminMode && !this.debug),
             new LogWatcherWebSocketApi(this.app, logWatcherBoundedContext),
             new LogWatcherLegacyWebSocketApi(this.app, logWatcherBoundedContext)
         ];
         allowedLogFilesRepository.initialize();
         logWatcherApis.forEach(api => api.initialize('/api/log-watcher'));
-        // command-executor
+        // application log
+        if (!this.debug) {
+            await logWatcherBoundedContext.allowLogFileToBeWatched(this.args.logFile);
+        }
+    }
+
+    private async initializeCommandExecutor(): Promise<void> {
         if (!this.database) {
-            const rootDirectory: string = join(__dirname, '../..');
+            // the database will reside near the configuration
+            const rootDirectory: string = path.dirname(this.args.configFile);
             this.database = await open(join(rootDirectory, 'upload-server.db'));
-            // TODO: remove force last
-            await this.database.migrate({force: 'last', migrationsPath: join(rootDirectory, 'migrations')});
+            await this.database.migrate({migrationsPath: join(rootDirectory, 'migrations')});
         }
         const commandRepository: ConfigCommandRepository = new ConfigCommandRepository(this.jsonDB);
         const activeExecutionRepository: ExecutionRepository = new InMemoryExecutionRepository();
@@ -100,16 +196,71 @@ export class Application {
         const commandExecutorBoundedContext: CommandExecutorBoundedContext = new CommandExecutorBoundedContext(
             commandRepository, this.clock, this.processFactory, activeExecutionRepository, completeExecutionRepository);
         const commandExecutorApis: Array<Api> = [
-            new CommandExecutorRestApi(this.app, commandExecutorBoundedContext),
+            new CommandExecutorRestApi(this.app, commandExecutorBoundedContext, !this.args.isInAdminMode && !this.debug),
             new CommandExecutorWebSocketApi(this.app, commandExecutorBoundedContext)
         ];
         commandRepository.initialize();
         commandExecutorApis.forEach(api => api.initialize('/api/command-executor'));
-        // uploader
-        this.uploadDirectory = this.uploadDirectory ?? join(__dirname, '../../files');
+    }
+
+    private async initializeUploader(): Promise<void> {
         const uploaderBoundedContext: UploaderBoundedContext = new UploaderBoundedContext(this.uploadDirectory, this.uploaderFileSystem);
+        if (!this.debug) {
+            await uploaderBoundedContext.initialize();
+        }
         const uploaderApi = new UploaderRestApi(this.uploadDirectory, this.app, uploaderBoundedContext);
         uploaderApi.initialize('/api/uploader');
-        this.server = this.app.listen(8080, () => console.log('Listening on port 8080...'));
+    }
+
+    private placeUncaughtErrorTrapIfNecessary(): void {
+        if (!this.debug) {
+            process.on('uncaughtException', err => console.error(err));
+        }
+    }
+
+    private initializeServer(): void {
+        let startLogMessage: string;
+        if (this.args.isTlsEnabled && this.args.certificateFile && this.args.keyFile) {
+            const options: any = {
+                key: readFileSync(this.args.keyFile),
+                cert: readFileSync(this.args.certificateFile)
+            };
+            startLogMessage = `[${new Date().toISOString()}] - Server started on https://0.0.0.0:${this.args.port}`;
+            this.server = createHttpsServer(options, this.app);
+        } else {
+            startLogMessage = `[${new Date().toISOString()}] - Server started on http://0.0.0.0:${this.args.port}`;
+            this.server = createHttpServer(this.app);
+        }
+        console.info(`[${new Date().toISOString()}] - File upload server v${this.pkg.version}`);
+        console.info(`[${new Date().toISOString()}] - Serving files from folder: ${this.args.folder}`);
+        this.server.listen(this.args.port, '0.0.0.0', () => console.log(startLogMessage));
+    }
+}
+
+class CommandLineArguments {
+    port: number = 8090;
+    folder: string = 'files';
+    version: boolean;
+    isTlsEnabled: boolean;
+    certificateFile: string;
+    keyFile: string;
+    isInAdminMode: boolean;
+    isAuthorizationEnabled: boolean;
+    logFile: string = 'upload-server.log';
+    configFile: string = 'upload-server-db';
+    help: boolean;
+
+    constructor(argv: any) {
+        this.port = argv.p || argv.port || this.port;
+        this.folder = path.resolve(argv.f || argv.folder || this.folder);
+        this.version = argv.v || argv.version;
+        this.isTlsEnabled = argv.S || argv.tls;
+        this.certificateFile = argv.C || argv.cert;
+        this.keyFile = argv.K || argv.key;
+        this.isInAdminMode = argv.a || argv.admin;
+        this.isAuthorizationEnabled = !argv.insecure;
+        this.logFile = argv.l || argv.log || this.logFile;
+        this.configFile = argv.d || argv.database || this.configFile;
+        this.help = argv.h || argv.help;
     }
 }
