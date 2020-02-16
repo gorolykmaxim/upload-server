@@ -14,8 +14,10 @@ import {
     SELECT_BY_COMMAND_NAME_AND_START_TIME
 } from "../backend/command-executor/infrastructure/database-execution-repository";
 import {constants, EOL} from "os";
-import { expect } from "chai";
+import {expect} from "chai";
 import {Execution} from "../backend/command-executor/domain/execution";
+import {DummyWebSocket, DummyWebSocketServer, mockWebSocketExpress} from "./web-socket";
+import {take, takeUntil, toArray} from "rxjs/operators";
 
 describe('command-executor', function () {
     const baseUrl: string = '/api/command-executor';
@@ -37,9 +39,13 @@ describe('command-executor', function () {
     let processFactory: ProcessFactory;
     let process: Process;
     let database: Database;
+    let app: any;
+    let wss: DummyWebSocketServer;
     let application: Application;
     beforeEach(async function () {
         statusSubject = new Subject<ProcessStatus>();
+        app = mockWebSocketExpress();
+        wss = app.dummyWebSocketServer;
         jsonDB = mock(JsonDB);
         processFactory = mock<ProcessFactory>();
         process = mock<Process>();
@@ -50,7 +56,7 @@ describe('command-executor', function () {
         when(jsonDB.getData(configPath))
             .thenThrow(new Error())
             .thenReturn(Object.assign({}, executableCommands));
-        application = new Application(null, instance(jsonDB), null, null, clock,
+        application = new Application(app, instance(jsonDB), null, null, clock,
             instance(processFactory), instance(database));
         await application.main();
     });
@@ -138,16 +144,17 @@ describe('command-executor', function () {
         // given
         const exitCode: number = 0;
         const exitSignal: string = 'SIGINT';
+        const databaseSavePromise: Promise<void> = new Promise((resolve, reject) => {
+            when(database.run(INSERT, clock.now(), command.name, command.command, null, exitCode, exitSignal, output.join(EOL)))
+                .thenCall(() => resolve());
+        });
         // when
         await request(application.app)
             .post(`${baseUrl}/command/${command.id}/execution`)
             .expect(201);
-        const statusPromise: Promise<ProcessStatus> = statusSubject.toPromise();
         statusSubject.next({exitCode: exitCode, exitSignal: exitSignal});
-        statusSubject.complete();
-        await statusPromise;
         // then
-        verify(database.run(INSERT, clock.now(), command.name, command.command, null, exitCode, exitSignal, output.join(EOL))).once();
+        await databaseSavePromise;
     });
     it('should save failed command execution to the database', async function () {
         // given
@@ -419,5 +426,243 @@ describe('command-executor', function () {
             .expect(200);
         // then
         verify(database.run(DELETE, clock.now(), command.name)).once();
+    });
+    it('should receive both status and output change events from both executions', async function () {
+        // when
+        const socket: DummyWebSocket = await wss.connect(`${baseUrl}/event`);
+        await request(application.app)
+            .post(`${baseUrl}/command/${command.id}/execution`)
+            .expect(201);
+        await request(application.app)
+            .post(`${baseUrl}/command/${command.id}/execution`)
+            .expect(201);
+        statusSubject.next({exitCode: 0, exitSignal: null});
+        const messages: Array<any> = await socket.messages.pipe(take(6), toArray()).toPromise();
+        // then
+        expect(messages).eql([
+            {
+                commandName: command.name,
+                startTime: clock.now(),
+                changes: [output[0]],
+            },
+            {
+                commandName: command.name,
+                startTime: clock.now(),
+                changes: [output[1]],
+            },
+            {
+                commandName: command.name,
+                startTime: clock.now(),
+                changes: [output[0]],
+            },
+            {
+                commandName: command.name,
+                startTime: clock.now(),
+                changes: [output[1]],
+            },
+            {
+                commandName: command.name,
+                startTime: clock.now(),
+                status: {exitCode: 0, exitSignal: null},
+                error: null
+            },
+            {
+                commandName: command.name,
+                startTime: clock.now(),
+                status: {exitCode: 0, exitSignal: null},
+                error: null
+            }
+        ]);
+    });
+    it('should fail to listen to all events of the specific execution since the specified command does not exist', async function () {
+        // when
+        const socket: DummyWebSocket = await wss.connect(`${baseUrl}/command/:commandId/execution/:startTime`, {}, {commandId: '532467', startTime: clock.now()});
+        await socket.closeEvent.toPromise();
+        // then
+        expect(socket.closeCode).equal(1008);
+        expect(socket.closeMessage).equal('Command with ID \'532467\' does not exist');
+    });
+    it('should fail to listen to all events of the specific execution that is not running right now', async function () {
+        // when
+        const socket: DummyWebSocket = await wss.connect(`${baseUrl}/command/:commandId/execution/:startTime`, {}, {commandId: command.id, startTime: clock.now()});
+        await socket.closeEvent.toPromise();
+        // then
+        expect(socket.closeCode).equal(1008);
+        expect(socket.closeMessage).equal('Only executions, that are currently running, can be listened to');
+    });
+    it('should receive both status and output change events of the specified execution and get connection closed', async function () {
+        // given
+        const outputSubject: Subject<string> = new Subject<string>();
+        when(process.outputs).thenReturn(outputSubject);
+        await request(application.app)
+            .post(`${baseUrl}/command/${command.id}/execution`)
+            .expect(201);
+        // when
+        const socket: DummyWebSocket = await wss.connect(`${baseUrl}/command/:commandId/execution/:startTime`, {}, {commandId: command.id, startTime: clock.now()});
+        setTimeout(() => {
+            output.forEach(line => outputSubject.next(line));
+            statusSubject.next({exitCode: 0, exitSignal: null});
+        }, 1);
+        const messages: Array<any> = await socket.messages.pipe(takeUntil(socket.closeEvent), toArray()).toPromise();
+        // then
+        expect(messages).eql([
+            {
+                commandName: command.name,
+                startTime: clock.now(),
+                changes: [output[0]],
+            },
+            {
+                commandName: command.name,
+                startTime: clock.now(),
+                changes: [output[1]],
+            },
+            {
+                commandName: command.name,
+                startTime: clock.now(),
+                status: {exitCode: 0, exitSignal: null},
+                error: null
+            }
+        ]);
+        expect(socket.closeCode).equal(1000);
+        expect(socket.closeMessage).equal('The execution is complete');
+    });
+    it('should fail to listen to status events of the specific execution since the specified command does not exist', async function () {
+        // when
+        const socket: DummyWebSocket = await wss.connect(`${baseUrl}/command/:commandId/execution/:startTime/status`, {}, {commandId: '1322456234'});
+        await socket.closeEvent.toPromise();
+        // then
+        expect(socket.closeCode).equal(1008);
+        expect(socket.closeMessage).equal('Command with ID \'1322456234\' does not exist');
+    });
+    it('should fail to listen to status events of the specific execution that is not running right now', async function () {
+        // when
+        const socket: DummyWebSocket = await wss.connect(`${baseUrl}/command/:commandId/execution/:startTime/status`, {}, {commandId: command.id, startTime: clock.now()});
+        await socket.closeEvent.toPromise();
+        // then
+        expect(socket.closeCode).equal(1008);
+        expect(socket.closeMessage).equal('Only executions, that are currently running, can be listened to');
+    });
+    it('should receive status change event of the specified execution and get connection closed', async function () {
+        // given
+        await request(application.app)
+            .post(`${baseUrl}/command/${command.id}/execution`)
+            .expect(201);
+        // when
+        const socket: DummyWebSocket = await wss.connect(`${baseUrl}/command/:commandId/execution/:startTime/status`, {}, {commandId: command.id, startTime: clock.now()});
+        setTimeout(() => statusSubject.next({exitCode: null, exitSignal: 'SIGKILL'}),1);
+        const messages: Array<any> = await socket.messages.pipe(takeUntil(socket.closeEvent), toArray()).toPromise();
+        // then
+        expect(messages).eql([
+            {
+                commandName: command.name,
+                startTime: clock.now(),
+                status: {
+                    exitCode: null,
+                    exitSignal: 'SIGKILL'
+                },
+                error: null
+            }
+        ]);
+        expect(socket.closeCode).equal(1000);
+        expect(socket.closeMessage).equal('The execution is complete');
+    });
+    it('should receive status change event about a failure of the specified execution and get connection closed', async function () {
+        // given
+        await request(application.app)
+            .post(`${baseUrl}/command/${command.id}/execution`)
+            .expect(201);
+        // when
+        const socket: DummyWebSocket = await wss.connect(`${baseUrl}/command/:commandId/execution/:startTime/status`, {}, {commandId: command.id, startTime: clock.now()});
+        setTimeout(() => statusSubject.error(new Error('error')),1);
+        const messages: Array<any> = await socket.messages.pipe(takeUntil(socket.closeEvent), toArray()).toPromise();
+        // then
+        expect(messages).eql([
+            {
+                commandName: command.name,
+                startTime: clock.now(),
+                status: null,
+                error: 'error'
+            }
+        ]);
+        expect(socket.closeCode).equal(1000);
+        expect(socket.closeMessage).equal('The execution is complete');
+    });
+    it('should fail to listen to output events of the specific execution since the specified command does not exist', async function () {
+        // when
+        const socket: DummyWebSocket = await wss.connect(`${baseUrl}/command/:commandId/execution/:startTime/output`, {}, {commandId: '532467', startTime: clock.now()});
+        await socket.closeEvent.toPromise();
+        // then
+        expect(socket.closeCode).equal(1008);
+        expect(socket.closeMessage).equal('Command with ID \'532467\' does not exist');
+    });
+    it('should fail to listen to output events of the specific execution that is not running right now', async function () {
+        // when
+        const socket: DummyWebSocket = await wss.connect(`${baseUrl}/command/:commandId/execution/:startTime/status`, {}, {commandId: command.id, startTime: clock.now()});
+        await socket.closeEvent.toPromise();
+        // then
+        expect(socket.closeCode).equal(1008);
+        expect(socket.closeMessage).equal('Only executions, that are currently running, can be listened to');
+    });
+    it('should receive output change events of the specified execution and get connection closed after execution being complete', async function () {
+        // given
+        const outputSubject: Subject<string> = new Subject<string>();
+        when(process.outputs).thenReturn(outputSubject);
+        await request(application.app)
+            .post(`${baseUrl}/command/${command.id}/execution`)
+            .expect(201);
+        // when
+        const socket: DummyWebSocket = await wss.connect(`${baseUrl}/command/:commandId/execution/:startTime/output`, {}, {commandId: command.id, startTime: clock.now()});
+        setTimeout(() => {
+            output.forEach(line => outputSubject.next(line));
+            statusSubject.next({exitCode: 0, exitSignal: null});
+        });
+        const messages: Array<any> = await socket.messages.pipe(takeUntil(socket.closeEvent), toArray()).toPromise();
+        // then
+        expect(messages).eql([
+            {
+                commandName: command.name,
+                startTime: clock.now(),
+                changes: [output[0]]
+            },
+            {
+                commandName: command.name,
+                startTime: clock.now(),
+                changes: [output[1]]
+            }
+        ]);
+    });
+    it('should receive complete output of the execution in output events and get connection closed after execution being complete', async function () {
+        // given
+        const outputSubject: Subject<string> = new Subject<string>();
+        when(process.outputs).thenReturn(outputSubject);
+        await request(application.app)
+            .post(`${baseUrl}/command/${command.id}/execution`)
+            .expect(201);
+        // when
+        output.forEach(line => outputSubject.next(line));
+        const socket: DummyWebSocket = await wss.connect(`${baseUrl}/command/:commandId/execution/:startTime/output`, {fromStart: 'true'}, {commandId: command.id, startTime: clock.now()});
+        setTimeout(() => {
+            output.forEach(line => outputSubject.next(line));
+            statusSubject.next({exitCode: 0, exitSignal: null});
+        });
+        const messages: Array<any> = await socket.messages.pipe(takeUntil(socket.closeEvent), toArray()).toPromise();
+        // then
+        expect(messages).eql([
+            {
+                commandName: command.name,
+                startTime: clock.now(),
+                changes: output
+            },
+            {
+                commandName: command.name,
+                startTime: clock.now(),
+                changes: [output[0]]
+            },
+            {
+                commandName: command.name,
+                startTime: clock.now(),
+                changes: [output[1]]
+            }
+        ]);
     });
 });

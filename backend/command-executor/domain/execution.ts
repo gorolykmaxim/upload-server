@@ -1,10 +1,8 @@
 import {Command} from "./command";
 import {Process, ProcessStatus} from "./process";
 import {EOL} from "os";
-import {Observable} from "rxjs";
 
 export class Execution {
-    isMarkedForRemoval: boolean = false;
     private process: Process;
 
     constructor(readonly startTime: number, private command: Command, private status?: ProcessStatus,
@@ -34,10 +32,6 @@ export class Execution {
 
     sendSignal(signal: number): void {
         this.process.sendSignal(signal);
-    }
-
-    get statusChanges(): Observable<ProcessStatus> {
-        return this.process.status;
     }
 
     get commandName(): string {

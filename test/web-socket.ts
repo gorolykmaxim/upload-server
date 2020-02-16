@@ -1,5 +1,5 @@
 import * as express from "express";
-import {fromEvent, Observable, ReplaySubject, Subject} from "rxjs";
+import {Observable, ReplaySubject, Subject} from "rxjs";
 import {EventEmitter} from "events";
 import {take} from "rxjs/operators";
 
@@ -8,7 +8,8 @@ type OnConnection = (connection: any, req: any) => void | Promise<void>;
 export class DummyWebSocket {
     closeCode: number;
     closeMessage: string;
-    private subject: Subject<any> = new ReplaySubject<any>();
+    private messageSubject: Subject<any> = new ReplaySubject<any>();
+    private closeSubject: Subject<void> = new ReplaySubject<void>();
     private emitter: EventEmitter = new EventEmitter();
 
     receive(data: any): void {
@@ -18,6 +19,7 @@ export class DummyWebSocket {
     close(code: number, message: string): void {
         this.closeCode = code;
         this.closeMessage = message;
+        this.closeSubject.next();
         this.emitter.emit('close');
     }
 
@@ -26,15 +28,15 @@ export class DummyWebSocket {
     }
 
     send(data: any): void {
-        this.subject.next(JSON.parse(data));
+        this.messageSubject.next(JSON.parse(data));
     }
 
     get closeEvent(): Observable<void> {
-        return fromEvent(this.emitter, 'close').pipe(take<void>(1));
+        return this.closeSubject.pipe(take(1));
     }
 
     get messages(): Observable<any> {
-        return this.subject;
+        return this.messageSubject;
     }
 
     get oneMessage(): Promise<any> {

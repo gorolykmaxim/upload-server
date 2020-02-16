@@ -17,6 +17,7 @@ import {Api} from "./api";
 import {ConfigCommandRepository} from "./command-executor/infrastructure/config-command-repository";
 import {CommandExecutorBoundedContext} from "./command-executor/domain/command-executor-bounded-context";
 import {RestApi as CommandExecutorRestApi} from "./command-executor/infrastructure/rest-api";
+import {WebSocketApi as CommandExecutorWebSocketApi} from "./command-executor/infrastructure/web-socket-api";
 import {ProcessFactory} from "./command-executor/domain/process";
 import systemClock, {Clock} from "clock";
 import {OsProcessFactory} from "./command-executor/infrastructure/os-process";
@@ -78,7 +79,8 @@ export class Application {
         const commandExecutorBoundedContext: CommandExecutorBoundedContext = new CommandExecutorBoundedContext(
             commandRepository, this.clock, this.processFactory, activeExecutionRepository, completeExecutionRepository);
         const commandExecutorApis: Array<Api> = [
-            new CommandExecutorRestApi(this.app, commandExecutorBoundedContext)
+            new CommandExecutorRestApi(this.app, commandExecutorBoundedContext),
+            new CommandExecutorWebSocketApi(this.app, commandExecutorBoundedContext)
         ];
         commandRepository.initialize();
         commandExecutorApis.forEach(api => api.initialize('/api/command-executor'));

@@ -1,14 +1,20 @@
 import {Command, CommandRepository} from "./command";
 import {Execution, ExecutionRepository} from "./execution";
-import {ProcessFactory, ProcessStatus} from "./process";
+import {ProcessFactory} from "./process";
 import {Clock} from "clock";
 import {constants} from "os";
+import {EMPTY, merge, Observable, of, Subject} from "rxjs";
+import {ExecutionEvent, OutputChangeEvent, StatusChangeEvent} from "./events";
+import {filter, take, takeUntil} from "rxjs/operators";
 
 /**
  * A bounded context of a command-executor, module, that allows executing shell commands, stores and shows their
  * output, keeps history of command executions, notifies about events, happening with command executions in real time.
  */
 export class CommandExecutorBoundedContext {
+    private outputChanges: Subject<OutputChangeEvent> = new Subject<OutputChangeEvent>();
+    private statusChanges: Subject<StatusChangeEvent> = new Subject<StatusChangeEvent>();
+
     /**
      * Construct a bounded context.
      *
@@ -21,6 +27,7 @@ export class CommandExecutorBoundedContext {
     constructor(private commandRepository: CommandRepository, private clock: Clock,
                 private processFactory: ProcessFactory, private activeExecutionsRepository: ExecutionRepository,
                 private completeExecutionsRepository: ExecutionRepository) {
+        this.statusChanges.subscribe(this.handleExecutionStatusChange.bind(this));
     }
 
     /**
@@ -66,16 +73,9 @@ export class CommandExecutorBoundedContext {
      * @throws CommandDoesNotExistError if command with the specified ID does not exist
      */
     async executeCommand(id: string): Promise<StartedExecution> {
-        const command: Command = this.commandRepository.findById(id);
-        if (!command) {
-            throw new CommandDoesNotExistError(id);
-        }
-        const execution: Execution = command.execute(this.clock, this.processFactory);
+        const command: Command = this.getCommandById(id);
+        const execution: Execution = command.execute(this.clock, this.processFactory, this.outputChanges, this.statusChanges);
         await this.activeExecutionsRepository.add(execution);
-        execution.statusChanges.subscribe(
-            status => this.finalizeExecution(execution, status),
-            error => this.finalizeExecution(execution, error)
-        );
         return {startTime: execution.startTime, commandName: execution.commandName, commandScript: execution.commandScript};
     }
 
@@ -88,10 +88,7 @@ export class CommandExecutorBoundedContext {
      * @throws ExecutionsLookupError in case of a failed attempt to lookup executions in one of the repositories
      */
     async getExecutionsOfCommand(id: string): Promise<Array<ExecutionSummary>> {
-        const command: Command = await this.commandRepository.findById(id);
-        if (!command) {
-            throw new CommandDoesNotExistError(id);
-        }
+        const command: Command = this.getCommandById(id);
         let executions: Array<Execution> = [];
         executions.push(...await this.activeExecutionsRepository.findByCommandName(command.name));
         executions.push(...await this.completeExecutionsRepository.findByCommandName(command.name));
@@ -123,10 +120,7 @@ export class CommandExecutorBoundedContext {
      * @throws ExecutionDoesNotExistError if there were no executions of the specified command, started at the specified time
      */
     async getExecutionOfCommand(commandId: string, executionStartTime: number, dontSplit: boolean): Promise<ExecutionDetails> {
-        const command: Command = this.commandRepository.findById(commandId);
-        if (!command) {
-            throw new CommandDoesNotExistError(commandId);
-        }
+        const command: Command = this.getCommandById(commandId);
         let execution: Execution;
         execution = await this.activeExecutionsRepository.findByCommandNameAndStartTime(command.name, executionStartTime);
         if (!execution) {
@@ -157,14 +151,8 @@ export class CommandExecutorBoundedContext {
      * that is currently running
      */
     async sendSignalToTheExecution(commandId: string, executionStartTime: number, signal: number): Promise<void> {
-        const command: Command = this.commandRepository.findById(commandId);
-        if (!command) {
-            throw new CommandDoesNotExistError(commandId);
-        }
-        const execution: Execution = await this.activeExecutionsRepository.findByCommandNameAndStartTime(command.name, executionStartTime);
-        if (!execution) {
-            throw new NoActiveExecutionFound(commandId, executionStartTime);
-        }
+        const command: Command = this.getCommandById(commandId);
+        const execution: Execution = await this.getActiveExecution(command, executionStartTime);
         execution.sendSignal(signal);
     }
 
@@ -179,13 +167,10 @@ export class CommandExecutorBoundedContext {
      * @throws ExecutionDoesNotExistError if there were no executions of the specified command, started at the specified time
      */
     async removeExecution(commandId: string, executionStartTime: number): Promise<void> {
-        const command: Command = this.commandRepository.findById(commandId);
-        if (!command) {
-            throw new CommandDoesNotExistError(commandId);
-        }
+        const command: Command = this.getCommandById(commandId);
         let execution: Execution = await this.activeExecutionsRepository.findByCommandNameAndStartTime(command.name, executionStartTime);
         if (execution) {
-            execution.isMarkedForRemoval = true;
+            await this.activeExecutionsRepository.remove(execution);
             execution.sendSignal(constants.signals.SIGKILL);
             return;
         }
@@ -197,21 +182,102 @@ export class CommandExecutorBoundedContext {
         throw new ExecutionDoesNotExistError(commandId, executionStartTime);
     }
 
-    private async finalizeExecution(execution: Execution, result: ProcessStatus | Error): Promise<void> {
+    /**
+     * Return observable of all events, related to the specified execution. The observable will complete once the
+     * watched execution is complete.
+     *
+     * If the execution is not specified (commandId and executionStartTime not specified) - return observable of
+     * all events, happening in command executor. Such observable will not complete.
+     *
+     * @param commandId ID of the command
+     * @param executionStartTime start time of the execution
+     * @throws CommandDoesNotExistError if the command with the specified ID does not exist
+     * @throws NoActiveExecutionFound if there is no execution of the specified command, started at the specified time,
+     * that is currently running
+     */
+    async watchAllEvents(commandId?: string, executionStartTime?: number): Promise<Observable<ExecutionEvent>> {
+        if (commandId && executionStartTime) {
+            return merge(
+                await this.watchStatusOfExecution(commandId, executionStartTime),
+                await this.watchOutputOfExecution(commandId, executionStartTime, false)
+            );
+        } else {
+            return merge(this.outputChanges, this.statusChanges);
+        }
+    }
+
+    /**
+     * Return observable of status-related events of the specific execution. The observable will complete once the
+     * watched execution is complete.
+     *
+     * @param commandId ID of the command
+     * @param executionStartTime start time of the execution
+     * @throws CommandDoesNotExistError if the command with the specified ID does not exist
+     * @throws NoActiveExecutionFound if there is no execution of the specified command, started at the specified time,
+     * that is currently running
+     */
+    async watchStatusOfExecution(commandId: string, executionStartTime: number): Promise<Observable<StatusChangeEvent>> {
+        const command: Command = this.getCommandById(commandId);
+        const execution: Execution = await this.getActiveExecution(command, executionStartTime);
+        return this.statusChanges.pipe(filter(ExecutionEvent.isRelatedTo(execution)), take<StatusChangeEvent>(1));
+    }
+
+    /**
+     * Return observable of output (both STDOUT and STDERR) change events of the specific execution. The observable will
+     * complete once the watched execution is complete.
+     *
+     * @param commandId ID of the command
+     * @param executionStartTime start time of the execution
+     * @param fromTheBeginning if set to true - first, the observable will emit all the existing output lines of the
+     * specified execution and only after that will start emitting new lines, written to the execution's output.
+     * Otherwise will only emit new lines.
+     * @throws CommandDoesNotExistError if the command with the specified ID does not exist
+     * @throws NoActiveExecutionFound if there is no execution of the specified command, started at the specified time,
+     * that is currently running
+     */
+    async watchOutputOfExecution(commandId: string, executionStartTime: number, fromTheBeginning: boolean): Promise<Observable<OutputChangeEvent>> {
+        const command: Command = this.getCommandById(commandId);
+        const execution: Execution = await this.getActiveExecution(command, executionStartTime);
+        return merge(
+            fromTheBeginning ? of(new OutputChangeEvent(execution, execution.outputLines)) : EMPTY,
+            this.outputChanges.pipe(filter<OutputChangeEvent>(ExecutionEvent.isRelatedTo(execution)))
+        ).pipe(
+            takeUntil(this.statusChanges.pipe(filter(ExecutionEvent.isRelatedTo(execution))))
+        );
+    }
+
+    private async handleExecutionStatusChange(event: StatusChangeEvent): Promise<void> {
+        const execution: Execution = await this.activeExecutionsRepository.findByCommandNameAndStartTime(event.commandName, event.startTime);
         try {
-            if (result instanceof Error) {
-                execution.fail(result);
-            } else {
-                execution.complete(result);
-            }
-            await this.activeExecutionsRepository.remove(execution);
-            if (!execution.isMarkedForRemoval) {
+            // If execution does not exist, than it means that is was deleted during its execution.
+            if (execution) {
+                if (event.status) {
+                    execution.complete(event.status);
+                } else {
+                    execution.fail(event.error);
+                }
+                await this.activeExecutionsRepository.remove(execution);
                 await this.completeExecutionsRepository.add(execution);
             }
         } catch (e) {
-            // TODO: maybe raise an event instead of just logging this
             console.error(`Failed to save execution '${JSON.stringify(execution)}' on it's completion. Reason: ${e.message}`);
         }
+    }
+
+    private getCommandById(commandId: string): Command {
+        const command: Command = this.commandRepository.findById(commandId);
+        if (!command) {
+            throw new CommandDoesNotExistError(commandId);
+        }
+        return command;
+    }
+
+    private async getActiveExecution(command: Command, executionStartTime: number): Promise<Execution> {
+        const execution: Execution = await this.activeExecutionsRepository.findByCommandNameAndStartTime(command.name, executionStartTime);
+        if (!execution) {
+            throw new NoActiveExecutionFound(command.id, executionStartTime);
+        }
+        return execution;
     }
 }
 
