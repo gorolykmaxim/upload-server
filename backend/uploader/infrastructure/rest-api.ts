@@ -1,6 +1,8 @@
 import {Api} from "../../api";
 import {UploaderBoundedContext} from "../domain/uploader-bounded-context";
 import {Express, Request, Response} from "express";
+import {fromEvent, Observable} from "rxjs";
+import {take, takeUntil} from "rxjs/operators";
 import multer = require("multer");
 
 export class RestApi extends Api {
@@ -17,22 +19,43 @@ export class RestApi extends Api {
             }
         });
         const upload = multer({storage: storage});
-        this.app.post('/files/', upload.any(), this.logFileOperationAndRespond(this.fileUpload()));
-        this.app.post('/files/upload', upload.any(), this.logFileOperationAndRespond(this.fileUpload()));
-        this.app.post(`${baseUrl}/file`, upload.any(), this.logFileOperationAndRespond(this.fileUpload()));
+        this.app.post('/files/', upload.any(), this.handleRawBodyUpload(), this.logFileOperationAndRespond(this.fileUpload()));
+        this.app.post('/files/upload', upload.any(), this.handleRawBodyUpload(), this.logFileOperationAndRespond(this.fileUpload()));
+        this.app.post(`${baseUrl}/file`, upload.any(), this.handleRawBodyUpload(), this.logFileOperationAndRespond(this.fileUpload()));
     }
 
     private async resolveFileName(req: Request, file: Express.Multer.File,
                                   callback: (error: (Error | null), filename: string) => void): Promise<void> {
         try {
             if (!req.body.file) {
-                throw new Error('"file" is not specified in the request body. It should be an absolute path to a location where the file should be uploaded to');
+                throw new MissingUploadPathError('file', 'body');
             }
             const uploadPath: string = this.uploaderBoundedContext.resolveUploadPath(req.body.file);
             await this.uploaderBoundedContext.prepareDirectoryFor(uploadPath);
             callback(null, uploadPath);
         } catch (e) {
             callback(e, null);
+        }
+    }
+
+    private handleRawBodyUpload(): (req: any, res: Response, next: Function) => Promise<void> {
+        return async (req, res, next) => {
+            if (req.header('content-type').indexOf('multipart/form-data') < 0) {
+                try {
+                    if (!req.query.name) {
+                        throw new MissingUploadPathError('name', 'query');
+                    }
+                    const requestBodyEnd: Observable<any> = fromEvent(req, 'end').pipe(take(1));
+                    const requestBody: Observable<string> = fromEvent(req, 'data').pipe(takeUntil<string>(requestBodyEnd));
+                    const uploadPath: string = await this.uploaderBoundedContext.uploadFile(req.query.name, requestBody);
+                    req.files = [{path: uploadPath}];
+                    next();
+                } catch (e) {
+                    res.status(e instanceof MissingUploadPathError ? 400 : 500).send(e.message);
+                }
+            } else {
+                next();
+            }
         }
     }
 
@@ -46,5 +69,11 @@ export class RestApi extends Api {
 
     private fileUpload(): (req: any) => string {
         return (req) => `File uploaded: ${req.files[0].path}`;
+    }
+}
+
+class MissingUploadPathError extends Error {
+    constructor(attributeName: string, requestPath: string) {
+        super(`"${attributeName}" is not specified in the request ${requestPath}. It should be an absolute path to a location where the file should be uploaded to.`);
     }
 }

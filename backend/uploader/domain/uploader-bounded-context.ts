@@ -1,5 +1,6 @@
 import {FileSystem} from "./file-system";
 import * as path from "path";
+import {Observable} from "rxjs";
 
 /**
  * Bounded context of the uploader, module, that allows uploading files to the local upload directory,
@@ -40,7 +41,27 @@ export class UploaderBoundedContext {
      */
     async prepareDirectoryFor(uploadPath: string): Promise<void> {
         const absoluteUploadPathDirectory: string = path.dirname(path.join(this.uploadDirectory, uploadPath));
-        await this.fileSystem.mkdir(absoluteUploadPathDirectory, {recursive: true});
+        await this.fileSystem.ensureDirectoryExists(absoluteUploadPathDirectory);
+    }
+
+    /**
+     * Upload specified file to the specified path inside the upload directory.
+     *
+     * @param uploadPath absolute path to a file inside upload directory, to which the specified content should
+     * be uploaded
+     * @param fileContent file content to upload
+     * @throws UploadPathOutsideUploadDirectoryError if the specified path is located outside the upload directory
+     */
+    async uploadFile(uploadPath: string, fileContent: Observable<string>): Promise<string> {
+        try {
+            const relativeUploadPath: string = this.resolveUploadPath(uploadPath);
+            await this.prepareDirectoryFor(relativeUploadPath);
+            const absoluteUploadPath: string = path.join(this.uploadDirectory, relativeUploadPath);
+            await this.fileSystem.writeToFile(absoluteUploadPath, fileContent);
+            return absoluteUploadPath;
+        } catch (e) {
+            throw new UploadOperationError(`upload file ${uploadPath}`, e);
+        }
     }
 }
 
@@ -48,5 +69,12 @@ export class UploadPathOutsideUploadDirectoryError extends Error {
     constructor(uploadPath: string, uploadDirectory: string) {
         super(`Specified upload path '${uploadPath}' is outside of the upload directory '${uploadDirectory}'`);
         Object.setPrototypeOf(this, UploadPathOutsideUploadDirectoryError.prototype);
+    }
+}
+
+export class UploadOperationError extends Error {
+    constructor(operation: string, cause: Error) {
+        super(`Failed to ${operation}. Reason: ${cause.message}`);
+        Object.setPrototypeOf(this, UploadOperationError.prototype);
     }
 }

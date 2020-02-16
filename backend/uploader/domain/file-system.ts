@@ -1,5 +1,6 @@
-import {MakeDirectoryOptions, PathLike} from "fs";
+import {Observable} from "rxjs";
 
 export interface FileSystem {
-    mkdir(path: PathLike, options?: MakeDirectoryOptions): Promise<void>;
+    ensureDirectoryExists(path: string): Promise<void>;
+    writeToFile(path: string, data: Observable<string>): Promise<void>;
 }

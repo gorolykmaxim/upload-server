@@ -29,6 +29,7 @@ import {join} from "path";
 import {FileSystem as UploaderFileSystem} from "./uploader/domain/file-system";
 import {UploaderBoundedContext} from "./uploader/domain/uploader-bounded-context";
 import {RestApi as UploaderRestApi} from "./uploader/infrastructure/rest-api";
+import {OsFileSystem} from "./uploader/infrastructure/os-file-system";
 import bodyParser = require("body-parser");
 import expressWs = require("express-ws");
 
@@ -54,7 +55,7 @@ export class Application {
         }
         this.jsonDB = jsonDB ?? new JsonDB('./upload-server-db', true, true);
         this.logWatcherFileSystem = logWatcherFileSystem ?? fs.promises;
-        this.uploaderFileSystem = uploaderFileSystem ?? fs.promises;
+        this.uploaderFileSystem = uploaderFileSystem ?? new OsFileSystem();
         this.fileWatcher = fileWatcher ?? (platform() === 'win32' ? new WindowsFileWatcher('tail.exe') : new UnixFileWatcher());
         this.clock = clock ?? systemClock;
         this.processFactory = processFactory ?? new OsProcessFactory();
