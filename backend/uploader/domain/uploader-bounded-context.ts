@@ -54,8 +54,8 @@ export class UploaderBoundedContext {
      * @throws UploadOperationError if file save has failed for some reason
      */
     async uploadFile(uploadPath: string, fileContent: Observable<string>): Promise<string> {
+        const relativeUploadPath: string = this.resolveUploadPath(uploadPath);
         try {
-            const relativeUploadPath: string = this.resolveUploadPath(uploadPath);
             await this.prepareDirectoryFor(relativeUploadPath);
             const absoluteUploadPath: string = path.join(this.uploadDirectory, relativeUploadPath);
             await this.fileSystem.writeToFile(absoluteUploadPath, fileContent);

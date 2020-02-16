@@ -98,5 +98,6 @@ export class RestApi extends Api {
 class MissingUploadPathError extends Error {
     constructor(attributeName: string, requestPath: string) {
         super(`"${attributeName}" is not specified in the request ${requestPath}. It should be an absolute path to a location where the file should be uploaded to.`);
+        Object.setPrototypeOf(this, MissingUploadPathError.prototype);
     }
 }
