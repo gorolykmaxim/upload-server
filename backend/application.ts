@@ -188,7 +188,7 @@ export class Application {
             // the database will reside near the configuration
             const rootDirectory: string = path.dirname(this.args.configFile);
             this.database = await open(join(rootDirectory, 'upload-server.db'));
-            await this.database.migrate({migrationsPath: join(rootDirectory, 'migrations')});
+            await this.database.migrate({migrationsPath: join(__dirname, '..', '..', 'migrations')});
         }
         const commandRepository: ConfigCommandRepository = new ConfigCommandRepository(this.jsonDB);
         const activeExecutionRepository: ExecutionRepository = new InMemoryExecutionRepository();
