@@ -30,6 +30,9 @@ import {FileSystem as UploaderFileSystem} from "./uploader/domain/file-system";
 import {UploaderBoundedContext} from "./uploader/domain/uploader-bounded-context";
 import {RestApi as UploaderRestApi} from "./uploader/infrastructure/rest-api";
 import {OsFileSystem} from "./uploader/infrastructure/os-file-system";
+import {ConfigCredentialsRepository} from "./authentication/infrastructure/config-credentials-repository";
+import {AuthenticationBoundedContext} from "./authentication/domain/authentication-bounded-context";
+import * as expressBasicAuth from "express-basic-auth";
 import bodyParser = require("body-parser");
 import expressWs = require("express-ws");
 
@@ -66,6 +69,14 @@ export class Application {
 
     async main(): Promise<void> {
         this.app.use(bodyParser());
+        // authentication
+        const credentialsRepository: ConfigCredentialsRepository = new ConfigCredentialsRepository(this.jsonDB);
+        credentialsRepository.initialize();
+        const authenticationBoundedContext: AuthenticationBoundedContext = new AuthenticationBoundedContext(credentialsRepository);
+        authenticationBoundedContext.displayCredentialsInLog();
+        for (let url of ['/files/*', '/api/uploader/*']) {
+            this.app.use(url, expressBasicAuth({authorizer: (username: string, password: string) => authenticationBoundedContext.areCredentialsValid(username, password)}));
+        }
         // log-watcher
         const allowedLogFilesRepository: ConfigAllowedLogFilesRepository = new ConfigAllowedLogFilesRepository(this.jsonDB);
         const logWatcherBoundedContext: LogWatcherBoundedContext = new LogWatcherBoundedContext(allowedLogFilesRepository, this.logWatcherFileSystem, this.fileWatcher);

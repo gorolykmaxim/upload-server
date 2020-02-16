@@ -6,14 +6,14 @@ import {FileSystem} from "../backend/log-watcher/domain/file-system";
 import {Stats} from "fs";
 import {EOL} from "os";
 import {DummyWebSocket, DummyWebSocketServer, mockWebSocketExpress} from "./web-socket";
-import {expect} from "chai";
 import * as chai from "chai";
+import {expect} from "chai";
 import {FileWatcher} from "../backend/log-watcher/domain/file-watcher";
 import {from, ReplaySubject, Subject, throwError, TimeoutError} from "rxjs";
 import {map, mergeMap, take, timeout, toArray} from "rxjs/operators";
 import {Database} from "sqlite";
-import chaiAsPromised = require("chai-as-promised");
 import {LogFileAccessError} from "../backend/log-watcher/domain/log-watcher-bounded-context";
+import chaiAsPromised = require("chai-as-promised");
 
 chai.use(chaiAsPromised);
 
@@ -42,6 +42,8 @@ describe('log-watcher', function () {
         when(jsonDB.getData(configPath))
             .thenThrow(new Error())
             .thenReturn([].concat(allowedLogs));
+        when(jsonDB.getData('/authorization/credentials'))
+            .thenReturn({login: '1', password: '2'});
         when(fileSystem.readFile(allowedLogs[0])).thenResolve(content);
         when(fileWatcher.watch(allowedLogs[0])).thenReturn(from(changes));
         application = new Application(express, instance(jsonDB), instance(fileSystem), instance(fileWatcher), null, null, instance(database));

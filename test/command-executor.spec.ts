@@ -56,6 +56,8 @@ describe('command-executor', function () {
         when(jsonDB.getData(configPath))
             .thenThrow(new Error())
             .thenReturn(Object.assign({}, executableCommands));
+        when(jsonDB.getData('/authorization/credentials'))
+            .thenReturn({login: '1', password: '2'});
         application = new Application(app, instance(jsonDB), null, null, clock,
             instance(processFactory), instance(database));
         await application.main();
