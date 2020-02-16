@@ -189,3 +189,47 @@ to read existing output of the command before receiving updates about changes in
 ```
 /api/command-executor/command/<command ID>/execution/<execution start time>/output?fromStart=<true/false>
 ```
+
+### Uploader
+
+#### HTTP
+
+Upload a file with 'multipart/form-data' content-type. A body have two attributes:
+- file - a path, where the file should be save
+- data - actual body of the file
+
+```
+POST /api/uploader/file
+or
+POST /files/upload
+or
+POST /files/
+```
+
+Upload a file. A body of a request should contain body of the file.
+
+```
+POST /api/uploader/file?name=<path, where the file should be saved>
+or
+POST /files/upload?file?name=<path, where the file should be saved>
+or
+POST /files/?file?name=<path, where the file should be saved>
+```
+
+Move file from one location to another. Can also be used to rename a file.
+
+```
+PUT /api/uploader/file
+
+{"oldPath": "<current path to the file>", "newPath": "<new path to the file>"}
+or
+POST /files/move?old_file=<current path to the file>&file=<new path to the file>
+```
+
+Delete file.
+
+```
+DELETE /api/uploader/file?name=<current path to the file>
+or
+POST /files/delete?file=<current path to the file>
+```
