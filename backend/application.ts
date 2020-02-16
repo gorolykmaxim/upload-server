@@ -43,10 +43,11 @@ export class Application {
     private clock: Clock;
     private processFactory: ProcessFactory;
     private database: Database;
+    private uploadDirectory: string;
 
     constructor(app?: Express, jsonDB?: JsonDB, logWatcherFileSystem?: LogWatcherFileSystem, fileWatcher?: FileWatcher,
                 clock?: Clock, processFactory?: ProcessFactory, database?: Database,
-                uploaderFileSystem?: UploaderFileSystem) {
+                uploaderFileSystem?: UploaderFileSystem, uploadDirectory?: string) {
         if (app) {
             this.app = app;
         } else {
@@ -60,6 +61,7 @@ export class Application {
         this.clock = clock ?? systemClock;
         this.processFactory = processFactory ?? new OsProcessFactory();
         this.database = database;
+        this.uploadDirectory = uploadDirectory;
     }
 
     async main(): Promise<void> {
@@ -93,9 +95,9 @@ export class Application {
         commandRepository.initialize();
         commandExecutorApis.forEach(api => api.initialize('/api/command-executor'));
         // uploader
-        const uploadDirectory: string = join(__dirname, '../../files');
-        const uploaderBoundedContext: UploaderBoundedContext = new UploaderBoundedContext(uploadDirectory, this.uploaderFileSystem);
-        const uploaderApi = new UploaderRestApi(uploadDirectory, this.app, uploaderBoundedContext);
+        this.uploadDirectory = this.uploadDirectory ?? join(__dirname, '../../files');
+        const uploaderBoundedContext: UploaderBoundedContext = new UploaderBoundedContext(this.uploadDirectory, this.uploaderFileSystem);
+        const uploaderApi = new UploaderRestApi(this.uploadDirectory, this.app, uploaderBoundedContext);
         uploaderApi.initialize('/api/uploader');
         this.server = this.app.listen(8080, () => console.log('Listening on port 8080...'));
     }

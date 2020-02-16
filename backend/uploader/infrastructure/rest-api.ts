@@ -1,8 +1,9 @@
 import {Api} from "../../api";
-import {UploaderBoundedContext} from "../domain/uploader-bounded-context";
+import {UploaderBoundedContext, UploadPathOutsideUploadDirectoryError} from "../domain/uploader-bounded-context";
 import {Express, Request, Response} from "express";
 import {fromEvent, Observable} from "rxjs";
 import {take, takeUntil} from "rxjs/operators";
+import {body, query} from "express-validator";
 import multer = require("multer");
 
 export class RestApi extends Api {
@@ -22,6 +23,22 @@ export class RestApi extends Api {
         this.app.post('/files/', upload.any(), this.handleRawBodyUpload(), this.logFileOperationAndRespond(this.fileUpload()));
         this.app.post('/files/upload', upload.any(), this.handleRawBodyUpload(), this.logFileOperationAndRespond(this.fileUpload()));
         this.app.post(`${baseUrl}/file`, upload.any(), this.handleRawBodyUpload(), this.logFileOperationAndRespond(this.fileUpload()));
+        this.app.post('/files/move', [query('old_file').isString().notEmpty(), query('file').isString().notEmpty()], this.handleValidationErrors(), async (req: Request, res: Response, next: Function) => {
+            try {
+                await this.uploaderBoundedContext.moveFile(req.query.old_file, req.query.file);
+                next();
+            } catch (e) {
+                res.status(e instanceof UploadPathOutsideUploadDirectoryError ? 403 : 500).send(e.message);
+            }
+        }, this.logFileOperationAndRespond(req => `File moved from ${req.query.old_file} to ${req.query.file}`));
+        this.app.put(`${baseUrl}/file`, [body('oldPath').isString().notEmpty(), body('newPath').isString().notEmpty()], this.handleValidationErrors(), async (req: Request, res: Response, next: Function) => {
+            try {
+                await this.uploaderBoundedContext.moveFile(req.body.oldPath, req.body.newPath);
+                next();
+            } catch (e) {
+                res.status(e instanceof UploadPathOutsideUploadDirectoryError ? 403 : 500).send(e.message);
+            }
+        }, this.logFileOperationAndRespond(req => `File moved from ${req.body.oldPath} to ${req.body.newPath}`));
     }
 
     private async resolveFileName(req: Request, file: Express.Multer.File,
@@ -51,7 +68,13 @@ export class RestApi extends Api {
                     req.files = [{path: uploadPath}];
                     next();
                 } catch (e) {
-                    res.status(e instanceof MissingUploadPathError ? 400 : 500).send(e.message);
+                    let code: number = 500;
+                    if (e instanceof MissingUploadPathError) {
+                        code = 400;
+                    } else if (e instanceof UploadPathOutsideUploadDirectoryError) {
+                        code = 403;
+                    }
+                    res.status(code).send(e.message);
                 }
             } else {
                 next();

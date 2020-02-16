@@ -51,6 +51,7 @@ export class UploaderBoundedContext {
      * be uploaded
      * @param fileContent file content to upload
      * @throws UploadPathOutsideUploadDirectoryError if the specified path is located outside the upload directory
+     * @throws UploadOperationError if file save has failed for some reason
      */
     async uploadFile(uploadPath: string, fileContent: Observable<string>): Promise<string> {
         try {
@@ -61,6 +62,27 @@ export class UploaderBoundedContext {
             return absoluteUploadPath;
         } catch (e) {
             throw new UploadOperationError(`upload file ${uploadPath}`, e);
+        }
+    }
+
+    /**
+     * Move file, located inside the upload directory, from the old specified path to the new specified path.
+     *
+     * @param oldPath old absolute path to the file
+     * @param newPath new absolute path to the file
+     * @throws UploadPathOutsideUploadDirectoryError if the specified path is located outside the upload directory
+     * @throws UploadOperationError if file move has failed for some reason
+     */
+    async moveFile(oldPath: string, newPath: string): Promise<void> {
+        const oldRelativePath: string = this.resolveUploadPath(oldPath);
+        const newRelativePath: string = this.resolveUploadPath(newPath);
+        try {
+            await this.prepareDirectoryFor(newRelativePath);
+            const oldAbsolutePath: string = path.join(this.uploadDirectory, oldRelativePath);
+            const newAbsolutePath: string = path.join(this.uploadDirectory, newRelativePath);
+            await this.fileSystem.move(oldAbsolutePath, newAbsolutePath);
+        } catch (e) {
+            throw new UploadOperationError(`move file from ${oldPath} to ${newPath}`, e);
         }
     }
 }

@@ -18,4 +18,8 @@ export class OsFileSystem implements FileSystem {
         });
     }
 
+    async move(oldPath: string, newPath: string): Promise<void> {
+        await promises.rename(oldPath, newPath);
+    }
+
 }
