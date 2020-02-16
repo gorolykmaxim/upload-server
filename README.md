@@ -194,6 +194,9 @@ to read existing output of the command before receiving updates about changes in
 
 #### HTTP
 
+> Notice: all endpoints of this API require Basic authentication. Use credentials, displayed in the log during the
+> startup, as a username:password combination.
+
 Upload a file with 'multipart/form-data' content-type. A body should have two attributes:
 - file - a path, where the file should be saved
 - data - actual body of the file
