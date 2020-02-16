@@ -1,6 +1,7 @@
 import {FileSystem} from "../domain/file-system";
 import {Observable} from "rxjs";
 import {createWriteStream, promises, WriteStream} from "fs";
+import {remove} from "fs-extra";
 
 export class OsFileSystem implements FileSystem {
     async ensureDirectoryExists(path: string): Promise<void> {
@@ -22,4 +23,7 @@ export class OsFileSystem implements FileSystem {
         await promises.rename(oldPath, newPath);
     }
 
+    async removeFileOrDirectory(path: string): Promise<void> {
+        await remove(path);
+    }
 }

@@ -39,6 +39,22 @@ export class RestApi extends Api {
                 res.status(e instanceof UploadPathOutsideUploadDirectoryError ? 403 : 500).send(e.message);
             }
         }, this.logFileOperationAndRespond(req => `File moved from ${req.body.oldPath} to ${req.body.newPath}`));
+        this.app.post('/files/delete', query('file').isString().notEmpty(), this.handleValidationErrors(), async (req: Request, res: Response, next: Function) => {
+            try {
+                await this.uploaderBoundedContext.removeFile(req.query.file);
+                next();
+            } catch (e) {
+                res.status(e instanceof UploadPathOutsideUploadDirectoryError ? 403 : 500).send(e.message);
+            }
+        }, this.logFileOperationAndRespond(req => `File removed: ${req.query.file}`));
+        this.app.delete(`${baseUrl}/file`, query('name').isString().notEmpty(), this.handleValidationErrors(), async (req: Request, res: Response, next: Function) => {
+            try {
+                await this.uploaderBoundedContext.removeFile(req.query.name);
+                next();
+            } catch (e) {
+                res.status(e instanceof UploadPathOutsideUploadDirectoryError ? 403 : 500).send(e.message);
+            }
+        }, this.logFileOperationAndRespond(req => `File removed: ${req.query.name}`));
     }
 
     private async resolveFileName(req: Request, file: Express.Multer.File,

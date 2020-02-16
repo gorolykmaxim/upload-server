@@ -168,4 +168,68 @@ describe('uploader', function () {
             .query({old_file: correctPath1, file: correctPath2})
             .expect(500);
     });
+    it('should fail to remove file since the name of the file is not specified', async function () {
+        // when
+        await request(application.app)
+            .delete(`${baseUrl}/file`)
+            .query({})
+            .expect(400);
+    });
+    it('should fail to remove file since the file is located outside the upload directory', async function () {
+        // when
+        await request(application.app)
+            .delete(`${baseUrl}/file`)
+            .query({name: incorrectPath})
+            .expect(403);
+    });
+    it('should fail to remove file due to removal error', async function () {
+        // given
+        when(fileSystem.removeFileOrDirectory(correctPath1)).thenReject(error);
+        // when
+        await request(application.app)
+            .delete(`${baseUrl}/file`)
+            .query({name: correctPath1})
+            .expect(500);
+    });
+    it('should remove file', async function () {
+        // when
+        await request(application.app)
+            .delete(`${baseUrl}/file`)
+            .query({name: correctPath1})
+            .expect(200);
+        // then
+        verify(fileSystem.removeFileOrDirectory(correctPath1)).once();
+    });
+    it('should fail to remove file since the name of the file is not specified using the old API', async function () {
+        // when
+        await request(application.app)
+            .post('/files/delete')
+            .query({})
+            .expect(400);
+    });
+    it('should fail to remove file since the file is located outside the upload directory using the old API', async function () {
+        // when
+        await request(application.app)
+            .post('/files/delete')
+            .query({file: incorrectPath})
+            .expect(403);
+    });
+    it('should fail to remove file due to removal error using the old API', async function () {
+        // given
+        when(fileSystem.removeFileOrDirectory(correctPath1)).thenReject(error);
+        // when
+        await request(application.app)
+            .post('/files/delete')
+            .query({file: correctPath1})
+            .expect(500);
+    });
+    it('should remove file using the old API', async function () {
+        // when
+        await request(application.app)
+            .post('/files/delete')
+            .query({file: correctPath1})
+            .expect(200);
+        // then
+        verify(fileSystem.removeFileOrDirectory(correctPath1)).once();
+    });
 });

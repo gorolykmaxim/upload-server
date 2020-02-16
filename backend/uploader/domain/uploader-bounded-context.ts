@@ -85,6 +85,23 @@ export class UploaderBoundedContext {
             throw new UploadOperationError(`move file from ${oldPath} to ${newPath}`, e);
         }
     }
+
+    /**
+     * Remove a file or a directory located by the specified path inside the upload directory.
+     *
+     * @param filePath absolute path to the file or directory
+     * @throws UploadPathOutsideUploadDirectoryError if the specified path is located outside the upload directory
+     * @throws UploadOperationError if the removal has failed for some reason
+     */
+    async removeFile(filePath: string): Promise<void> {
+        const relativePath: string = this.resolveUploadPath(filePath);
+        try {
+            const absolutePath: string = path.join(this.uploadDirectory, relativePath);
+            await this.fileSystem.removeFileOrDirectory(absolutePath);
+        } catch (e) {
+            throw new UploadOperationError(`remove ${filePath}`, e);
+        }
+    }
 }
 
 export class UploadPathOutsideUploadDirectoryError extends Error {
