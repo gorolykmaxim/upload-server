@@ -1,8 +1,9 @@
 import {Api} from "../../api";
 import {Request} from "express";
 import {Subscription} from "rxjs";
-import WebSocket = require("ws");
 import {LogWatcherBoundedContext} from "../domain/log-watcher-bounded-context";
+import WebSocket = require("ws");
+
 const Schema = require('validate');
 
 export class LegacyWebSocketApi extends Api {
@@ -49,6 +50,7 @@ export class LegacyWebSocketApi extends Api {
                         }
                     }
                 } catch (e) {
+                    console.error(e.message, this);
                     connection.send(JSON.stringify({type: 'error', message: e.message}));
                 }
             });

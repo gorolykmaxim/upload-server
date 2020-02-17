@@ -33,6 +33,7 @@ export class WebSocketApi extends Api {
                 .add(() => connection.close(1000, 'The execution is complete'));
             connection.on('close', () => subscription.unsubscribe());
         } catch (e) {
+            console.error(e.message, this);
             if (e instanceof NoActiveExecutionFound) {
                 connection.close(1008, 'Only executions, that are currently running, can be listened to');
             } else {

@@ -23,6 +23,7 @@ export class RestApi extends Api {
                 try {
                     res.status(201).json(this.commandExecutorBoundedContext.createCommand(req.body.name, req.body.script));
                 } catch (e) {
+                    console.error(e.message, this);
                     res.status(409).send(e.message);
                 }
             });
@@ -35,6 +36,7 @@ export class RestApi extends Api {
             try {
                 res.status(201).json(await this.commandExecutorBoundedContext.executeCommand(req.params.id));
             } catch (e) {
+                console.error(e.message, this);
                 res.status(404).send(e.message);
             }
         });
@@ -42,6 +44,7 @@ export class RestApi extends Api {
             try {
                 res.json(await this.commandExecutorBoundedContext.getExecutionsOfCommand(req.params.id));
             } catch (e) {
+                console.error(e.message, this);
                 res.status(e instanceof CommandDoesNotExistError ? 404 : 500).send(e.message);
             }
         });
@@ -49,6 +52,7 @@ export class RestApi extends Api {
             try {
                 res.json(await this.commandExecutorBoundedContext.getExecutionOfCommand(req.params.commandId, parseInt(req.params.startTime), req.query.noSplit == 'true'));
             } catch (e) {
+                console.error(e.message, this);
                 res.status(e instanceof CommandDoesNotExistError || e instanceof ExecutionDoesNotExistError ? 404 : 500).send(e.message);
             }
         });
@@ -57,6 +61,7 @@ export class RestApi extends Api {
                 await this.commandExecutorBoundedContext.removeExecution(req.params.commandId, parseInt(req.params.startTime));
                 res.end();
             } catch (e) {
+                console.error(e.message, this);
                 res.status(e instanceof CommandDoesNotExistError || e instanceof ExecutionDoesNotExistError ? 404 : 500).send(e.message);
             }
         });
@@ -65,6 +70,7 @@ export class RestApi extends Api {
                 await this.commandExecutorBoundedContext.sendSignalToTheExecution(req.params.commandId, parseInt(req.params.startTime), constants.signals.SIGINT);
                 res.end();
             } catch (e) {
+                console.error(e.message, this);
                 res.status(404).send(e.message);
             }
         });
@@ -73,6 +79,7 @@ export class RestApi extends Api {
                 await this.commandExecutorBoundedContext.sendSignalToTheExecution(req.params.commandId, parseInt(req.params.startTime), constants.signals.SIGKILL);
                 res.end();
             } catch (e) {
+                console.error(e.message, this);
                 res.status(404).send(e.message);
             }
         });

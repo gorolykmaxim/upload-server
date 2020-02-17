@@ -3,6 +3,7 @@ import {LogWatcherBoundedContext} from "../domain/log-watcher-bounded-context";
 import {Request} from "express";
 import {Subscription} from "rxjs";
 import WebSocket = require("ws");
+
 const Schema = require('validate');
 
 export class WebSocketApi extends Api {
@@ -30,6 +31,7 @@ export class WebSocketApi extends Api {
                 );
                 connection.on('close', () => subscription.unsubscribe());
             } catch (e) {
+                console.error(e.message, this);
                 connection.close(1008, e.message);
             }
         });

@@ -26,6 +26,7 @@ export class RestApi extends Api {
             try {
                 res.json(await this.logWatcherBoundedContext.getLogFileSize(req.query.absolutePath));
             } catch (e) {
+                console.error(e.message, this);
                 res.status(e instanceof LogFileAccessError ? 403 : 500).send(e.message);
             }
         });
@@ -33,6 +34,7 @@ export class RestApi extends Api {
             try {
                 res.json(await this.logWatcherBoundedContext.getLogFileContent(req.query.absolutePath, req.query.noSplit == 'true'));
             } catch (e) {
+                console.error(e.message, this);
                 res.status(e instanceof LogFileAccessError ? 403 : 500).send(e.message);
             }
         });

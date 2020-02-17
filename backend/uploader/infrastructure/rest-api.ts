@@ -28,6 +28,7 @@ export class RestApi extends Api {
                 await this.uploaderBoundedContext.moveFile(req.query.old_file, req.query.file);
                 next();
             } catch (e) {
+                console.error(e.message, this);
                 res.status(e instanceof UploadPathOutsideUploadDirectoryError ? 403 : 500).send(e.message);
             }
         }, this.logFileOperationAndRespond(req => `File moved from ${req.query.old_file} to ${req.query.file}`));
@@ -36,6 +37,7 @@ export class RestApi extends Api {
                 await this.uploaderBoundedContext.moveFile(req.body.oldPath, req.body.newPath);
                 next();
             } catch (e) {
+                console.error(e.message, this);
                 res.status(e instanceof UploadPathOutsideUploadDirectoryError ? 403 : 500).send(e.message);
             }
         }, this.logFileOperationAndRespond(req => `File moved from ${req.body.oldPath} to ${req.body.newPath}`));
@@ -44,6 +46,7 @@ export class RestApi extends Api {
                 await this.uploaderBoundedContext.removeFile(req.query.file);
                 next();
             } catch (e) {
+                console.error(e.message, this);
                 res.status(e instanceof UploadPathOutsideUploadDirectoryError ? 403 : 500).send(e.message);
             }
         }, this.logFileOperationAndRespond(req => `File removed: ${req.query.file}`));
@@ -52,6 +55,7 @@ export class RestApi extends Api {
                 await this.uploaderBoundedContext.removeFile(req.query.name);
                 next();
             } catch (e) {
+                console.error(e.message, this);
                 res.status(e instanceof UploadPathOutsideUploadDirectoryError ? 403 : 500).send(e.message);
             }
         }, this.logFileOperationAndRespond(req => `File removed: ${req.query.name}`));
@@ -67,6 +71,7 @@ export class RestApi extends Api {
             await this.uploaderBoundedContext.prepareDirectoryFor(uploadPath);
             callback(null, uploadPath);
         } catch (e) {
+            console.error(e.message, this);
             callback(e, null);
         }
     }
@@ -84,6 +89,7 @@ export class RestApi extends Api {
                     req.files = [{path: uploadPath}];
                     next();
                 } catch (e) {
+                    console.error(e.message, this);
                     let code: number = 500;
                     if (e instanceof MissingUploadPathError) {
                         code = 400;
@@ -100,8 +106,7 @@ export class RestApi extends Api {
 
     private logFileOperationAndRespond(getOperationDescription: (req: any) => string): (req: Request, res: Response) => void {
         return (req, res) => {
-            const date: Date = new Date();
-            console.info(`[${date.toISOString()}] - ${getOperationDescription(req)}`);
+            console.info(getOperationDescription(req), this);
             res.end();
         }
     }

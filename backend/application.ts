@@ -50,7 +50,7 @@ export class Application {
     /**
      * This is set to "true" in every test, so that some aspects of functionality do not interfere with tests.
      */
-    debug: boolean;
+    debug: boolean = false;
     /**
      * A package.json information that will be taken from the actual file. In debug mode it will remain like this.
      */
@@ -64,6 +64,7 @@ export class Application {
     private processFactory: ProcessFactory;
     private database: Database;
     private uploadDirectory: string;
+    private authenticationBoundedContext: AuthenticationBoundedContext;
 
     /**
      * Construct an application. All arguments of this constructor are only intended to be used in tests to inject
@@ -103,6 +104,8 @@ export class Application {
         }
         // Second, initialize all the core modules.
         this.initializeLogger();
+        console.log(`Is in debug mode - ${this.debug}`, this);
+        console.log(`Is in admin mode - ${this.args.isInAdminMode}`, this);
         this.app.use(bodyParser.json());
         this.initializeAuthenticationIfNecessary();
         await this.initializeLogWatcher();
@@ -112,6 +115,7 @@ export class Application {
         // Finally finish the initialization.
         this.placeUncaughtErrorTrapIfNecessary();
         this.initializeServer();
+        this.authenticationBoundedContext?.displayCredentialsInLog();
     }
 
     private loadPackageInformationIfNecessary(): void {
@@ -147,28 +151,34 @@ export class Application {
             transportList.push(new transports.File({filename: this.args.logFile, maxsize: 5000000, maxFiles: 1}));
         }
         const logger: Logger = createLogger({
-            format: format.simple(),
+            format: format.combine(
+                format.timestamp(),
+                format.printf((message) => `${message.timestamp} ${message.level.toUpperCase()} ${message.message}`)
+            ),
             transports: transportList
         });
-        console.log = (message: string) => logger.info(message);
-        console.error = (message: string) => logger.error(message);
-        console.info = (message: string) => logger.info(message);
+        console.log = (message: string, author?: any) => logger.info(author ? `${author.constructor.name} ${message}` : message);
+        console.error = (message: string, author?: any) => logger.error(author ? `${author.constructor.name} ${message}` : message);
+        console.info = (message: string, author?: any) => logger.info(author ? `${author.constructor.name} ${message}` : message);
+        console.log('Logger initialization complete', this);
     }
 
     private initializeAuthenticationIfNecessary(): void {
+        console.log(`Will initialize authentication - ${this.args.isAuthorizationEnabled}`, this);
         if (this.args.isAuthorizationEnabled) {
             const credentialsRepository: ConfigCredentialsRepository = new ConfigCredentialsRepository(this.jsonDB);
             credentialsRepository.initialize();
-            const authenticationBoundedContext: AuthenticationBoundedContext = new AuthenticationBoundedContext(credentialsRepository);
-            authenticationBoundedContext.displayCredentialsInLog();
+            this.authenticationBoundedContext = new AuthenticationBoundedContext(credentialsRepository);
             for (let url of ['/files/*', '/api/uploader/*']) {
-                this.app.use(url, expressBasicAuth({authorizer: (username: string, password: string) => authenticationBoundedContext.areCredentialsValid(username, password)}));
+                console.log(`Making access to ${url} authenticated`, this);
+                this.app.use(url, expressBasicAuth({authorizer: (username: string, password: string) => this.authenticationBoundedContext.areCredentialsValid(username, password)}));
             }
         }
     }
 
     private async initializeLogWatcher(): Promise<void> {
         // log-watcher
+        console.log('Initializing log watcher', this);
         const allowedLogFilesRepository: ConfigAllowedLogFilesRepository = new ConfigAllowedLogFilesRepository(this.jsonDB);
         const logWatcherBoundedContext: LogWatcherBoundedContext = new LogWatcherBoundedContext(allowedLogFilesRepository, this.logWatcherFileSystem, this.fileWatcher);
         const logWatcherApis: Array<Api> = [
@@ -185,9 +195,11 @@ export class Application {
     }
 
     private async initializeCommandExecutor(): Promise<void> {
+        console.log('Initializing command executor', this);
         if (!this.database) {
             // the database will reside near the configuration
             const rootDirectory: string = path.dirname(this.args.configFile);
+            console.log(`Creating database file in the directory '${rootDirectory}'`, this);
             this.database = await open(join(rootDirectory, 'upload-server.db'));
             await this.database.migrate({migrationsPath: join(__dirname, '..', '..', 'migrations')});
         }
@@ -205,8 +217,10 @@ export class Application {
     }
 
     private async initializeUploader(): Promise<void> {
+        console.log('Initializing uploader', this);
         const uploaderBoundedContext: UploaderBoundedContext = new UploaderBoundedContext(this.uploadDirectory, this.uploaderFileSystem);
         if (!this.debug) {
+            console.log(`Will make sure the upload directory exists - '${this.uploadDirectory}'`, this);
             await uploaderBoundedContext.initialize();
         }
         const uploaderApi = new UploaderRestApi(this.uploadDirectory, this.app, uploaderBoundedContext);
@@ -215,12 +229,14 @@ export class Application {
 
     private placeUncaughtErrorTrapIfNecessary(): void {
         if (!this.debug) {
+            console.log('Going to catch all uncaught errors and log them', this);
             process.on('uncaughtException', err => console.error(err));
         }
     }
 
     private initializeFrontEnd(): void {
         const frontEndDirectory: string = join(__dirname, '..', '..', 'frontend', 'dist', 'frontend');
+        console.log(`Will serve frontend assets, located in '${frontEndDirectory}'`, this);
         this.app.get('*.*', express.static(frontEndDirectory, {maxAge: '1y'}));
         this.app.all('*', (req: Request, res: Response) => {
             res.status(200).sendFile('/', {root: frontEndDirectory});
@@ -228,21 +244,22 @@ export class Application {
     }
 
     private initializeServer(): void {
+        console.log('Will initialize an HTTP server', this);
         let startLogMessage: string;
         if (this.args.isTlsEnabled && this.args.certificateFile && this.args.keyFile) {
             const options: any = {
                 key: readFileSync(this.args.keyFile),
                 cert: readFileSync(this.args.certificateFile)
             };
-            startLogMessage = `[${new Date().toISOString()}] - Server started on https://0.0.0.0:${this.args.port}`;
+            startLogMessage = `Server started on https://0.0.0.0:${this.args.port}`;
             this.server = createHttpsServer(options, this.app);
         } else {
-            startLogMessage = `[${new Date().toISOString()}] - Server started on http://0.0.0.0:${this.args.port}`;
+            startLogMessage = `Server started on http://0.0.0.0:${this.args.port}`;
             this.server = createHttpServer(this.app);
         }
-        console.info(`[${new Date().toISOString()}] - File upload server v${this.pkg.version}`);
-        console.info(`[${new Date().toISOString()}] - Serving files from folder: ${this.args.folder}`);
-        this.server.listen(this.args.port, '0.0.0.0', () => console.log(startLogMessage));
+        console.info(`File upload server v${this.pkg.version}`, this);
+        console.info(`Serving files from folder: ${this.args.folder}`, this);
+        this.server.listen(this.args.port, '0.0.0.0', () => console.log(startLogMessage, this));
     }
 }
 
