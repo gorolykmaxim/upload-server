@@ -1,5 +1,5 @@
 import * as express from "express";
-import {Express} from "express";
+import {Express, Request, Response} from "express";
 import {ConfigAllowedLogFilesRepository} from "./log-watcher/infrastructure/config-allowed-log-files-repository";
 import {JsonDB} from "node-json-db";
 import {LogWatcherBoundedContext} from "./log-watcher/domain/log-watcher-bounded-context";
@@ -108,6 +108,7 @@ export class Application {
         await this.initializeLogWatcher();
         await this.initializeCommandExecutor();
         await this.initializeUploader();
+        this.initializeFrontEnd();
         // Finally finish the initialization.
         this.placeUncaughtErrorTrapIfNecessary();
         this.initializeServer();
@@ -216,6 +217,14 @@ export class Application {
         if (!this.debug) {
             process.on('uncaughtException', err => console.error(err));
         }
+    }
+
+    private initializeFrontEnd(): void {
+        const frontEndDirectory: string = join(__dirname, '..', '..', 'frontend', 'dist', 'frontend');
+        this.app.get('*.*', express.static(frontEndDirectory, {maxAge: '1y'}));
+        this.app.all('*', (req: Request, res: Response) => {
+            res.status(200).sendFile('/', {root: frontEndDirectory});
+        });
     }
 
     private initializeServer(): void {
