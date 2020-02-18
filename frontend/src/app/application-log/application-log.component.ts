@@ -7,7 +7,7 @@ import {map} from 'rxjs/operators';
   templateUrl: './application-log.component.html'
 })
 export class ApplicationLogComponent {
-  generatedList: Observable<string> = interval(5).pipe(map(v => `Item #${v}`));
+  generatedList: Observable<string> = interval(50).pipe(map(v => `Item #${v}`));
 
   constructor() { }
 }
