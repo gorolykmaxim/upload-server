@@ -1,14 +1,13 @@
-import { Component, OnInit } from '@angular/core';
+import {Component} from '@angular/core';
+import {interval, Observable} from 'rxjs';
+import {map} from 'rxjs/operators';
 
 @Component({
   selector: 'app-application-log',
   templateUrl: './application-log.component.html'
 })
-export class ApplicationLogComponent implements OnInit {
+export class ApplicationLogComponent {
+  generatedList: Observable<string> = interval(5).pipe(map(v => `Item #${v}`));
 
   constructor() { }
-
-  ngOnInit(): void {
-  }
-
 }

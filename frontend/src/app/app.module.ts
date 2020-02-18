@@ -10,13 +10,15 @@ import {RouterModule} from '@angular/router';
 import { ApplicationLogComponent } from './application-log/application-log.component';
 import { LogWatcherComponent } from './log-watcher/log-watcher.component';
 import { CommandExecutorComponent } from './command-executor/command-executor.component';
+import {AppendOnlyListComponent} from './widget/append-only-list/append-only-list.component';
 
 @NgModule({
   declarations: [
     AppComponent,
     ApplicationLogComponent,
     LogWatcherComponent,
-    CommandExecutorComponent
+    CommandExecutorComponent,
+    AppendOnlyListComponent
   ],
   imports: [
     BrowserModule,
