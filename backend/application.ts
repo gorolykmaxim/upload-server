@@ -111,6 +111,7 @@ export class Application {
         await this.initializeLogWatcher();
         await this.initializeCommandExecutor();
         await this.initializeUploader();
+        this.initializeConfigEndpoint();
         this.initializeFrontEnd();
         // Finally finish the initialization.
         this.placeUncaughtErrorTrapIfNecessary();
@@ -234,6 +235,12 @@ export class Application {
         }
     }
 
+    private initializeConfigEndpoint(): void {
+        this.app.get('/api/config', (req: Request, res: Response) => {
+            res.json({isInAdminMode: this.args.isInAdminMode, logFile: this.args.logFile});
+        });
+    }
+
     private initializeFrontEnd(): void {
         const frontEndDirectory: string = join(__dirname, '..', '..', 'frontend', 'dist', 'frontend');
         console.log(`Will serve frontend assets, located in '${frontEndDirectory}'`, this);
@@ -283,7 +290,7 @@ class CommandLineArguments {
         this.isTlsEnabled = argv.S || argv.tls;
         this.certificateFile = argv.C || argv.cert;
         this.keyFile = argv.K || argv.key;
-        this.isInAdminMode = argv.a || argv.admin;
+        this.isInAdminMode = argv.a || argv.admin || false;
         this.isAuthorizationEnabled = !argv.insecure;
         this.logFile = argv.l || argv.log || this.logFile;
         this.configFile = argv.d || argv.database || this.configFile;
