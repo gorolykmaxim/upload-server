@@ -1,0 +1,12 @@
+<div class="mat-elevation-z2 max-height">
+  <div class="padding background-paper-white" fxLayoutGap="16px">
+    <span class="mat-h1">{{name}}</span>
+    <button *ngIf="canLoadFull" (click)="requestFullLoad()" mat-raised-button color="primary">Load full</button>
+    <label *ngIf="size" class="greyed-out">Size - {{formattedSize}}</label>
+    <mat-checkbox [(ngModel)]="autoScrollDown">Auto-scroll</mat-checkbox>
+  </div>
+  <app-append-only-list *ngIf="!isWaitingForFullOutput" [listObservable]="outputObservable" [autoScroll]="autoScrollDown"></app-append-only-list>
+  <div *ngIf="isWaitingForFullOutput" class="max-height" fxLayout="column" fxLayoutAlign="center center">
+    <mat-spinner></mat-spinner>
+  </div>
+</div>

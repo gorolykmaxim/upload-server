@@ -11,6 +11,11 @@ import { ApplicationLogComponent } from './application-log/application-log.compo
 import { LogWatcherComponent } from './log-watcher/log-watcher.component';
 import { CommandExecutorComponent } from './command-executor/command-executor.component';
 import {AppendOnlyListComponent} from './widget/append-only-list/append-only-list.component';
+import {OutputComponent} from './widget/output/output.component';
+import {MatCardModule} from '@angular/material/card';
+import {MatCheckboxModule} from '@angular/material/checkbox';
+import {FormsModule} from '@angular/forms';
+import {MatProgressSpinnerModule} from '@angular/material/progress-spinner';
 
 @NgModule({
   declarations: [
@@ -18,7 +23,8 @@ import {AppendOnlyListComponent} from './widget/append-only-list/append-only-lis
     ApplicationLogComponent,
     LogWatcherComponent,
     CommandExecutorComponent,
-    AppendOnlyListComponent
+    AppendOnlyListComponent,
+    OutputComponent,
   ],
   imports: [
     BrowserModule,
@@ -30,7 +36,11 @@ import {AppendOnlyListComponent} from './widget/append-only-list/append-only-lis
       {path: 'logs', component: LogWatcherComponent},
       {path: 'commands', component: CommandExecutorComponent},
       {path: '', component: ApplicationLogComponent}
-    ])
+    ]),
+    MatCardModule,
+    MatCheckboxModule,
+    FormsModule,
+    MatProgressSpinnerModule
   ],
   providers: [],
   bootstrap: [AppComponent]

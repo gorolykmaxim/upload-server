@@ -3,10 +3,35 @@
 html, body { height: 100%; }
 body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; }
 
+pre {
+  margin: 0;
+}
+
 .scrollable {
-  overflow: scroll;
+  overflow-y: scroll;
+  min-height: 0px;
 }
 
 .max-height {
   height: 100%;
+}
+
+.padding {
+  padding: 8px 16px;
+}
+
+.greyed-out {
+  color: rgba(0, 0, 0, 0.54);
+}
+
+.background-grey-400 {
+  background-color: #BDBDBD;
+}
+
+.background-grey-100 {
+  background-color: #F5F5F5;
+}
+
+.background-paper-white {
+  background-color: white;
 }

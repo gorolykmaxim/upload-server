@@ -1,4 +1,3 @@
-<p>application-log works!</p>
-<div style="height: 600px">
-  <app-append-only-list [listObservable]="generatedList" [autoScroll]="true"></app-append-only-list>
+<div style="height: 70%">
+  <app-output-component [name]="'My log file'" [outputObservable]="generatedList" [size]="15345000" (loadFull)="testPrint()"></app-output-component>
 </div>

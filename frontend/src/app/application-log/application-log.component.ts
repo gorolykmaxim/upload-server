@@ -4,10 +4,14 @@ import {map} from 'rxjs/operators';
 
 @Component({
   selector: 'app-application-log',
-  templateUrl: './application-log.component.html'
+  templateUrl: './application-log.component.html',
 })
 export class ApplicationLogComponent {
   generatedList: Observable<string> = interval(50).pipe(map(v => `Item #${v}`));
 
   constructor() { }
+
+  testPrint(): void {
+    console.log('test print');
+  }
 }
