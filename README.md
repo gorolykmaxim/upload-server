@@ -1,5 +1,15 @@
 ## API
 
+### Internal application API
+
+#### HTTP
+
+Get information about the current configuration of the upload-server.
+
+```
+GET /api/config
+```
+
 ### Log Watcher
 
 #### HTTP
