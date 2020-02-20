@@ -65,6 +65,7 @@ export class Application {
     private database: Database;
     private uploadDirectory: string;
     private authenticationBoundedContext: AuthenticationBoundedContext;
+    private startLogMessage: string;
 
     /**
      * Construct an application. All arguments of this constructor are only intended to be used in tests to inject
@@ -79,7 +80,6 @@ export class Application {
             this.app = app;
         } else {
             this.app = express();
-            expressWs(this.app);
         }
         this.jsonDB = jsonDB ?? new JsonDB(this.args.configFile, true, true);
         this.logWatcherFileSystem = logWatcherFileSystem ?? fs.promises;
@@ -104,6 +104,7 @@ export class Application {
         }
         // Second, initialize all the core modules.
         this.initializeLogger();
+        this.initializeServer();
         console.log(`Is in debug mode - ${this.debug}`, this);
         console.log(`Is in admin mode - ${this.args.isInAdminMode}`, this);
         this.app.use(bodyParser.json());
@@ -115,7 +116,7 @@ export class Application {
         this.initializeFrontEnd();
         // Finally finish the initialization.
         this.placeUncaughtErrorTrapIfNecessary();
-        this.initializeServer();
+        this.listenToRequests();
         this.authenticationBoundedContext?.displayCredentialsInLog();
     }
 
@@ -252,21 +253,24 @@ export class Application {
 
     private initializeServer(): void {
         console.log('Will initialize an HTTP server', this);
-        let startLogMessage: string;
         if (this.args.isTlsEnabled && this.args.certificateFile && this.args.keyFile) {
             const options: any = {
                 key: readFileSync(this.args.keyFile),
                 cert: readFileSync(this.args.certificateFile)
             };
-            startLogMessage = `Server started on https://0.0.0.0:${this.args.port}`;
+            this.startLogMessage = `Server started on https://0.0.0.0:${this.args.port}`;
             this.server = createHttpsServer(options, this.app);
         } else {
-            startLogMessage = `Server started on http://0.0.0.0:${this.args.port}`;
+            this.startLogMessage = `Server started on http://0.0.0.0:${this.args.port}`;
             this.server = createHttpServer(this.app);
         }
+        expressWs(this.app, this.server);
+    }
+
+    private listenToRequests(): void {
         console.info(`File upload server v${this.pkg.version}`, this);
         console.info(`Serving files from folder: ${this.args.folder}`, this);
-        this.server.listen(this.args.port, '0.0.0.0', () => console.log(startLogMessage, this));
+        this.server.listen(this.args.port, '0.0.0.0', () => console.log(this.startLogMessage, this));
     }
 }
 
