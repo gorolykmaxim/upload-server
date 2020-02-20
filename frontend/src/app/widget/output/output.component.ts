@@ -1,22 +1,20 @@
-import {AfterContentInit, Component, EventEmitter, Input, Output} from '@angular/core';
-import {Observable} from 'rxjs';
+import {Component, EventEmitter, Input, OnChanges, OnDestroy, Output, SimpleChanges} from '@angular/core';
+import {Observable, Subscription} from 'rxjs';
 import * as prettyBytes from 'pretty-bytes';
 
 @Component({
   selector: 'app-output-component',
   templateUrl: './output.component.html'
 })
-export class OutputComponent implements AfterContentInit {
+export class OutputComponent implements OnChanges, OnDestroy {
   @Input() outputObservable: Observable<string>;
   @Input() name: string;
   @Input() size: number;
-  @Input() autoScrollDown = false;
+  @Input() autoScrollDown = true;
   @Output() loadFull: EventEmitter<any> = new EventEmitter<any>();
+  @Output() reload: EventEmitter<any> = new EventEmitter<any>();
   isWaitingForFullOutput = false;
-
-  ngAfterContentInit(): void {
-    this.outputObservable.subscribe(() => this.isWaitingForFullOutput = false);
-  }
+  outputSubscription: Subscription;
 
   get canLoadFull(): boolean {
     return this.loadFull.observers.length > 0;
@@ -28,6 +26,18 @@ export class OutputComponent implements AfterContentInit {
 
   requestFullLoad(): void {
     this.isWaitingForFullOutput = true;
-    this.loadFull.emit(null);
+    this.loadFull.emit();
+  }
+
+  ngOnChanges(changes: SimpleChanges): void {
+    if (changes.outputObservable?.currentValue) {
+      this.outputSubscription?.unsubscribe();
+      this.outputObservable = changes.outputObservable.currentValue;
+      this.outputSubscription = this.outputObservable.subscribe(() => this.isWaitingForFullOutput = false);
+    }
+  }
+
+  ngOnDestroy(): void {
+    this.outputSubscription?.unsubscribe();
   }
 }
