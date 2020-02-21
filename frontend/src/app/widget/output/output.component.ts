@@ -20,6 +20,10 @@ export class OutputComponent implements OnChanges, OnDestroy {
     return this.loadFull.observers.length > 0;
   }
 
+  get canReload(): boolean {
+    return this.reload.observers.length > 0;
+  }
+
   get formattedSize(): string {
     return prettyBytes(this.size);
   }

@@ -2,7 +2,7 @@
   <div class="padding background-paper-white" fxLayoutGap="16px">
     <span class="mat-h1">{{name}}</span>
     <button *ngIf="canLoadFull" (click)="requestFullLoad()" mat-raised-button color="primary">Load full</button>
-    <button (click)="reload.emit()" mat-button>Reload</button>
+    <button *ngIf="canReload" (click)="reload.emit()" mat-button>Reload</button>
     <label *ngIf="size" class="greyed-out">Size - {{formattedSize}}</label>
     <mat-checkbox [(ngModel)]="autoScrollDown">Auto-scroll</mat-checkbox>
   </div>
