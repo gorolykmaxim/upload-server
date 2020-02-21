@@ -16,6 +16,8 @@ import {MatCardModule} from '@angular/material/card';
 import {MatCheckboxModule} from '@angular/material/checkbox';
 import {FormsModule} from '@angular/forms';
 import {MatProgressSpinnerModule} from '@angular/material/progress-spinner';
+import {HttpClientModule} from '@angular/common/http';
+import {MatSnackBarModule} from '@angular/material/snack-bar';
 
 @NgModule({
   declarations: [
@@ -40,7 +42,9 @@ import {MatProgressSpinnerModule} from '@angular/material/progress-spinner';
     MatCardModule,
     MatCheckboxModule,
     FormsModule,
-    MatProgressSpinnerModule
+    MatProgressSpinnerModule,
+    HttpClientModule,
+    MatSnackBarModule
   ],
   providers: [],
   bootstrap: [AppComponent]
