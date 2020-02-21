@@ -13,4 +13,9 @@ export class ErrorService {
     this.snackBar.open(error.message, null, {duration: 5000});
     this.errorSubject.next(error);
   }
+
+  logAndReThrow(error: Error): void {
+    this.log(error);
+    throw error;
+  }
 }
