@@ -3,7 +3,7 @@ import {Observable, Subscription} from 'rxjs';
 import * as prettyBytes from 'pretty-bytes';
 
 @Component({
-  selector: 'app-output-component',
+  selector: 'app-output',
   templateUrl: './output.component.html'
 })
 export class OutputComponent implements OnChanges, OnDestroy {
