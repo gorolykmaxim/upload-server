@@ -196,6 +196,19 @@ the output (STDOUT and STDERR) of the specified command execution.
 "fromStart" parameter is optional and can be omitted. Specify it set to "true" if you want
 to read existing output of the command before receiving updates about changes in it.
 
+> Notice: normally this endpoint only allows to watch output of an active execution. Attempts to watch output of
+> a complete execution will fail. *BUT*, if you specify "fromStart" set to "true" you would be able to "watch" output
+> of a complete execution as well. In such case you will immediately receive all the output of the execution and then
+> the connection will immediately close.
+>
+> Rationale: if you are watching output with "fromStart" not set or set to "false" - most likely you don't want to
+> receive the entire output of the execution (either it is too big or some other thing). Watching an output of the
+> complete execution in such case does not make sense since the execution is already over and you will not receive
+> any events anyway. On the other hand, the behavior related to the "fromStart" set to "true", simplifies the
+> cases when you just want to watch the entire output of the execution: you would not need to consider if the execution
+> is complete or not, there will be no race conditions when you check if execution is active, try to watch it's output
+> but it has already finished in between those two network calls, yada-yada-yada... 
+
 ```
 /api/command-executor/command/<command ID>/execution/<execution start time>/output?fromStart=<true/false>
 ```

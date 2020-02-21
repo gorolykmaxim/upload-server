@@ -61,6 +61,10 @@ export class Execution {
     get outputLines(): Array<string> {
         return this.output.lines;
     }
+
+    get isComplete(): boolean {
+        return this.exitCode !== null || this.errorMessage !== null;
+    }
 }
 
 export class Output {

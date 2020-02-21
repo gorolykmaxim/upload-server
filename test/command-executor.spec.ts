@@ -600,7 +600,7 @@ describe('command-executor', function () {
     });
     it('should fail to listen to output events of the specific execution that is not running right now', async function () {
         // when
-        const socket: DummyWebSocket = await wss.connect(`${baseUrl}/command/:commandId/execution/:startTime/status`, {}, {commandId: command.id, startTime: clock.now()});
+        const socket: DummyWebSocket = await wss.connect(`${baseUrl}/command/:commandId/execution/:startTime/output`, {}, {commandId: command.id, startTime: clock.now()});
         await socket.closeEvent.toPromise();
         // then
         expect(socket.closeCode).equal(1008);
@@ -633,6 +633,29 @@ describe('command-executor', function () {
                 changes: [output[1]]
             }
         ]);
+    });
+    it('should receive complete output of the execution in output events and get connection closed immediately since the execution is already complete', async function () {
+        // given
+        const startTime: number = 1;
+        const exitCode: number = 0;
+        when(database.get(SELECT_BY_COMMAND_NAME_AND_START_TIME, command.name, startTime)).thenResolve({
+            'START_TIME': startTime,
+            'COMMAND_NAME': command.name,
+            'COMMAND_SCRIPT': command.script,
+            'EXIT_CODE': exitCode,
+            'EXIT_SIGNAL': null,
+            'ERROR': null,
+            'OUTPUT': output.join(EOL)
+        });
+        // when
+        const socket: DummyWebSocket = await wss.connect(`${baseUrl}/command/:commandId/execution/:startTime/output`, {fromStart: 'true'}, {commandId: command.id, startTime: startTime});
+        const messages: Array<any> = await socket.messages.pipe(takeUntil(socket.closeEvent), toArray()).toPromise();
+        // then
+        expect(messages).eql([{
+            commandName: command.name,
+            startTime: startTime,
+            changes: output
+        }]);
     });
     it('should receive complete output of the execution in output events and get connection closed after execution being complete', async function () {
         // given
