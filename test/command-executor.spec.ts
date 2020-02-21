@@ -10,6 +10,7 @@ import {EMPTY, from, NEVER, Observable, Subject} from "rxjs";
 import {
     DELETE,
     INSERT,
+    SELECT_ALL,
     SELECT_BY_COMMAND_NAME,
     SELECT_BY_COMMAND_NAME_AND_START_TIME
 } from "../backend/command-executor/infrastructure/database-execution-repository";
@@ -215,6 +216,53 @@ describe('command-executor', function () {
         // when
         await request(application.app)
             .get(`${baseUrl}/command/${command.id}/execution`)
+            .expect(200, executions.map(e => {
+                return {
+                    startTime: e.startTime,
+                    commandName: e.commandName,
+                    commandScript: e.commandScript,
+                    exitCode: e.exitCode,
+                    exitSignal: e.exitSignal,
+                    errorMessage: e.errorMessage
+                };
+            }));
+    });
+    it('should fail to find all executions due to a database error', async function () {
+        // given
+        when(database.all(SELECT_ALL)).thenReject(new Error('error'));
+        // when
+        await request(application.app)
+            .get(`${baseUrl}/execution`)
+            .expect(500);
+    });
+    it('should find all executions of all commands and return them in their descending order', async function () {
+        // given
+        when(process.status).thenReturn(NEVER);
+        when(process.outputs).thenReturn(NEVER);
+        const executions: Array<Execution> = [];
+        for (let i = 1; i < 4; i++) {
+            executions.push(new Execution(i, command, {exitCode: 0, exitSignal: "SIGINT"}, null));
+        }
+        when(database.all(SELECT_ALL)).thenResolve(
+            executions.map(e => {
+                return {
+                    'START_TIME': e.startTime,
+                    'COMMAND_NAME': e.commandName,
+                    'COMMAND_SCRIPT': e.commandScript,
+                    'ERROR': e.errorMessage,
+                    'EXIT_CODE': e.exitCode,
+                    'EXIT_SIGNAL': e.exitSignal
+                };
+            })
+        );
+        await request(application.app)
+            .post(`${baseUrl}/command/${command.id}/execution`)
+            .expect(201);
+        executions.push(new Execution(clock.now(), command));
+        executions.sort((a, b) => a.startTime - b.startTime).reverse();
+        // when
+        await request(application.app)
+            .get(`${baseUrl}/execution`)
             .expect(200, executions.map(e => {
                 return {
                     startTime: e.startTime,

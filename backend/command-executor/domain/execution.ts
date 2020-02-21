@@ -95,6 +95,7 @@ export class Output {
 
 export interface ExecutionRepository {
     add(execution: Execution): Promise<void>;
+    findAll(): Promise<Array<Execution>>;
     findByCommandName(commandName: string): Promise<Array<Execution>>;
     findByCommandNameAndStartTime(commandName: string, startTime: number): Promise<Execution>;
     remove(execution: Execution): Promise<void>;

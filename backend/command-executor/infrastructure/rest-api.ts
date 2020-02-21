@@ -40,6 +40,14 @@ export class RestApi extends Api {
                 res.status(404).send(e.message);
             }
         });
+        this.app.get(`${baseUrl}/execution`, async (req: Request, res: Response) => {
+            try {
+                res.json(await this.commandExecutorBoundedContext.getAllExecutions());
+            } catch (e) {
+                console.error(e.message, this);
+                res.status(500).send(e.message);
+            }
+        });
         this.app.get(`${baseUrl}/command/:id/execution`, async (req: Request, res: Response) => {
             try {
                 res.json(await this.commandExecutorBoundedContext.getExecutionsOfCommand(req.params.id));

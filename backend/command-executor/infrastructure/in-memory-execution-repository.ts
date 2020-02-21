@@ -19,4 +19,8 @@ export class InMemoryExecutionRepository implements ExecutionRepository {
     async findByCommandNameAndStartTime(commandName: string, startTime: number): Promise<Execution> {
         return this.serializedIdToExecution.values().filter(e => e.commandName === commandName && e.startTime === startTime)[0];
     }
+
+    async findAll(): Promise<Array<Execution>> {
+        return this.serializedIdToExecution.values();
+    }
 }

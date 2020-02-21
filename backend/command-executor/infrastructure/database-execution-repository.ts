@@ -8,6 +8,7 @@ import {
 import {Database} from "sqlite";
 import {Command} from "../domain/command";
 
+export const SELECT_ALL: string = 'SELECT START_TIME, COMMAND_NAME, COMMAND_SCRIPT, ERROR, EXIT_CODE, EXIT_SIGNAL FROM COMMAND_EXECUTION';
 export const SELECT_BY_COMMAND_NAME: string = 'SELECT START_TIME, COMMAND_NAME, COMMAND_SCRIPT, ERROR, EXIT_CODE, EXIT_SIGNAL FROM COMMAND_EXECUTION WHERE COMMAND_NAME = ?';
 export const SELECT_BY_COMMAND_NAME_AND_START_TIME: string = 'SELECT * FROM COMMAND_EXECUTION WHERE COMMAND_NAME = ? AND START_TIME = ?';
 export const INSERT: string = 'INSERT INTO COMMAND_EXECUTION(START_TIME, COMMAND_NAME, COMMAND_SCRIPT, ERROR, EXIT_CODE, EXIT_SIGNAL, OUTPUT) VALUES (?, ?, ?, ?, ?, ?, ?)';
@@ -48,6 +49,15 @@ export class DatabaseExecutionRepository implements ExecutionRepository {
             return row ? this.deserializeExecution(row, true) : null;
         } catch (e) {
             throw new ExecutionsLookupError(`belong to the command with name ${commandName} and were started at ${startTime}`, e);
+        }
+    }
+
+    async findAll(): Promise<Array<Execution>> {
+        try {
+            const rows: Array<any> = await this.database.all(SELECT_ALL);
+            return rows.map(row => this.deserializeExecution(row));
+        } catch (e) {
+            throw new ExecutionsLookupError('are complete', e);
         }
     }
 

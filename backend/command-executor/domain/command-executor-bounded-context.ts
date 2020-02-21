@@ -80,6 +80,19 @@ export class CommandExecutorBoundedContext {
     }
 
     /**
+     * Get all executions of all commands in their chronological descending order, where the most recent executions
+     * go first.
+     *
+     * @throws ExecutionsLookupError in case of a failed attempt to lookup executions in one of the repositories
+     */
+    async getAllExecutions(): Promise<Array<ExecutionSummary>> {
+        const executions: Array<Execution> = [];
+        executions.push(...await this.activeExecutionsRepository.findAll());
+        executions.push(...await this.completeExecutionsRepository.findAll());
+        return this.sortAndSerializeExecutions(executions);
+    }
+
+    /**
      * Get all executions of the command with the specified ID in their chronological descending order, where the most
      * recent executions go first.
      *
@@ -89,22 +102,10 @@ export class CommandExecutorBoundedContext {
      */
     async getExecutionsOfCommand(id: string): Promise<Array<ExecutionSummary>> {
         const command: Command = this.getCommandById(id);
-        let executions: Array<Execution> = [];
+        const executions: Array<Execution> = [];
         executions.push(...await this.activeExecutionsRepository.findByCommandName(command.name));
         executions.push(...await this.completeExecutionsRepository.findByCommandName(command.name));
-        return executions
-            .sort((a, b) => a.startTime - b.startTime)
-            .reverse()
-            .map<ExecutionSummary>(e => {
-                return {
-                    startTime: e.startTime,
-                    commandName: e.commandName,
-                    commandScript: e.commandScript,
-                    exitCode: e.exitCode,
-                    exitSignal: e.exitSignal,
-                    errorMessage: e.errorMessage
-                }
-            });
+        return this.sortAndSerializeExecutions(executions);
     }
 
     /**
@@ -295,6 +296,22 @@ export class CommandExecutorBoundedContext {
             throw new ExecutionDoesNotExistError(command.id, executionStartTime);
         }
         return execution;
+    }
+
+    private sortAndSerializeExecutions(executions: Array<Execution>): Array<ExecutionSummary> {
+        return executions
+            .sort((a, b) => a.startTime - b.startTime)
+            .reverse()
+            .map<ExecutionSummary>(e => {
+                return {
+                    startTime: e.startTime,
+                    commandName: e.commandName,
+                    commandScript: e.commandScript,
+                    exitCode: e.exitCode,
+                    exitSignal: e.exitSignal,
+                    errorMessage: e.errorMessage
+                }
+            });
     }
 }
 

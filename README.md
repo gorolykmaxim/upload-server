@@ -127,6 +127,12 @@ This endpoint is only available while running the server in `-admin` mode.
 DELETE /api/command-executor/command/<command ID>
 ```
 
+Get history of all executions of all commands. Command execution output is not returned by this endpoint.
+
+```
+GET /api/command-executor/execution
+```
+
 Get history of all executions of the specified command. Command execution output is
 not returned by this endpoint.
 
