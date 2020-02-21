@@ -181,6 +181,7 @@ export class Application {
     private async initializeLogWatcher(): Promise<void> {
         // log-watcher
         console.log('Initializing log watcher', this);
+        console.log(`FileWatcher implementation used - ${this.fileWatcher.constructor.name}`, this);
         const allowedLogFilesRepository: ConfigAllowedLogFilesRepository = new ConfigAllowedLogFilesRepository(this.jsonDB);
         const logWatcherBoundedContext: LogWatcherBoundedContext = new LogWatcherBoundedContext(allowedLogFilesRepository, this.logWatcherFileSystem, this.fileWatcher);
         const logWatcherApis: Array<Api> = [
