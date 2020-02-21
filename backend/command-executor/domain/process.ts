@@ -12,5 +12,5 @@ export interface Process {
 }
 
 export interface ProcessFactory {
-    create(command: string, args: Array<string>): Process;
+    create(command: string): Process;
 }

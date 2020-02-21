@@ -51,7 +51,7 @@ describe('command-executor', function () {
         processFactory = mock<ProcessFactory>();
         process = mock<Process>();
         database = mock<Database>();
-        when(processFactory.create('ls', deepEqual(['-lh']))).thenReturn(instance(process));
+        when(processFactory.create('ls -lh')).thenReturn(instance(process));
         when(process.outputs).thenReturn(outputObservable);
         when(process.status).thenReturn(statusSubject);
         when(jsonDB.getData(configPath))

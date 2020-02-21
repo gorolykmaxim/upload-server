@@ -29,7 +29,7 @@ class OsProcess implements Process {
 }
 
 export class OsProcessFactory implements ProcessFactory {
-    create(command: string, args: Array<string>): Process {
-        return new OsProcess(spawn(command, args));
+    create(command: string): Process {
+        return new OsProcess(spawn(command, {shell: true}));
     }
 }

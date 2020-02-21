@@ -14,9 +14,7 @@ export class Command {
 
     execute(clock: Clock, processFactory: ProcessFactory, outputChanges: Subject<OutputChangeEvent>,
             statusChanges: Subject<StatusChangeEvent>): Execution {
-        const args: Array<string> = this.script.split(' ');
-        const executable: string = args.splice(0, 1)[0];
-        const process: Process = processFactory.create(executable, args);
+        const process: Process = processFactory.create(this.script);
         const execution: Execution = new Execution(clock.now(), this);
         execution.attachTo(process);
         process.outputs.subscribe(line => {
