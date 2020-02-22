@@ -1,6 +1,6 @@
 {
   "name": "upload-server-1",
-  "version": "3.0.0-beta.4",
+  "version": "3.0.0-beta.5",
   "description": "(not so) Simple HTTP file upload server",
   "main": "dist/backend/index.js",
   "preferGlobal": true,
@@ -19,7 +19,7 @@
   "scripts": {
     "test": "mocha -r ts-node/register test/**/*.spec.ts",
     "start": "node dist/backend/index.js -a",
-    "install": "tsc & npm install frontend"
+    "install": "tsc"
   },
   "author": "Horoliuk Maksym",
   "license": "MIT",
