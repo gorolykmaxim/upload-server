@@ -1,6 +1,6 @@
 {
   "name": "upload-server-1",
-  "version": "3.0.0-beta.1",
+  "version": "3.0.0-beta.9",
   "description": "(not so) Simple HTTP file upload server",
   "main": "dist/backend/index.js",
   "preferGlobal": true,
@@ -9,17 +9,16 @@
   },
   "files": [
     "tail.exe",
-    "backend/*",
-    "frontend/*",
+    "dist/backend/*",
+    "frontend/dist/*",
     "migrations/*",
-    "test/*",
     "README.md",
-    "tsconfig.json"
+    "LICENSE"
   ],
   "scripts": {
     "test": "mocha -r ts-node/register test/**/*.spec.ts",
     "start": "node dist/backend/index.js -a",
-    "install": "tsc & npm install frontend"
+    "build": "tsc && npm install frontend"
   },
   "author": "Horoliuk Maksym",
   "license": "MIT",
@@ -44,7 +43,6 @@
     "express-basic-auth": "^1.2.0",
     "express-validator": "^6.4.0",
     "express-ws": "^4.0.0",
-    "frontend": "file:frontend",
     "fs-extra": "^8.1.0",
     "md5": "^2.2.1",
     "minimist": "^1.2.0",
