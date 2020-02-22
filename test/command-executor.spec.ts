@@ -31,7 +31,7 @@ describe('command-executor', function () {
         }
     };
     const command: Command = new Command('list files', 'ls -lh');
-    const configPath: string = '/command-executor';
+    const configPath: string = '/command-executor/commands';
     const clock: Clock = constantClock(1324567);
     const output: Array<string> = ['file 1', 'file 2'];
     const outputObservable: Observable<string> = from(output);

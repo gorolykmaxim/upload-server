@@ -2,7 +2,7 @@ import {Command, CommandRepository} from "../domain/command";
 import {JsonDB} from "node-json-db";
 
 export class ConfigCommandRepository implements CommandRepository {
-    private static readonly COMMANDS_PATH: string = '/command-executor';
+    private static readonly COMMANDS_PATH: string = '/command-executor/commands';
 
     constructor(private jsonDb: JsonDB) {
     }
