@@ -8,7 +8,7 @@ import {filter, map, mergeAll, mergeMap, tap} from 'rxjs/operators';
 @Injectable({providedIn: 'root'})
 export class CommandExecutorService {
   private static readonly BASE_URL = '/api/command-executor';
-  private static readonly ALL_EVENTS_URL = `${CommandExecutorService.BASE_URL}/event`;
+  private static readonly ALL_EVENTS_URL = `${CommandExecutorService.BASE_URL}/event/status`;
   private static readonly BASE_COMMAND_URL = `${CommandExecutorService.BASE_URL}/command`;
   private static readonly BASE_EXECUTION_URL = `${CommandExecutorService.BASE_URL}/execution`;
 
@@ -60,7 +60,6 @@ export class CommandExecutorService {
 
   watchAllExecutions(): Observable<Array<Execution>> {
     return webSocket(`ws://${location.hostname}:8090${CommandExecutorService.ALL_EVENTS_URL}`).pipe(
-      filter(e => e.hasOwnProperty('status') && e.hasOwnProperty('error')),
       mergeMap(_ => this.getAllExecutions())
     );
   }
