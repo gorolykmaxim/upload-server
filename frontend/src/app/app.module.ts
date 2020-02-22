@@ -32,6 +32,8 @@ import { AddCommandComponent } from './command-executor/add-command/add-command.
 import { ExecutionListComponent } from './command-executor/execution-list/execution-list.component';
 import { ExecutionItemComponent } from './command-executor/execution-item/execution-item.component';
 import {MatMenuModule} from '@angular/material/menu';
+import { ConfirmationDialogComponent } from './widget/confirmation-dialog/confirmation-dialog.component';
+import {MatDialogModule} from '@angular/material/dialog';
 
 @NgModule({
   declarations: [
@@ -49,6 +51,7 @@ import {MatMenuModule} from '@angular/material/menu';
     AddCommandComponent,
     ExecutionListComponent,
     ExecutionItemComponent,
+    ConfirmationDialogComponent,
   ],
   imports: [
     BrowserModule,
@@ -74,7 +77,8 @@ import {MatMenuModule} from '@angular/material/menu';
     MatInputModule,
     ReactiveFormsModule,
     MatTooltipModule,
-    MatMenuModule
+    MatMenuModule,
+    MatDialogModule
   ],
   providers: [],
   bootstrap: [AppComponent]
