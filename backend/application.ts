@@ -85,7 +85,7 @@ export class Application {
         this.jsonDB = jsonDB ?? new JsonDB(this.args.configFile, true, true);
         this.logWatcherFileSystem = logWatcherFileSystem ?? fs.promises;
         this.uploaderFileSystem = uploaderFileSystem ?? new OsFileSystem();
-        this.fileWatcher = fileWatcher ?? (platform() === 'win32' ? new WindowsFileWatcher(path.join('..', '..', 'tail.exe')) : new UnixFileWatcher());
+        this.fileWatcher = fileWatcher ?? (platform() === 'win32' ? new WindowsFileWatcher(path.join(__dirname, '..', '..', 'tail.exe')) : new UnixFileWatcher());
         this.clock = clock ?? systemClock;
         this.processFactory = processFactory ?? new OsProcessFactory();
         this.database = database;
