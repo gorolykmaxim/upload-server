@@ -10,4 +10,5 @@ export class ExecutionListComponent {
   @Output() terminate = new EventEmitter<Execution>();
   @Output() halt = new EventEmitter<Execution>();
   @Output() delete = new EventEmitter<Execution>();
+  @Output() deleteAll = new EventEmitter();
 }

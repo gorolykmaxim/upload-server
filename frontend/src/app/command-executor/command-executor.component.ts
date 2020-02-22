@@ -80,6 +80,11 @@ export class CommandExecutorComponent implements OnInit, OnDestroy {
     await this.loadExecutions();
   }
 
+  async deleteAllExecutions(): Promise<void> {
+    await this.commandExecutorService.deleteAllExecutions();
+    await this.loadExecutions();
+  }
+
   ngOnDestroy(): void {
     this.paramsSubscription.unsubscribe();
     this.executionsSubscription.unsubscribe();

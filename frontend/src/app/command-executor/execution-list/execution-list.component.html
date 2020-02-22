@@ -1,6 +1,9 @@
 <div class="background-paper-white mat-elevation-z3">
-  <div class="padding">
+  <div class="padding" fxLayoutAlign="space-between">
     <span class="mat-h1">Command executions</span>
+    <button mat-icon-button matTooltip="Delete ALL existing executions" (click)="deleteAll.emit()">
+      <mat-icon>delete_sweep</mat-icon>
+    </button>
   </div>
   <div>
     <mat-nav-list>

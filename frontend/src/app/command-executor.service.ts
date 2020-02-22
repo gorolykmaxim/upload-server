@@ -89,6 +89,14 @@ export class CommandExecutorService {
     }
   }
 
+  async deleteAllExecutions(): Promise<void> {
+    try {
+      await this.httpClient.delete(CommandExecutorService.BASE_EXECUTION_URL).toPromise();
+    } catch (e) {
+      this.errorService.logAndReThrow(e);
+    }
+  }
+
   async watchExecution(commandId: string, executionStartTime: number): Promise<ExecutionWithOutput> {
     try {
       const executions = await this.httpClient.get<Array<Execution>>(this.allExecutionsOfCommandUrl(commandId)).toPromise();
