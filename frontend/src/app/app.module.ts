@@ -14,10 +14,18 @@ import {AppendOnlyListComponent} from './widget/append-only-list/append-only-lis
 import {OutputComponent} from './widget/output/output.component';
 import {MatCardModule} from '@angular/material/card';
 import {MatCheckboxModule} from '@angular/material/checkbox';
-import {FormsModule} from '@angular/forms';
+import {FormsModule, ReactiveFormsModule} from '@angular/forms';
 import {MatProgressSpinnerModule} from '@angular/material/progress-spinner';
 import {HttpClientModule} from '@angular/common/http';
 import {MatSnackBarModule} from '@angular/material/snack-bar';
+import {MatListModule} from '@angular/material/list';
+import {MatIconModule} from '@angular/material/icon';
+import {MatFormFieldModule} from '@angular/material/form-field';
+import {MatInputModule} from '@angular/material/input';
+import { LogItemComponent } from './log-watcher/log-item/log-item.component';
+import { LogListComponent } from './log-watcher/log-list/log-list.component';
+import { AddLogComponent } from './log-watcher/add-log/add-log.component';
+import {MatTooltipModule} from '@angular/material/tooltip';
 
 @NgModule({
   declarations: [
@@ -27,6 +35,9 @@ import {MatSnackBarModule} from '@angular/material/snack-bar';
     CommandExecutorComponent,
     AppendOnlyListComponent,
     OutputComponent,
+    LogItemComponent,
+    LogListComponent,
+    AddLogComponent,
   ],
   imports: [
     BrowserModule,
@@ -44,7 +55,13 @@ import {MatSnackBarModule} from '@angular/material/snack-bar';
     FormsModule,
     MatProgressSpinnerModule,
     HttpClientModule,
-    MatSnackBarModule
+    MatSnackBarModule,
+    MatListModule,
+    MatIconModule,
+    MatFormFieldModule,
+    MatInputModule,
+    ReactiveFormsModule,
+    MatTooltipModule
   ],
   providers: [],
   bootstrap: [AppComponent]

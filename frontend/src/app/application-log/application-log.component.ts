@@ -8,7 +8,7 @@ import {EMPTY} from 'rxjs';
   templateUrl: './application-log.component.html',
 })
 export class ApplicationLogComponent implements OnInit {
-  log: Log = new Log(EMPTY, 0);
+  log: Log = new Log(EMPTY, 0, null);
 
   constructor(private applicationLogService: ApplicationLogService) { }
 

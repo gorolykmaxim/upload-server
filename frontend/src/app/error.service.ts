@@ -1,16 +1,17 @@
 import {Injectable} from '@angular/core';
 import {ReplaySubject, Subject} from 'rxjs';
-import {MatSnackBar} from '@angular/material/snack-bar';
+import {SnackBarService} from './snack-bar.service';
+import {HttpErrorResponse} from '@angular/common/http';
 
 @Injectable({providedIn: 'root'})
 export class ErrorService {
   errorSubject: Subject<Error> = new ReplaySubject();
 
-  constructor(private snackBar: MatSnackBar) {
+  constructor(private snackbarService: SnackBarService) {
   }
 
   log(error: Error): void {
-    this.snackBar.open(error.message, null, {duration: 5000});
+    this.snackbarService.showSnackBar(error instanceof HttpErrorResponse ? `${error.message}: ${error.error}` : error.message);
     this.errorSubject.next(error);
   }
 
