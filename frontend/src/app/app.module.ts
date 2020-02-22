@@ -34,6 +34,7 @@ import { ExecutionItemComponent } from './command-executor/execution-item/execut
 import {MatMenuModule} from '@angular/material/menu';
 import { ConfirmationDialogComponent } from './widget/confirmation-dialog/confirmation-dialog.component';
 import {MatDialogModule} from '@angular/material/dialog';
+import { EmptyListPlaceholderComponent } from './widget/empty-list-placeholder/empty-list-placeholder.component';
 
 @NgModule({
   declarations: [
@@ -52,6 +53,7 @@ import {MatDialogModule} from '@angular/material/dialog';
     ExecutionListComponent,
     ExecutionItemComponent,
     ConfirmationDialogComponent,
+    EmptyListPlaceholderComponent,
   ],
   imports: [
     BrowserModule,

@@ -5,10 +5,13 @@
       <mat-icon>delete_sweep</mat-icon>
     </button>
   </div>
-  <div>
+  <div *ngIf="executions.length > 0">
     <mat-nav-list>
       <app-execution-item *ngFor="let execution of executions" [execution]="execution" (delete)="delete.emit(execution)"
                           (halt)="halt.emit(execution)" (terminate)="terminate.emit(execution)"></app-execution-item>
     </mat-nav-list>
+  </div>
+  <div *ngIf="executions.length === 0">
+    <app-empty-list-placeholder contentType="executions to see"></app-empty-list-placeholder>
   </div>
 </div>

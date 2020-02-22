@@ -2,7 +2,7 @@
   <div class="padding">
     <span class="mat-h1">Commands</span>
   </div>
-  <div>
+  <div *ngIf="commands.length > 0">
     <mat-nav-list *ngIf="canItemBeModified">
       <app-command-item *ngFor="let command of commands" [command]="command" (edit)="edit.emit(command)"
                         (delete)="delete.emit(command)" (run)="run.emit(command)"></app-command-item>
@@ -10,6 +10,9 @@
     <mat-nav-list *ngIf="!canItemBeModified">
       <app-command-item *ngFor="let command of commands" [command]="command" (run)="run.emit(command)"></app-command-item>
     </mat-nav-list>
+  </div>
+  <div *ngIf="commands.length === 0">
+    <app-empty-list-placeholder contentType="commands to execute"></app-empty-list-placeholder>
   </div>
   <div *ngIf="canItemBeAdded" class="box-padding" fxLayoutAlign="end">
     <button mat-raised-button color="primary" (click)="add.emit()">Add</button>
