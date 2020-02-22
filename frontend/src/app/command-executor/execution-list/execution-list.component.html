@@ -1,0 +1,11 @@
+<div class="background-paper-white mat-elevation-z3">
+  <div class="padding">
+    <span class="mat-h1">Command executions</span>
+  </div>
+  <div>
+    <mat-nav-list>
+      <app-execution-item *ngFor="let execution of executions" [execution]="execution" (delete)="delete.emit(execution)"
+                          (halt)="halt.emit(execution)" (terminate)="terminate.emit(execution)"></app-execution-item>
+    </mat-nav-list>
+  </div>
+</div>

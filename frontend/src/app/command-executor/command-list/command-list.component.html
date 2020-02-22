@@ -1,0 +1,16 @@
+<div class="background-paper-white mat-elevation-z3">
+  <div class="padding">
+    <span class="mat-h1">Commands</span>
+  </div>
+  <div>
+    <mat-nav-list *ngIf="canItemBeDeleted">
+      <app-command-item *ngFor="let command of commands" [command]="command" (delete)="delete.emit(command)" (run)="run.emit(command)"></app-command-item>
+    </mat-nav-list>
+    <mat-nav-list *ngIf="!canItemBeDeleted">
+      <app-command-item *ngFor="let command of commands" [command]="command" (run)="run.emit(command)"></app-command-item>
+    </mat-nav-list>
+  </div>
+  <div *ngIf="canItemBeAdded" class="box-padding" fxLayoutAlign="end">
+    <button mat-raised-button color="primary" (click)="add.emit()">Add</button>
+  </div>
+</div>

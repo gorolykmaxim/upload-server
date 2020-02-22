@@ -4,7 +4,7 @@
     <app-log-list *ngIf="!isEditable" [logs]="logs"></app-log-list>
     <app-add-log *ngIf="editing" (cancel)="editing = false" (save)="addLog($event)"></app-add-log>
   </div>
-  <div *ngIf="log" fxFlex="80%" style="height: 85%" class="box-padding">
+  <div *ngIf="log" fxFlex="80%" class="box-padding typical-output-height">
     <app-output fxFlex="grow" [name]="log.fileName" [outputObservable]="log.content" [size]="log.sizeInBytes" (loadFull)="watchCurrentLog(true)" (reload)="watchCurrentLog(false)"></app-output>
   </div>
 </div>

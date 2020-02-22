@@ -26,6 +26,12 @@ import { LogItemComponent } from './log-watcher/log-item/log-item.component';
 import { LogListComponent } from './log-watcher/log-list/log-list.component';
 import { AddLogComponent } from './log-watcher/add-log/add-log.component';
 import {MatTooltipModule} from '@angular/material/tooltip';
+import { CommandItemComponent } from './command-executor/command-item/command-item.component';
+import { CommandListComponent } from './command-executor/command-list/command-list.component';
+import { AddCommandComponent } from './command-executor/add-command/add-command.component';
+import { ExecutionListComponent } from './command-executor/execution-list/execution-list.component';
+import { ExecutionItemComponent } from './command-executor/execution-item/execution-item.component';
+import {MatMenuModule} from '@angular/material/menu';
 
 @NgModule({
   declarations: [
@@ -38,6 +44,11 @@ import {MatTooltipModule} from '@angular/material/tooltip';
     LogItemComponent,
     LogListComponent,
     AddLogComponent,
+    CommandItemComponent,
+    CommandListComponent,
+    AddCommandComponent,
+    ExecutionListComponent,
+    ExecutionItemComponent,
   ],
   imports: [
     BrowserModule,
@@ -48,6 +59,7 @@ import {MatTooltipModule} from '@angular/material/tooltip';
     RouterModule.forRoot([
       {path: 'logs', component: LogWatcherComponent},
       {path: 'commands', component: CommandExecutorComponent},
+      {path: 'command/:commandId/execution/:executionStartTime', component: CommandExecutorComponent},
       {path: '', component: ApplicationLogComponent}
     ]),
     MatCardModule,
@@ -61,7 +73,8 @@ import {MatTooltipModule} from '@angular/material/tooltip';
     MatFormFieldModule,
     MatInputModule,
     ReactiveFormsModule,
-    MatTooltipModule
+    MatTooltipModule,
+    MatMenuModule
   ],
   providers: [],
   bootstrap: [AppComponent]

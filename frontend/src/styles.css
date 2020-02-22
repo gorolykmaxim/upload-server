@@ -23,6 +23,10 @@ pre {
   padding: 8px 8px;
 }
 
+.typical-output-height {
+  height: 85%;
+}
+
 .greyed-out {
   color: rgba(0, 0, 0, 0.54);
 }

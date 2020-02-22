@@ -1,0 +1,10 @@
+<mat-list-item>
+  <h3 matLine [matTooltip]="command.name">{{command.name}}</h3>
+  <span matLine [matTooltip]="command.script">{{command.script}}</span>
+  <button mat-icon-button (click)="run.emit()">
+    <mat-icon>play_circle_outline</mat-icon>
+  </button>
+  <button *ngIf="canBeRemoved" mat-icon-button (click)="delete.emit()">
+    <mat-icon>delete</mat-icon>
+  </button>
+</mat-list-item>
