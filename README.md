@@ -133,6 +133,12 @@ Get history of all executions of all commands. Command execution output is not r
 GET /api/command-executor/execution
 ```
 
+Delete all executions (both active and complete).
+
+```
+DELETE /api/command-executor/execution
+```
+
 Get history of all executions of the specified command. Command execution output is
 not returned by this endpoint.
 

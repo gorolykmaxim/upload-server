@@ -188,6 +188,17 @@ export class CommandExecutorBoundedContext {
     }
 
     /**
+     * Remove all executions of all commands (both active and complete).
+     *
+     * @throws ExecutionsLookupError in case of a failed attempt to lookup the execution in one of the repositories
+     * @throws ExecutionOperationError in case of a failed attempt to remove the execution from one of the repositories
+     */
+    async removeAllExecutions(): Promise<void> {
+        const executions: Array<ExecutionSummary> = await this.getAllExecutions();
+        await Promise.all(executions.map(e => this.removeExecution(e.commandId, e.startTime)));
+    }
+
+    /**
      * Return observable of all events, related to the specified execution. The observable will complete once the
      * watched execution is complete.
      *

@@ -53,6 +53,15 @@ export class RestApi extends Api {
                 res.status(500).send(e.message);
             }
         });
+        this.app.delete(`${baseUrl}/execution`, async (req: Request, res: Response) => {
+            try {
+                await this.commandExecutorBoundedContext.removeAllExecutions();
+                res.end();
+            } catch (e) {
+                console.error(e.message, this);
+                res.status(500).send(e.message);
+            }
+        });
         this.app.get(`${baseUrl}/command/:id/execution`, async (req: Request, res: Response) => {
             try {
                 res.json(await this.commandExecutorBoundedContext.getExecutionsOfCommand(req.params.id));

@@ -513,6 +513,40 @@ describe('command-executor', function () {
         // then
         verify(database.run(DELETE, clock.now(), command.name)).once();
     });
+    it('should remove all executions', async function () {
+        // given
+        when(process.status).thenReturn(NEVER);
+        when(process.outputs).thenReturn(NEVER);
+        const completeExecution = new Execution(1, command, {exitCode: 0, exitSignal: "SIGINT"}, null);
+        const completeExecutionRaw: any = {
+            'START_TIME': completeExecution.startTime,
+            'COMMAND_NAME': completeExecution.commandName,
+            'COMMAND_SCRIPT': completeExecution.commandScript,
+            'ERROR': completeExecution.errorMessage,
+            'EXIT_CODE': completeExecution.exitCode,
+            'EXIT_SIGNAL': completeExecution.exitSignal
+        };
+        when(database.all(SELECT_ALL)).thenResolve([completeExecutionRaw]);
+        when(database.get(SELECT_BY_COMMAND_NAME_AND_START_TIME, command.name, completeExecution.startTime))
+            .thenResolve(completeExecutionRaw);
+        await request(application.app)
+            .post(`${baseUrl}/command/${command.id}/execution`)
+            .expect(201);
+        // when
+        await request(application.app)
+            .delete(`${baseUrl}/execution`)
+            .expect(200);
+        verify(process.sendSignal(constants.signals.SIGKILL)).once();
+        verify(database.run(DELETE, completeExecution.startTime, completeExecution.commandName)).once();
+    });
+    it('should fail to lookup complete executions to remove', async function () {
+        // given
+        when(database.all(SELECT_ALL)).thenReject(new Error('error'));
+        // when
+        await request(application.app)
+            .delete(`${baseUrl}/execution`)
+            .expect(500);
+    });
     it('should receive both status and output change events from both executions', async function () {
         // when
         const socket: DummyWebSocket = await wss.connect(`${baseUrl}/event`);
