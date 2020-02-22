@@ -1,0 +1,6 @@
+<a mat-list-item [matTooltip]="path" [routerLink]="'/logs'" [queryParams]="{absolutePath: path}">
+  <span matLine>{{shortPath || path}}</span>
+  <button *ngIf="canBeDeleted" mat-icon-button (click)="deleteThisItem($event)">
+    <mat-icon>delete</mat-icon>
+  </button>
+</a>

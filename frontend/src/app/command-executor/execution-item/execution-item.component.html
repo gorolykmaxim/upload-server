@@ -1,0 +1,27 @@
+<mat-list-item [matTooltip]="getResultInfo(execution)">
+  <mat-icon *ngIf="execution.isSuccessful" mat-list-icon>done</mat-icon>
+  <mat-icon *ngIf="execution.isFailed" mat-list-icon>error</mat-icon>
+  <p matLine>{{execution.commandName}}</p>
+  <p matLine>{{execution.startDate.toLocaleString()}}</p>
+  <button mat-icon-button [matMenuTriggerFor]="menu">
+    <mat-icon>more_vert</mat-icon>
+  </button>
+  <mat-menu #menu="matMenu">
+    <button mat-menu-item [routerLink]="getUrlOf(execution)">
+      <mat-icon>subject</mat-icon>
+      <span>Show output</span>
+    </button>
+    <button *ngIf="!execution.isComplete" mat-menu-item (click)="terminate.emit()">
+      <mat-icon>stop</mat-icon>
+      <span>Terminate</span>
+    </button>
+    <button *ngIf="!execution.isComplete" mat-menu-item (click)="halt.emit()">
+      <mat-icon>power_settings_new</mat-icon>
+      <span>Halt</span>
+    </button>
+    <button mat-menu-item (click)="delete.emit()">
+      <mat-icon>delete</mat-icon>
+      <span>Delete</span>
+    </button>
+  </mat-menu>
+</mat-list-item>

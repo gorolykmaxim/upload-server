@@ -1,0 +1,15 @@
+<div fxLayout="row" class="max-height">
+  <div fxFlex="30%" fxLayoutGap="8px" fxLayout="column" class="scrollable box-padding">
+    <app-command-list *ngIf="isEditable" [commands]="commands" (delete)="deleteCommand($event)"
+                      (run)="executeCommand($event)" (add)="startAddingCommand()" (edit)="startEditingCommand($event)"></app-command-list>
+    <app-command-list *ngIf="!isEditable" [commands]="commands" (run)="executeCommand($event)"></app-command-list>
+    <app-add-or-edit-command *ngIf="adding" (cancel)="adding = false" (save)="addCommand($event)"></app-add-or-edit-command>
+    <app-add-or-edit-command *ngIf="editedCommand" [command]="editedCommand" (cancel)="editedCommand = null" (save)="editCommand($event)"></app-add-or-edit-command>
+    <app-execution-list [executions]="executions" (delete)="deleteExecution($event)"
+                        (terminate)="terminateExecution($event)" (halt)="haltExecution($event)"
+                        (deleteAll)="deleteAllExecutions()"></app-execution-list>
+  </div>
+  <div *ngIf="selectedExecution" fxFlex="70%" class="box-padding typical-output-height">
+    <app-output fxFlex="grow" [name]="selectedExecution.name" [outputObservable]="selectedExecution.output"></app-output>
+  </div>
+</div>

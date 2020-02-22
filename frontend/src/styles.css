@@ -1,0 +1,44 @@
+/* You can add global styles to this file, and also import other style files */
+
+html, body { height: 100%; }
+body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; }
+
+pre {
+  margin: 0;
+}
+
+.scrollable {
+  overflow-y: scroll;
+}
+
+.max-height {
+  height: 100%;
+}
+
+.padding {
+  padding: 8px 16px;
+}
+
+.box-padding {
+  padding: 8px 8px;
+}
+
+.typical-output-height {
+  height: 85%;
+}
+
+.greyed-out {
+  color: rgba(0, 0, 0, 0.54);
+}
+
+.background-grey-400 {
+  background-color: #BDBDBD;
+}
+
+.background-grey-100 {
+  background-color: #F5F5F5;
+}
+
+.background-paper-white {
+  background-color: white;
+}

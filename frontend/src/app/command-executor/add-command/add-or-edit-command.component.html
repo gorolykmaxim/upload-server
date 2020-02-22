@@ -1,0 +1,28 @@
+<div class="background-paper-white mat-elevation-z3">
+  <form [formGroup]="addCommandForm" (ngSubmit)="submit()" fxLayout="column">
+    <div class="padding">
+      <span class="mat-h1">{{isInEditMode ? 'Edit' : 'Add'}} command</span>
+    </div>
+    <div class="padding" fxFlex="grow" fxLayout="column">
+      <mat-form-field>
+        <mat-label>Name</mat-label>
+        <input *ngIf="!isInEditMode" matInput formControlName="name"/>
+        <input *ngIf="isInEditMode" matInput disabled [value]="command.name"/>
+        <mat-error *ngIf="addCommandForm.get('name').errors">
+          Please enter a human-readable command name
+        </mat-error>
+      </mat-form-field>
+      <mat-form-field>
+        <mat-label>Script</mat-label>
+        <textarea matInput formControlName="script" placeholder=".sh or a .bat script..."></textarea>
+        <mat-error *ngIf="addCommandForm.get('script').errors">
+          Please enter an actual shell command/script
+        </mat-error>
+      </mat-form-field>
+    </div>
+    <div class="box-padding" fxLayoutAlign="end" fxLayoutGap="8px">
+      <button mat-button type="button" (click)="cancel.emit()">Cancel</button>
+      <button mat-button [disabled]="addCommandForm.invalid" type="submit" color="primary">Save</button>
+    </div>
+  </form>
+</div>
