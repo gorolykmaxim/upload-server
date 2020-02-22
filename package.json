@@ -1,6 +1,6 @@
 {
   "name": "upload-server-1",
-  "version": "3.0.0-beta.6",
+  "version": "3.0.0-beta.7",
   "description": "(not so) Simple HTTP file upload server",
   "main": "dist/backend/index.js",
   "preferGlobal": true,
