@@ -54,6 +54,7 @@ describe('command-executor', function () {
         when(processFactory.create('ls -lh')).thenReturn(instance(process));
         when(process.outputs).thenReturn(outputObservable);
         when(process.status).thenReturn(statusSubject);
+        when(jsonDB.getData('/logs-view/logs')).thenReturn([]);
         when(jsonDB.getData(configPath))
             .thenThrow(new Error())
             .thenReturn(Object.assign({}, executableCommands));

@@ -28,6 +28,7 @@ describe('uploader', function () {
         database = mock<Database>();
         when(jsonDB.getData('/authorization/credentials'))
             .thenReturn({login: user, password: password});
+        when(jsonDB.getData('/logs-view/logs')).thenReturn([]);
         application = new Application(null, instance(jsonDB), null, null, null,
             null, instance(database), instance(fileSystem), uploadDirectory);
         application.debug = true;

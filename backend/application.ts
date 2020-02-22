@@ -38,6 +38,7 @@ import * as expressBasicAuth from "express-basic-auth";
 import * as minimist from "minimist";
 import {createLogger, format, Logger, transports} from "winston";
 import {createServer as createHttpsServer} from "https";
+import {AllowedLogFilesRepositoryWithSecret} from "./log-watcher/infrastructure/allowed-log-files-repository-with-secret";
 import bodyParser = require("body-parser");
 import expressWs = require("express-ws");
 
@@ -183,7 +184,8 @@ export class Application {
         console.log('Initializing log watcher', this);
         console.log(`FileWatcher implementation used - ${this.fileWatcher.constructor.name}`, this);
         const allowedLogFilesRepository: ConfigAllowedLogFilesRepository = new ConfigAllowedLogFilesRepository(this.jsonDB);
-        const logWatcherBoundedContext: LogWatcherBoundedContext = new LogWatcherBoundedContext(allowedLogFilesRepository, this.logWatcherFileSystem, this.fileWatcher);
+        const allowedLogFilesRepositoryWithSecret: AllowedLogFilesRepositoryWithSecret = new AllowedLogFilesRepositoryWithSecret(allowedLogFilesRepository);
+        const logWatcherBoundedContext: LogWatcherBoundedContext = new LogWatcherBoundedContext(allowedLogFilesRepositoryWithSecret, this.logWatcherFileSystem, this.fileWatcher);
         const logWatcherApis: Array<Api> = [
             new LogWatcherRestApi(this.app, logWatcherBoundedContext, !this.args.isInAdminMode && !this.debug),
             new LogWatcherWebSocketApi(this.app, logWatcherBoundedContext),
@@ -192,9 +194,7 @@ export class Application {
         allowedLogFilesRepository.initialize();
         logWatcherApis.forEach(api => api.initialize('/api/log-watcher'));
         // application log
-        if (!this.debug) {
-            await logWatcherBoundedContext.allowLogFileToBeWatched(this.args.logFile);
-        }
+        allowedLogFilesRepositoryWithSecret.addSecretLog(this.args.logFile);
     }
 
     private async initializeCommandExecutor(): Promise<void> {

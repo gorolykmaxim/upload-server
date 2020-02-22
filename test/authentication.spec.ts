@@ -12,6 +12,7 @@ describe('authentication', async function () {
     beforeEach(async function () {
         database = mock<Database>();
         jsonDB = mock(JsonDB);
+        when(jsonDB.getData('/logs-view/logs')).thenReturn([]);
         when(jsonDB.getData(configPath))
             .thenThrow(new Error())
             .thenReturn({login: '1', password: '2'});
