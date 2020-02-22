@@ -5,11 +5,12 @@ import {webSocket} from 'rxjs/webSocket';
 import {map, mergeAll, tap} from 'rxjs/operators';
 import {ErrorService} from './error.service';
 import {SnackBarService} from './snack-bar.service';
+import {getHost} from './url';
 
 @Injectable({providedIn: 'root'})
 export class LogWatcherService {
   private static readonly BASE_URL = '/api/log-watcher/log';
-  private static readonly BASE_WS_URL = `ws://${location.hostname}:8090${LogWatcherService.BASE_URL}`;
+  private static readonly BASE_WS_URL = `ws://${getHost()}${LogWatcherService.BASE_URL}`;
 
   constructor(private httpClient: HttpClient, private errorService: ErrorService, private snackbarService: SnackBarService) {
   }

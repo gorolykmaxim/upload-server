@@ -11,7 +11,10 @@ export class ErrorService {
   }
 
   log(error: Error): void {
-    this.snackbarService.showSnackBar(error instanceof HttpErrorResponse ? `${error.message}: ${error.error}` : error.message);
+    if (error instanceof HttpErrorResponse) {
+      error = new Error(`${error.message}: ${error.error}`);
+    }
+    this.snackbarService.showSnackBar(error.message);
     this.errorSubject.next(new HistoricalError(error));
   }
 

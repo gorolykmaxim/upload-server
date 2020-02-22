@@ -3,14 +3,16 @@ import {HttpClient} from '@angular/common/http';
 import {ErrorService} from './error.service';
 import {Observable} from 'rxjs';
 import {webSocket} from 'rxjs/webSocket';
-import {filter, map, mergeAll, mergeMap, tap} from 'rxjs/operators';
+import {map, mergeAll, mergeMap, tap} from 'rxjs/operators';
+import {getHost} from './url';
 
 @Injectable({providedIn: 'root'})
 export class CommandExecutorService {
-  private static readonly BASE_URL = '/api/command-executor';
-  private static readonly ALL_EVENTS_URL = `${CommandExecutorService.BASE_URL}/event/status`;
-  private static readonly BASE_COMMAND_URL = `${CommandExecutorService.BASE_URL}/command`;
-  private static readonly BASE_EXECUTION_URL = `${CommandExecutorService.BASE_URL}/execution`;
+  private static readonly BASE_HTTP_URL = '/api/command-executor';
+  private static readonly BASE_WS_URL = `ws://${getHost()}`;
+  private static readonly ALL_EVENTS_URL = `${CommandExecutorService.BASE_HTTP_URL}/event/status`;
+  private static readonly BASE_COMMAND_URL = `${CommandExecutorService.BASE_HTTP_URL}/command`;
+  private static readonly BASE_EXECUTION_URL = `${CommandExecutorService.BASE_HTTP_URL}/execution`;
 
   constructor(private httpClient: HttpClient, private errorService: ErrorService) {
   }
@@ -59,7 +61,7 @@ export class CommandExecutorService {
   }
 
   watchAllExecutions(): Observable<Array<Execution>> {
-    return webSocket(`ws://${location.hostname}:8090${CommandExecutorService.ALL_EVENTS_URL}`).pipe(
+    return webSocket(`${CommandExecutorService.BASE_WS_URL}${CommandExecutorService.ALL_EVENTS_URL}`).pipe(
       mergeMap(_ => this.getAllExecutions())
     );
   }
@@ -103,7 +105,7 @@ export class CommandExecutorService {
       if (!execution) {
         throw new Error(`Execution with ID '${executionStartTime}' does not exist`);
       }
-      const outputUrl = `ws://${location.hostname}:8090${this.executionUrl(execution, 'output')}?fromStart=true`;
+      const outputUrl = `${CommandExecutorService.BASE_WS_URL}${this.executionUrl(execution, 'output')}?fromStart=true`;
       const output = webSocket<OutputChanges>(outputUrl).pipe(
         tap({error: e => this.errorService.log(e)}),
         map(c => c.changes),
