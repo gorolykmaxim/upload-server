@@ -9,8 +9,8 @@
     <mat-nav-list *ngIf="!canItemBeDeleted">
       <app-log-item *ngFor="let log of logs" [path]="log" [shortPath]="getFileName(log)"></app-log-item>
     </mat-nav-list>
-    <div *ngIf="canItemBeAdded" class="box-padding" fxLayoutAlign="end">
-      <button mat-raised-button color="primary" (click)="addItem.emit()">Add</button>
-    </div>
+  </div>
+  <div *ngIf="canItemBeAdded" class="box-padding" fxLayoutAlign="end">
+    <button mat-raised-button color="primary" (click)="addItem.emit()">Add</button>
   </div>
 </div>
