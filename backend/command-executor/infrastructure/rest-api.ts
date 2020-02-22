@@ -27,9 +27,14 @@ export class RestApi extends Api {
                     res.status(409).send(e.message);
                 }
             });
-            this.app.delete(`${baseUrl}/command/:id`, (req: Request, res: Response) => {
-                this.commandExecutorBoundedContext.removeCommand(req.params.id);
-                res.end();
+            this.app.delete(`${baseUrl}/command/:id`, async (req: Request, res: Response) => {
+                try {
+                    await this.commandExecutorBoundedContext.removeCommand(req.params.id);
+                    res.end();
+                } catch (e) {
+                    console.error(e.message, this);
+                    res.status(500).send(e.message);
+                }
             });
         }
         this.app.post(`${baseUrl}/command/:id/execution`, async (req: Request, res: Response) => {

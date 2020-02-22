@@ -115,13 +115,33 @@ describe('command-executor', function () {
         // then
         verify(jsonDB.push(`${configPath}/${command.name}`, deepEqual({command: command.script}))).once();
     });
-    it('should remove command with the specified ID', async function () {
+    it('should remove command with the specified ID and all its executions', async function () {
+        // given
+        when(process.status).thenReturn(NEVER);
+        when(process.outputs).thenReturn(NEVER);
+        const completeExecution = new Execution(1, command, {exitCode: 0, exitSignal: "SIGINT"}, null);
+        const completeExecutionRaw: any = {
+            'START_TIME': completeExecution.startTime,
+            'COMMAND_NAME': completeExecution.commandName,
+            'COMMAND_SCRIPT': completeExecution.commandScript,
+            'ERROR': completeExecution.errorMessage,
+            'EXIT_CODE': completeExecution.exitCode,
+            'EXIT_SIGNAL': completeExecution.exitSignal
+        };
+        when(database.all(SELECT_BY_COMMAND_NAME, command.name)).thenResolve([completeExecutionRaw]);
+        when(database.get(SELECT_BY_COMMAND_NAME_AND_START_TIME, command.name, completeExecution.startTime))
+            .thenResolve(completeExecutionRaw);
+        await request(application.app)
+            .post(`${baseUrl}/command/${command.id}/execution`)
+            .expect(201);
         // when
         await request(application.app)
             .delete(`${baseUrl}/command/${command.id}`)
             .expect(200);
         // then
+        verify(process.sendSignal(constants.signals.SIGKILL)).once();
         verify(jsonDB.push(configPath, deepEqual({'kill pc': {'command': 'sudo rm -rf /'}}))).once();
+        verify(database.run(DELETE, completeExecution.startTime, completeExecution.commandName)).once();
     });
     it('should not try to remove a command that does not exist', async function () {
         // given
@@ -132,6 +152,14 @@ describe('command-executor', function () {
             .expect(200);
         // then
         verify(jsonDB.push(anything(), anything())).never();
+    });
+    it('should fail to remove a command due to a database error, that has occurred while looking for its executions', async function () {
+        // given
+        when(database.all(SELECT_BY_COMMAND_NAME, command.name)).thenReject(new Error('error'));
+        // when
+        await request(application.app)
+            .delete(`${baseUrl}/command/${command.id}`)
+            .expect(500);
     });
     it('should fail to execute a command since command with the specified ID does not exist', async function () {
         // when

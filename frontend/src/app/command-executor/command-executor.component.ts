@@ -59,6 +59,7 @@ export class CommandExecutorComponent implements OnInit, OnDestroy {
   async deleteCommand(command: Command): Promise<void> {
     await this.commandExecutorService.deleteCommand(command);
     await this.loadCommands();
+    await this.loadExecutions();
   }
 
   async executeCommand(command: Command): Promise<void> {

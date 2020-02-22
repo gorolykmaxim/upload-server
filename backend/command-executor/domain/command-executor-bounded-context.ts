@@ -58,10 +58,14 @@ export class CommandExecutorBoundedContext {
      * it might still be of use.
      *
      * @param id ID of the command to remove
+     * @throws ExecutionsLookupError in case of a failed attempt to lookup executions in one of the repositories
+     * @throws ExecutionOperationError in case of a failed attempt to remove the execution from one of the repositories
      */
-    removeCommand(id: string): void {
+    async removeCommand(id: string): Promise<void> {
         const command: Command = this.commandRepository.findById(id);
         if (command) {
+            const executions: Array<ExecutionSummary> = await this.getExecutionsOfCommand(id);
+            await Promise.all(executions.map(e => this.removeExecution(id, e.startTime)));
             this.commandRepository.remove(command);
         }
     }
@@ -165,6 +169,7 @@ export class CommandExecutorBoundedContext {
      * @throws CommandDoesNotExistError if the command with the specified ID does not exist
      * @throws ExecutionsLookupError in case of a failed attempt to lookup the execution in one of the repositories
      * @throws ExecutionDoesNotExistError if there were no executions of the specified command, started at the specified time
+     * @throws ExecutionOperationError in case of a failed attempt to remove the execution from one of the repositories
      */
     async removeExecution(commandId: string, executionStartTime: number): Promise<void> {
         const command: Command = this.getCommandById(commandId);
