@@ -15,6 +15,11 @@ export class WebSocketApi extends Api {
                 .subscribe(e => connection.send(JSON.stringify(e)));
             connection.on('close', () => subscription.unsubscribe());
         });
+        this.app.ws(`${baseUrl}/event/status`, (connection: WebSocket, req: Request) => {
+            const subscription: Subscription = this.commandExecutorBoundedContext.watchStatusesOfAllExecutions()
+                .subscribe(e => connection.send(JSON.stringify(e)));
+            connection.on('close', () => subscription.unsubscribe());
+        });
         this.app.ws(`${baseUrl}/command/:commandId/execution/:startTime`, (connection: WebSocket, req: Request) => {
             this.handleConnection(this.commandExecutorBoundedContext.watchAllEvents(req.params.commandId, parseInt(req.params.startTime)), connection);
         });

@@ -189,6 +189,12 @@ events.
 /api/command-executor/event
 ```
 
+Connect to this endpoint if you want to receive notifications about all status change events of all executions.
+
+```
+/api/command-executor/event/status
+```
+
 Connect to this endpoint if you want to receive notifications about all events,
 related to the specified command execution.
 

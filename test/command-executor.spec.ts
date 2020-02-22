@@ -842,4 +842,31 @@ describe('command-executor', function () {
             }
         ]);
     });
+    it('should receive status change events about both executions', async function () {
+        // when
+        const socket: DummyWebSocket = await wss.connect(`${baseUrl}/event/status`);
+        await request(application.app)
+            .post(`${baseUrl}/command/${command.id}/execution`)
+            .expect(201);
+        await request(application.app)
+            .post(`${baseUrl}/command/${command.id}/execution`)
+            .expect(201);
+        statusSubject.next({exitCode: 0, exitSignal: null});
+        const messages: Array<any> = await socket.messages.pipe(take(2), toArray()).toPromise();
+        // then
+        expect(messages).eql([
+            {
+                commandName: command.name,
+                startTime: clock.now(),
+                status: {exitCode: 0, exitSignal: null},
+                error: null
+            },
+            {
+                commandName: command.name,
+                startTime: clock.now(),
+                status: {exitCode: 0, exitSignal: null},
+                error: null
+            }
+        ]);
+    });
 });

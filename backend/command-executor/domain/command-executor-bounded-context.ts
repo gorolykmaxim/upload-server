@@ -223,6 +223,13 @@ export class CommandExecutorBoundedContext {
     }
 
     /**
+     * Return observable of all status change events, happening in command executor. The observable will not complete.
+     */
+    watchStatusesOfAllExecutions(): Observable<StatusChangeEvent> {
+        return this.statusChanges;
+    }
+
+    /**
      * Return observable of status-related events of the specific execution. The observable will complete once the
      * watched execution is complete.
      *
