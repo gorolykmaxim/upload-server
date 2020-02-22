@@ -45,7 +45,7 @@ export class AppendOnlyListComponent implements OnChanges, OnDestroy {
   scrollToBottom(): void {
     this.container?.nativeElement.scroll({
       top: this.container.nativeElement.scrollHeight,
-      left: 0,
+      left: this.container.nativeElement.scrollLeft,
       behavior: 'smooth'
     });
   }
