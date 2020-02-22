@@ -67,7 +67,7 @@ export class Execution {
     }
 
     get isComplete(): boolean {
-        return this.exitCode !== null || this.errorMessage !== null;
+        return this.exitCode !== null || this.exitSignal !== null || this.errorMessage !== null;
     }
 }
 

@@ -808,4 +808,38 @@ describe('command-executor', function () {
             }
         ]);
     });
+    it('should receive complete output of the killed execution in output events and get connection closed after execution being complete', async function () {
+        // given
+        const outputSubject: Subject<string> = new Subject<string>();
+        when(process.outputs).thenReturn(outputSubject);
+        await request(application.app)
+            .post(`${baseUrl}/command/${command.id}/execution`)
+            .expect(201);
+        // when
+        output.forEach(line => outputSubject.next(line));
+        const socket: DummyWebSocket = await wss.connect(`${baseUrl}/command/:commandId/execution/:startTime/output`, {fromStart: 'true'}, {commandId: command.id, startTime: clock.now()});
+        setTimeout(() => {
+            output.forEach(line => outputSubject.next(line));
+            statusSubject.next({exitCode: null, exitSignal: 'SIGKILL'});
+        });
+        const messages: Array<any> = await socket.messages.pipe(takeUntil(socket.closeEvent), toArray()).toPromise();
+        // then
+        expect(messages).eql([
+            {
+                commandName: command.name,
+                startTime: clock.now(),
+                changes: output
+            },
+            {
+                commandName: command.name,
+                startTime: clock.now(),
+                changes: [output[0]]
+            },
+            {
+                commandName: command.name,
+                startTime: clock.now(),
+                changes: [output[1]]
+            }
+        ]);
+    });
 });
