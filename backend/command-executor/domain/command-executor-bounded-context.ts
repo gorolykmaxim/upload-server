@@ -76,7 +76,12 @@ export class CommandExecutorBoundedContext {
         const command: Command = this.getCommandById(id);
         const execution: Execution = command.execute(this.clock, this.processFactory, this.outputChanges, this.statusChanges);
         await this.activeExecutionsRepository.add(execution);
-        return {startTime: execution.startTime, commandName: execution.commandName, commandScript: execution.commandScript};
+        return {
+            startTime: execution.startTime,
+            commandId: execution.commandId,
+            commandName: execution.commandName,
+            commandScript: execution.commandScript
+        };
     }
 
     /**
@@ -125,6 +130,7 @@ export class CommandExecutorBoundedContext {
         const execution: Execution = await this.getExecution(command, executionStartTime);
         return {
             startTime: execution.startTime,
+            commandId: execution.commandId,
             commandName: execution.commandName,
             commandScript: execution.commandScript,
             exitCode: execution.exitCode,
@@ -305,6 +311,7 @@ export class CommandExecutorBoundedContext {
             .map<ExecutionSummary>(e => {
                 return {
                     startTime: e.startTime,
+                    commandId: e.commandId,
                     commandName: e.commandName,
                     commandScript: e.commandScript,
                     exitCode: e.exitCode,
@@ -323,6 +330,10 @@ export interface StartedExecution {
      * The time in milliseconds, when the execution has started.
      */
     startTime: number,
+    /**
+     * ID of the command, to which this execution belongs to.
+     */
+    commandId: string,
     /**
      * Name of the command, to which this execution belongs to.
      */

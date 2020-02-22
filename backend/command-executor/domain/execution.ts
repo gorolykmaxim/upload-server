@@ -34,6 +34,10 @@ export class Execution {
         this.process.sendSignal(signal);
     }
 
+    get commandId(): string {
+        return this.command.id;
+    }
+
     get commandName(): string {
         return this.command.name;
     }

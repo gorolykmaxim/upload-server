@@ -143,7 +143,7 @@ describe('command-executor', function () {
         // when
         await request(application.app)
             .post(`${baseUrl}/command/${command.id}/execution`)
-            .expect(201, {startTime: clock.now(), commandName:  command.name, commandScript: command.script});
+            .expect(201, {startTime: clock.now(), commandId: command.id, commandName:  command.name, commandScript: command.script});
     });
     it('should save successfully finished command execution to the database', async function () {
         // given
@@ -220,6 +220,7 @@ describe('command-executor', function () {
             .expect(200, executions.map(e => {
                 return {
                     startTime: e.startTime,
+                    commandId: e.commandId,
                     commandName: e.commandName,
                     commandScript: e.commandScript,
                     exitCode: e.exitCode,
@@ -267,6 +268,7 @@ describe('command-executor', function () {
             .expect(200, executions.map(e => {
                 return {
                     startTime: e.startTime,
+                    commandId: e.commandId,
                     commandName: e.commandName,
                     commandScript: e.commandScript,
                     exitCode: e.exitCode,
@@ -306,6 +308,7 @@ describe('command-executor', function () {
             .get(`${baseUrl}/command/${command.id}/execution/${clock.now()}`)
             .expect(200, {
                 startTime: clock.now(),
+                commandId: command.id,
                 commandName: command.name,
                 commandScript: command.script,
                 exitCode: null,
@@ -326,6 +329,7 @@ describe('command-executor', function () {
             .query({noSplit: true})
             .expect(200, {
                 startTime: clock.now(),
+                commandId: command.id,
                 commandName: command.name,
                 commandScript: command.script,
                 exitCode: null,
@@ -352,6 +356,7 @@ describe('command-executor', function () {
             .get(`${baseUrl}/command/${command.id}/execution/${startTime}`)
             .expect(200, {
                 startTime: startTime,
+                commandId: command.id,
                 commandName: command.name,
                 commandScript: command.script,
                 exitCode: exitCode,
@@ -379,6 +384,7 @@ describe('command-executor', function () {
             .query({noSplit: true})
             .expect(200, {
                 startTime: startTime,
+                commandId: command.id,
                 commandName: command.name,
                 commandScript: command.script,
                 exitCode: exitCode,
