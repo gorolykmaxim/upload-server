@@ -1,3 +1,9 @@
+# Upload server
+
+This is not-as-simple-as-it-once-was service, that you can run on your VM to upload files. Also, it allows you:
+- watch log files on your VM (like tail -f but inside your browser (or use the web-socket API, described below)).
+- execute commands on VM (from browser or using the API)
+
 ## API
 
 ### Internal application API
