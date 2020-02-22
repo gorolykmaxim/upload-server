@@ -1,12 +1,13 @@
 <div class="background-paper-white mat-elevation-z3">
   <form [formGroup]="addCommandForm" (ngSubmit)="submit()" fxLayout="column">
     <div class="padding">
-      <span class="mat-h1">Add command</span>
+      <span class="mat-h1">{{isInEditMode ? 'Edit' : 'Add'}} command</span>
     </div>
     <div class="padding" fxFlex="grow" fxLayout="column">
       <mat-form-field>
         <mat-label>Name</mat-label>
-        <input matInput formControlName="name"/>
+        <input *ngIf="!isInEditMode" matInput formControlName="name"/>
+        <input *ngIf="isInEditMode" matInput disabled [value]="command.name"/>
         <mat-error *ngIf="addCommandForm.get('name').errors">
           Please enter a human-readable command name
         </mat-error>

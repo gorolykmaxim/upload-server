@@ -1,8 +1,10 @@
 <div fxLayout="row" class="max-height">
   <div fxFlex="30%" fxLayoutGap="8px" fxLayout="column" class="scrollable box-padding">
-    <app-command-list *ngIf="isEditable" [commands]="commands" (delete)="deleteCommand($event)" (run)="executeCommand($event)" (add)="editing = true"></app-command-list>
+    <app-command-list *ngIf="isEditable" [commands]="commands" (delete)="deleteCommand($event)"
+                      (run)="executeCommand($event)" (add)="startAddingCommand()" (edit)="startEditingCommand($event)"></app-command-list>
     <app-command-list *ngIf="!isEditable" [commands]="commands" (run)="executeCommand($event)"></app-command-list>
-    <app-add-command *ngIf="editing" (cancel)="editing = false" (save)="addCommand($event)"></app-add-command>
+    <app-add-or-edit-command *ngIf="adding" (cancel)="adding = false" (save)="addCommand($event)"></app-add-or-edit-command>
+    <app-add-or-edit-command *ngIf="editedCommand" [command]="editedCommand" (cancel)="editedCommand = null" (save)="editCommand($event)"></app-add-or-edit-command>
     <app-execution-list [executions]="executions" (delete)="deleteExecution($event)"
                         (terminate)="terminateExecution($event)" (halt)="haltExecution($event)"
                         (deleteAll)="deleteAllExecutions()"></app-execution-list>

@@ -8,11 +8,12 @@ import {Command} from '../../command-executor.service';
 export class CommandListComponent {
   @Input() commands: Array<Command>;
   @Output() run = new EventEmitter<Command>();
+  @Output() edit = new EventEmitter<Command>();
   @Output() delete = new EventEmitter<Command>();
   @Output() add = new EventEmitter();
 
-  get canItemBeDeleted(): boolean {
-    return this.delete.observers.length > 0;
+  get canItemBeModified(): boolean {
+    return this.delete.observers.length > 0 && this.edit.observers.length > 0;
   }
 
   get canItemBeAdded(): boolean {

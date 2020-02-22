@@ -13,7 +13,8 @@ export class CommandExecutorComponent implements OnInit, OnDestroy {
   commands: Array<Command> = [];
   executions: Array<Execution> = [];
   isEditable = false;
-  editing = false;
+  adding = false;
+  editedCommand: Command = null;
   paramsSubscription: Subscription;
   executionsSubscription: Subscription;
   selectedExecution: ExecutionWithOutput = null;
@@ -52,10 +53,28 @@ export class CommandExecutorComponent implements OnInit, OnDestroy {
     this.isEditable = config.isInAdminMode;
   }
 
+  startAddingCommand(): void {
+    this.editedCommand = null;
+    this.adding = true;
+  }
+
+  startEditingCommand(command: Command): void {
+    this.adding = false;
+    this.editedCommand = command;
+  }
+
   async addCommand(command: Command): Promise<void> {
-    this.editing = false;
+    this.adding = false;
     await this.commandExecutorService.addCommand(command);
     await this.loadCommands();
+  }
+
+  async editCommand(command: Command): Promise<void> {
+    const existingCommand = this.editedCommand;
+    this.editedCommand = null;
+    await this.commandExecutorService.deleteCommand(existingCommand);
+    await this.commandExecutorService.addCommand(command);
+    await Promise.all([this.loadCommands(), this.loadExecutions()]);
   }
 
   async deleteCommand(command: Command): Promise<void> {

@@ -28,7 +28,7 @@ import { AddLogComponent } from './log-watcher/add-log/add-log.component';
 import {MatTooltipModule} from '@angular/material/tooltip';
 import { CommandItemComponent } from './command-executor/command-item/command-item.component';
 import { CommandListComponent } from './command-executor/command-list/command-list.component';
-import { AddCommandComponent } from './command-executor/add-command/add-command.component';
+import { AddOrEditCommandComponent } from './command-executor/add-command/add-or-edit-command.component';
 import { ExecutionListComponent } from './command-executor/execution-list/execution-list.component';
 import { ExecutionItemComponent } from './command-executor/execution-item/execution-item.component';
 import {MatMenuModule} from '@angular/material/menu';
@@ -48,7 +48,7 @@ import {MatDialogModule} from '@angular/material/dialog';
     AddLogComponent,
     CommandItemComponent,
     CommandListComponent,
-    AddCommandComponent,
+    AddOrEditCommandComponent,
     ExecutionListComponent,
     ExecutionItemComponent,
     ConfirmationDialogComponent,

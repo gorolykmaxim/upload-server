@@ -3,10 +3,11 @@
     <span class="mat-h1">Commands</span>
   </div>
   <div>
-    <mat-nav-list *ngIf="canItemBeDeleted">
-      <app-command-item *ngFor="let command of commands" [command]="command" (delete)="delete.emit(command)" (run)="run.emit(command)"></app-command-item>
+    <mat-nav-list *ngIf="canItemBeModified">
+      <app-command-item *ngFor="let command of commands" [command]="command" (edit)="edit.emit(command)"
+                        (delete)="delete.emit(command)" (run)="run.emit(command)"></app-command-item>
     </mat-nav-list>
-    <mat-nav-list *ngIf="!canItemBeDeleted">
+    <mat-nav-list *ngIf="!canItemBeModified">
       <app-command-item *ngFor="let command of commands" [command]="command" (run)="run.emit(command)"></app-command-item>
     </mat-nav-list>
   </div>
