@@ -1,6 +1,6 @@
 {
   "name": "upload-server-1",
-  "version": "3.0.0-beta.11",
+  "version": "3.0.0-beta.12",
   "description": "(not so) Simple HTTP file upload server",
   "main": "dist/backend/index.js",
   "preferGlobal": true,
@@ -43,7 +43,6 @@
     "express-basic-auth": "^1.2.0",
     "express-validator": "^6.4.0",
     "express-ws": "^4.0.0",
-    "frontend": "file:frontend",
     "fs-extra": "^8.1.0",
     "md5": "^2.2.1",
     "minimist": "^1.2.0",
