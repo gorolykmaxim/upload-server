@@ -3,6 +3,7 @@ import {Log, LogWatcherService} from '../log-watcher.service';
 import {ActivatedRoute} from '@angular/router';
 import {Subscription} from 'rxjs';
 import {ConfigService} from '../config.service';
+import {ConfirmationService} from '../confirmation.service';
 
 @Component({
   selector: 'app-log-watcher',
@@ -15,7 +16,8 @@ export class LogWatcherComponent implements OnInit, OnDestroy {
   logs: Array<string> = [];
   queryParamsSubscription: Subscription;
 
-  constructor(private route: ActivatedRoute, private logWatcherService: LogWatcherService, private configService: ConfigService) { }
+  constructor(private route: ActivatedRoute, private logWatcherService: LogWatcherService, private configService: ConfigService,
+              private confirmationService: ConfirmationService) { }
 
   ngOnInit(): void {
     this.queryParamsSubscription = this.route.queryParams.subscribe(async params => {
@@ -44,8 +46,10 @@ export class LogWatcherComponent implements OnInit, OnDestroy {
   }
 
   async deleteLog(log: string): Promise<void> {
-    await this.logWatcherService.deleteLog(log);
-    await this.loadLogs();
+    if (await this.confirmationService.requestConfirmation('Removal', `You are about to remove the log file '${log}' from the list.`)) {
+      await this.logWatcherService.deleteLog(log);
+      await this.loadLogs();
+    }
   }
 
   async loadLogs(): Promise<void> {

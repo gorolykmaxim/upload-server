@@ -3,6 +3,7 @@ import {Command, CommandExecutorService, Execution, ExecutionWithOutput} from '.
 import {ActivatedRoute} from '@angular/router';
 import {Subscription} from 'rxjs';
 import {ConfigService} from '../config.service';
+import {ConfirmationService} from '../confirmation.service';
 
 @Component({
   selector: 'app-command-executor',
@@ -17,7 +18,8 @@ export class CommandExecutorComponent implements OnInit, OnDestroy {
   executionsSubscription: Subscription;
   selectedExecution: ExecutionWithOutput = null;
 
-  constructor(private route: ActivatedRoute, private commandExecutorService: CommandExecutorService, private configService: ConfigService) {
+  constructor(private route: ActivatedRoute, private commandExecutorService: CommandExecutorService, private configService: ConfigService,
+              private confirmationService: ConfirmationService) {
   }
 
   ngOnInit(): void {
@@ -57,9 +59,11 @@ export class CommandExecutorComponent implements OnInit, OnDestroy {
   }
 
   async deleteCommand(command: Command): Promise<void> {
-    await this.commandExecutorService.deleteCommand(command);
-    await this.loadCommands();
-    await this.loadExecutions();
+    if (await this.confirmationService.requestConfirmation('Removal', `You are about to remove the command '${command.name}'.`)) {
+      await this.commandExecutorService.deleteCommand(command);
+      await this.loadCommands();
+      await this.loadExecutions();
+    }
   }
 
   async executeCommand(command: Command): Promise<void> {
@@ -81,8 +85,12 @@ export class CommandExecutorComponent implements OnInit, OnDestroy {
   }
 
   async deleteAllExecutions(): Promise<void> {
-    await this.commandExecutorService.deleteAllExecutions();
-    await this.loadExecutions();
+    const message = `You are about to remove ALL executions! Complete executions will be removed from the history and all active executions
+     will get aborted.`;
+    if (await this.confirmationService.requestConfirmation('Global removal', message)) {
+      await this.commandExecutorService.deleteAllExecutions();
+      await this.loadExecutions();
+    }
   }
 
   ngOnDestroy(): void {
