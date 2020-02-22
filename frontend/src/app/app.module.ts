@@ -35,6 +35,7 @@ import {MatMenuModule} from '@angular/material/menu';
 import { ConfirmationDialogComponent } from './widget/confirmation-dialog/confirmation-dialog.component';
 import {MatDialogModule} from '@angular/material/dialog';
 import { EmptyListPlaceholderComponent } from './widget/empty-list-placeholder/empty-list-placeholder.component';
+import { ErrorLogComponent } from './error-log/error-log.component';
 
 @NgModule({
   declarations: [
@@ -54,6 +55,7 @@ import { EmptyListPlaceholderComponent } from './widget/empty-list-placeholder/e
     ExecutionItemComponent,
     ConfirmationDialogComponent,
     EmptyListPlaceholderComponent,
+    ErrorLogComponent,
   ],
   imports: [
     BrowserModule,
@@ -64,6 +66,7 @@ import { EmptyListPlaceholderComponent } from './widget/empty-list-placeholder/e
     RouterModule.forRoot([
       {path: 'logs', component: LogWatcherComponent},
       {path: 'commands', component: CommandExecutorComponent},
+      {path: 'errors', component: ErrorLogComponent},
       {path: 'command/:commandId/execution/:executionStartTime', component: CommandExecutorComponent},
       {path: '', component: ApplicationLogComponent}
     ]),
