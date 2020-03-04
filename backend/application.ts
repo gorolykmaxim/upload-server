@@ -39,7 +39,6 @@ import * as minimist from "minimist";
 import {createLogger, format, Logger, transports} from "winston";
 import {createServer as createHttpsServer} from "https";
 import {AllowedLogFilesRepositoryWithSecret} from "./log-watcher/infrastructure/allowed-log-files-repository-with-secret";
-import bodyParser = require("body-parser");
 import expressWs = require("express-ws");
 
 /**
@@ -108,7 +107,6 @@ export class Application {
         this.initializeServer();
         console.log(`Is in debug mode - ${this.debug}`, this);
         console.log(`Is in admin mode - ${this.args.isInAdminMode}`, this);
-        this.app.use(bodyParser.json());
         this.initializeAuthenticationIfNecessary();
         await this.initializeLogWatcher();
         await this.initializeCommandExecutor();
