@@ -2,6 +2,7 @@ import {Api} from "../../api";
 import {Express, Request, Response} from "express";
 import {body, query} from "express-validator";
 import {LogFileAccessError, LogWatcherBoundedContext} from "../domain/log-watcher-bounded-context";
+import bodyParser = require("body-parser");
 
 export class RestApi extends Api {
     constructor(private app: Express, private logWatcherBoundedContext: LogWatcherBoundedContext,
@@ -10,6 +11,7 @@ export class RestApi extends Api {
     }
 
     initialize(baseUrl: string): void {
+        this.app.use(`${baseUrl}/*`, bodyParser.json());
         this.app.get(`${baseUrl}/log`, (req: Request, res: Response) => {
             res.json(this.logWatcherBoundedContext.getLogFilesAllowedToBeWatched());
         });

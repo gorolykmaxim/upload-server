@@ -5,6 +5,7 @@ import {fromEvent, Observable} from "rxjs";
 import {take, takeUntil} from "rxjs/operators";
 import {body, query} from "express-validator";
 import multer = require("multer");
+import bodyParser = require("body-parser");
 
 export class RestApi extends Api {
     constructor(private uploadDirectory: string, private app: Express, private uploaderBoundedContext: UploaderBoundedContext) {
@@ -20,6 +21,7 @@ export class RestApi extends Api {
             }
         });
         const upload = multer({storage: storage});
+        this.app.use(`${baseUrl}/*`, bodyParser.json());
         this.app.post('/files/', upload.any(), this.handleRawBodyUpload(), this.logFileOperationAndRespond(this.fileUpload()));
         this.app.post('/files/upload', upload.any(), this.handleRawBodyUpload(), this.logFileOperationAndRespond(this.fileUpload()));
         this.app.post(`${baseUrl}/file`, upload.any(), this.handleRawBodyUpload(), this.logFileOperationAndRespond(this.fileUpload()));

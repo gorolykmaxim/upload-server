@@ -7,6 +7,7 @@ import {
 } from "../domain/command-executor-bounded-context";
 import {body} from "express-validator";
 import {constants} from "os";
+import bodyParser = require("body-parser");
 
 export class RestApi extends Api {
     constructor(private app: Express, private commandExecutorBoundedContext: CommandExecutorBoundedContext,
@@ -15,6 +16,7 @@ export class RestApi extends Api {
     }
 
     initialize(baseUrl: string): void {
+        this.app.use(`${baseUrl}/*`, bodyParser.json());
         this.app.get(`${baseUrl}/command`, (req: Request, res: Response) => {
             res.json(this.commandExecutorBoundedContext.getAllExecutableCommands());
         });
