@@ -10,6 +10,7 @@ import {ConfirmationService} from '../confirmation.service';
   templateUrl: './log-watcher.component.html'
 })
 export class LogWatcherComponent implements OnInit, OnDestroy {
+  isFullScreen = false;
   isEditable = false;
   log: Log = null;
   editing = false;
