@@ -12,8 +12,8 @@ export class OutputComponent implements OnChanges, OnDestroy {
   @Input() size: number;
   @Input() autoScrollDown = true;
   @Input() isFullScreen = false;
-  @Output() fullScreenUrl: EventEmitter<any> = new EventEmitter<any>();
-  @Output() fullScreenExitUrl: EventEmitter<any> = new EventEmitter<any>();
+  @Output() enterFullScreen: EventEmitter<any> = new EventEmitter<any>();
+  @Output() exitFullScreen: EventEmitter<any> = new EventEmitter<any>();
   @Output() loadFull: EventEmitter<any> = new EventEmitter<any>();
   @Output() reload: EventEmitter<any> = new EventEmitter<any>();
   isWaitingForFullOutput = false;
@@ -28,7 +28,7 @@ export class OutputComponent implements OnChanges, OnDestroy {
   }
 
   get canEnterAndExitFullScreen(): boolean {
-    return this.fullScreenUrl.observers.length > 0 && this.fullScreenExitUrl.observers.length > 0;
+    return this.enterFullScreen.observers.length > 0 && this.exitFullScreen.observers.length > 0;
   }
 
   get formattedSize(): string {

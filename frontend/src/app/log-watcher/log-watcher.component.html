@@ -7,7 +7,7 @@
   <div *ngIf="log" [fxFlex]="isFullScreen ? '100%' : '80%'" class="box-padding typical-output-height">
     <app-output fxFlex="grow" [name]="log.fileName" [outputObservable]="log.content" [size]="log.sizeInBytes"
                 (loadFull)="watchCurrentLog(true)" (reload)="watchCurrentLog(false)"
-                [isFullScreen]="isFullScreen" (fullScreenUrl)="isFullScreen = true"
-                (fullScreenExitUrl)="isFullScreen = false"></app-output>
+                [isFullScreen]="isFullScreen" (enterFullScreen)="isFullScreen = true"
+                (exitFullScreen)="isFullScreen = false"></app-output>
   </div>
 </div>

@@ -7,10 +7,10 @@
       <label *ngIf="size" class="greyed-out">Size - {{formattedSize}}</label>
       <mat-checkbox [(ngModel)]="autoScrollDown">Auto-scroll</mat-checkbox>
     </div>
-    <button *ngIf="canEnterAndExitFullScreen && !isFullScreen" mat-icon-button matTooltip="Open in fullscreen" (click)="fullScreenUrl.emit()">
+    <button *ngIf="canEnterAndExitFullScreen && !isFullScreen" mat-icon-button matTooltip="Open in fullscreen" (click)="enterFullScreen.emit()">
       <mat-icon>fullscreen</mat-icon>
     </button>
-    <button *ngIf="canEnterAndExitFullScreen && isFullScreen" mat-icon-button matTooltip="Close fullscreen view" (click)="fullScreenExitUrl.emit()">
+    <button *ngIf="canEnterAndExitFullScreen && isFullScreen" mat-icon-button matTooltip="Close fullscreen view" (click)="exitFullScreen.emit()">
       <mat-icon>fullscreen_exit</mat-icon>
     </button>
   </div>
